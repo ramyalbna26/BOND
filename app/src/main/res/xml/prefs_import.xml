@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_import_category_formats">
+
+        <Preference
+            app:key="pref_import_supported_formats"
+            app:title="@string/prefs_import_supported_title"
+            app:selectable="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_import_category_encoding">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.import.auto_detect_encoding"
+            app:title="@string/prefs_import_auto_encoding_title"
+            app:summary="@string/prefs_import_auto_encoding_summary" />
+
+        <ListPreference
+            app:key="sanad.import.default_encoding"
+            app:title="@string/prefs_import_default_encoding_title"
+            app:entries="@array/encoding_entries"
+            app:entryValues="@array/encoding_values"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="sanad.import.auto_detect_encoding" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_import_category_behavior">
+
+        <ListPreference
+            app:key="sanad.import.max_file_size_mb"
+            app:title="@string/prefs_import_max_size_title"
+            app:entries="@array/max_file_size_entries"
+            app:entryValues="@array/max_file_size_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.import.keep_original"
+            app:title="@string/prefs_import_keep_original_title"
+            app:summary="@string/prefs_import_keep_original_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ============ Log level ============ -->
+    <string-array name="log_level_entries">
+        <item>@string/log_level_verbose</item>
+        <item>@string/log_level_debug</item>
+        <item>@string/log_level_info</item>
+        <item>@string/log_level_warn</item>
+        <item>@string/log_level_error</item>
+    </string-array>
+    <string-array name="log_level_values" translatable="false">
+        <item>VERBOSE</item>
+        <item>DEBUG</item>
+        <item>INFO</item>
+        <item>WARN</item>
+        <item>ERROR</item>
+    </string-array>
+
+    <!-- ============ Language ============ -->
+    <string-array name="language_entries">
+        <item>@string/language_system</item>
+        <item>@string/language_arabic</item>
+        <item>@string/language_english</item>
+    </string-array>
+    <string-array name="language_values" translatable="false">
+        <item>system</item>
+        <item>ar</item>
+        <item>en</item>
+    </string-array>
+
+    <!-- ============ Theme ============ -->
+    <string-array name="theme_entries">
+        <item>@string/theme_system</item>
+        <item>@string/theme_light</item>
+        <item>@string/theme_dark</item>
+    </string-array>
+    <string-array name="theme_values" translatable="false">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+
+    <!-- ============ Fonts — Arabic ============ -->
+    <string-array name="font_arabic_entries">
+        <item>Cairo</item>
+        <item>Tajawal</item>
+        <item>Amiri</item>
+        <item>Noto Naskh Arabic</item>
+        <item>@string/font_system</item>
+    </string-array>
+    <string-array name="font_arabic_values" translatable="false">
+        <item>cairo</item>
+        <item>tajawal</item>
+        <item>amiri</item>
+        <item>noto_naskh</item>
+        <item>system</item>
+    </string-array>
+
+    <!-- ============ Fonts — Latin ============ -->
+    <string-array name="font_latin_entries">
+        <item>Roboto</item>
+        <item>Inter</item>
+        <item>@string/font_system</item>
+    </string-array>
+    <string-array name="font_latin_values" translatable="false">
+        <item>roboto</item>
+        <item>inter</item>
+        <item>system</item>
+    </string-array>
+
+    <!-- ============ Font size ============ -->
+    <string-array name="font_size_entries" translatable="false">
+        <item>10 sp</item>
+        <item>11 sp</item>
+        <item>12 sp</item>
+        <item>13 sp</item>
+        <item>14 sp</item>
+        <item>15 sp</item>
+        <item>16 sp</item>
+        <item>18 sp</item>
+        <item>20 sp</item>
+        <item>22 sp</item>
+        <item>24 sp</item>
+    </string-array>
+    <string-array name="font_size_values" translatable="false">
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>18</item>
+        <item>20</item>
+        <item>22</item>
+        <item>24</item>
+    </string-array>
+
+    <!-- ============ Sharing action ============ -->
+    <string-array name="sharing_action_entries">
+        <item>@string/sharing_action_share</item>
+        <item>@string/sharing_action_export</item>
+        <item>@string/sharing_action_save</item>
+    </string-array>
+    <string-array name="sharing_action_values" translatable="false">
+        <item>share</item>
+        <item>export</item>
+        <item>save</item>
+    </string-array>
+
+    <!-- ============ Cache size ============ -->
+    <string-array name="cache_size_entries" translatable="false">
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+        <item>500 MB</item>
+        <item>1 GB</item>
+    </string-array>
+    <string-array name="cache_size_values" translatable="false">
+        <item>50</item>
+        <item>100</item>
+        <item>200</item>
+        <item>500</item>
+        <item>1024</item>
+    </string-array>
+
+    <!-- ============ Backup interval ============ -->
+    <string-array name="backup_interval_entries">
+        <item>@string/backup_interval_1h</item>
+        <item>@string/backup_interval_6h</item>
+        <item>@string/backup_interval_12h</item>
+        <item>@string/backup_interval_24h</item>
+        <item>@string/backup_interval_week</item>
+    </string-array>
+    <string-array name="backup_interval_values" translatable="false">
+        <item>1</item>
+        <item>6</item>
+        <item>12</item>
+        <item>24</item>
+        <item>168</item>
+    </string-array>
+
+    <!-- ============ Encoding ============ -->
+    <string-array name="encoding_entries" translatable="false">
+        <item>UTF-8</item>
+        <item>UTF-16</item>
+        <item>Windows-1256 (Arabic)</item>
+        <item>ISO-8859-1</item>
+    </string-array>
+    <string-array name="encoding_values" translatable="false">
+        <item>UTF-8</item>
+        <item>UTF-16</item>
+        <item>windows-1256</item>
+        <item>ISO-8859-1</item>
+    </string-array>
+
+    <!-- ============ Max file size ============ -->
+    <string-array name="max_file_size_entries" translatable="false">
+        <item>10 MB</item>
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+        <item>500 MB</item>
+    </string-array>
+    <string-array name="max_file_size_values" translatable="false">
+        <item>10</item>
+        <item>50</item>
+        <item>100</item>
+        <item>200</item>
+        <item>500</item>
+    </string-array>
+
+    <!-- ============ Export format ============ -->
+    <string-array name="export_format_entries">
+        <item>@string/export_format_docx</item>
+        <item>@string/export_format_pdf</item>
+        <item>@string/export_format_both</item>
+    </string-array>
+    <string-array name="export_format_values" translatable="false">
+        <item>docx</item>
+        <item>pdf</item>
+        <item>both</item>
+    </string-array>
+
+    <!-- ============ Export preset ============ -->
+    <string-array name="export_preset_entries">
+        <item>@string/export_preset_default</item>
+        <item>@string/export_preset_print</item>
+        <item>@string/export_preset_web</item>
+        <item>@string/export_preset_archive</item>
+    </string-array>
+    <string-array name="export_preset_values" translatable="false">
+        <item>default</item>
+        <item>print</item>
+        <item>web</item>
+        <item>archive</item>
+    </string-array>
+
+    <!-- ============ Parallel tasks ============ -->
+    <string-array name="parallel_tasks_entries" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>6</item>
+        <item>8</item>
+    </string-array>
+    <string-array name="parallel_tasks_values" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>6</item>
+        <item>8</item>
+    </string-array>
+
+    <!-- ============ Streaming threshold ============ -->
+    <string-array name="streaming_threshold_entries" translatable="false">
+        <item>10 MB</item>
+        <item>25 MB</item>
+        <item>50 MB</item>
+        <item>100 MB</item>
+        <item>200 MB</item>
+    </string-array>
+    <string-array name="streaming_threshold_values" translatable="false">
+        <item>10</item>
+        <item>25</item>
+        <item>50</item>
+        <item>100</item>
+        <item>200</item>
+    </string-array>
+
+    <!-- ============ Background workers ============ -->
+    <string-array name="background_workers_entries" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <string-array name="background_workers_values" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <!-- ============ Auto-lock minutes ============ -->
+    <string-array name="auto_lock_entries">
+        <item>@string/auto_lock_immediate</item>
+        <item>@string/auto_lock_1min</item>
+        <item>@string/auto_lock_5min</item>
+        <item>@string/auto_lock_15min</item>
+        <item>@string/auto_lock_30min</item>
+        <item>@string/auto_lock_60min</item>
+    </string-array>
+    <string-array name="auto_lock_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>5</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+    </string-array>
+
+    <!-- ============ Editor zoom ============ -->
+    <string-array name="editor_zoom_entries" translatable="false">
+        <item>50%</item>
+        <item>75%</item>
+        <item>100%</item>
+        <item>125%</item>
+        <item>150%</item>
+        <item>200%</item>
+    </string-array>
+    <string-array name="editor_zoom_values" translatable="false">
+        <item>50</item>
+        <item>75</item>
+        <item>100</item>
+        <item>125</item>
+        <item>150</item>
+        <item>200</item>
+    </string-array>
+
+    <!-- ============ Autosave interval ============ -->
+    <string-array name="autosave_interval_entries">
+        <item>@string/autosave_15s</item>
+        <item>@string/autosave_30s</item>
+        <item>@string/autosave_60s</item>
+        <item>@string/autosave_2m</item>
+        <item>@string/autosave_5m</item>
+    </string-array>
+    <string-array name="autosave_interval_values" translatable="false">
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+        <item>300</item>
+    </string-array>
+
+    <!-- ============ Page size ============ -->
+    <string-array name="page_size_entries" translatable="false">
+        <item>A4</item>
+        <item>A5</item>
+        <item>A3</item>
+        <item>Letter</item>
+        <item>Legal</item>
+    </string-array>
+    <string-array name="page_size_values" translatable="false">
+        <item>A4</item>
+        <item>A5</item>
+        <item>A3</item>
+        <item>Letter</item>
+        <item>Legal</item>
+    </string-array>
+
+    <!-- ============ Orientation ============ -->
+    <string-array name="orientation_entries">
+        <item>@string/orientation_portrait</item>
+        <item>@string/orientation_landscape</item>
+    </string-array>
+    <string-array name="orientation_values" translatable="false">
+        <item>portrait</item>
+        <item>landscape</item>
+    </string-array>
+
+    <!-- ============ Word margins ============ -->
+    <string-array name="word_margins_entries">
+        <item>@string/margins_narrow</item>
+        <item>@string/margins_normal</item>
+        <item>@string/margins_wide</item>
+        <item>@string/margins_custom</item>
+    </string-array>
+    <string-array name="word_margins_values" translatable="false">
+        <item>narrow</item>
+        <item>normal</item>
+        <item>wide</item>
+        <item>custom</item>
+    </string-array>
+
+    <!-- ============ PDF image DPI ============ -->
+    <string-array name="pdf_dpi_entries" translatable="false">
+        <item>72</item>
+        <item>96</item>
+        <item>150</item>
+        <item>300</item>
+        <item>600</item>
+    </string-array>
+    <string-array name="pdf_dpi_values" translatable="false">
+        <item>72</item>
+        <item>96</item>
+        <item>150</item>
+        <item>300</item>
+        <item>600</item>
+    </string-array>
+
+    <!-- ============ PDF compression ============ -->
+    <string-array name="pdf_compression_entries">
+        <item>@string/compression_low</item>
+        <item>@string/compression_medium</item>
+        <item>@string/compression_high</item>
+        <item>@string/compression_maximum</item>
+    </string-array>
+    <string-array name="pdf_compression_values" translatable="false">
+        <item>2</item>
+        <item>5</item>
+        <item>7</item>
+        <item>9</item>
+    </string-array>
+
+    <!-- ============ PDF viewer scroll ============ -->
+    <string-array name="pdf_scroll_entries">
+        <item>@string/pdf_scroll_vertical</item>
+        <item>@string/pdf_scroll_horizontal</item>
+    </string-array>
+    <string-array name="pdf_scroll_values" translatable="false">
+        <item>vertical</item>
+        <item>horizontal</item>
+    </string-array>
+
+    <!-- ============ Wave E — OCR language ============ -->
+    <string-array name="ocr_language_entries">
+        <item>@string/ocr_lang_auto</item>
+        <item>@string/ocr_lang_arabic</item>
+        <item>@string/ocr_lang_english</item>
+        <item>@string/ocr_lang_both</item>
+    </string-array>
+    <string-array name="ocr_language_values" translatable="false">
+        <item>auto</item>
+        <item>ara</item>
+        <item>eng</item>
+        <item>ara+eng</item>
+    </string-array>
+
+    <!-- ============ Wave E — TTS speed ============ -->
+    <string-array name="tts_speed_entries" translatable="false">
+        <item>0.5x</item>
+        <item>0.75x</item>
+        <item>1.0x</item>
+        <item>1.25x</item>
+        <item>1.5x</item>
+        <item>2.0x</item>
+    </string-array>
+    <string-array name="tts_speed_values" translatable="false">
+        <item>0.5</item>
+        <item>0.75</item>
+        <item>1.0</item>
+        <item>1.25</item>
+        <item>1.5</item>
+        <item>2.0</item>
+    </string-array>
+
+    <!-- ============ Wave E — STT language ============ -->
+    <string-array name="stt_language_entries">
+        <item>@string/stt_lang_system</item>
+        <item>@string/stt_lang_arabic</item>
+        <item>@string/stt_lang_english</item>
+    </string-array>
+    <string-array name="stt_language_values" translatable="false">
+        <item>system</item>
+        <item>ar</item>
+        <item>en</item>
+    </string-array>
+
+    <!-- ============ Wave E — Image quality ============ -->
+    <string-array name="image_quality_entries">
+        <item>@string/image_quality_low</item>
+        <item>@string/image_quality_medium</item>
+        <item>@string/image_quality_high</item>
+    </string-array>
+    <string-array name="image_quality_values" translatable="false">
+        <item>low</item>
+        <item>medium</item>
+        <item>high</item>
+    </string-array>
+
+    <!-- ============ Wave E — Image max dimension ============ -->
+    <string-array name="image_max_dimension_entries">
+        <item>@string/image_max_1024</item>
+        <item>@string/image_max_2048</item>
+        <item>@string/image_max_4096</item>
+        <item>@string/image_max_unlimited</item>
+    </string-array>
+    <string-array name="image_max_dimension_values" translatable="false">
+        <item>1024</item>
+        <item>2048</item>
+        <item>4096</item>
+        <item>0</item>
+    </string-array>
+
+    <!-- ============ Wave E — Image format ============ -->
+    <string-array name="image_format_entries" translatable="false">
+        <item>PNG</item>
+        <item>JPG</item>
+        <item>WebP</item>
+    </string-array>
+    <string-array name="image_format_values" translatable="false">
+        <item>png</item>
+        <item>jpg</item>
+        <item>webp</item>
+    </string-array>
+
+    <!-- ============ Wave E — Text alignment ============ -->
+    <string-array name="text_alignment_entries">
+        <item>@string/text_align_left</item>
+        <item>@string/text_align_center</item>
+        <item>@string/text_align_right</item>
+        <item>@string/text_align_justify</item>
+    </string-array>
+    <string-array name="text_alignment_values" translatable="false">
+        <item>left</item>
+        <item>center</item>
+        <item>right</item>
+        <item>justify</item>
+    </string-array>
+
+    <!-- ============ Wave E — Text line spacing ============ -->
+    <string-array name="text_spacing_entries" translatable="false">
+        <item>1.0</item>
+        <item>1.15</item>
+        <item>1.5</item>
+        <item>2.0</item>
+    </string-array>
+    <string-array name="text_spacing_values" translatable="false">
+        <item>1.0</item>
+        <item>1.15</item>
+        <item>1.5</item>
+        <item>2.0</item>
+    </string-array>
+
+</resources>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_fonts_category_defaults">
+
+        <ListPreference
+            app:key="sanad.fonts.default_arabic"
+            app:title="@string/prefs_fonts_arabic_title"
+            app:entries="@array/font_arabic_entries"
+            app:entryValues="@array/font_arabic_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.fonts.default_latin"
+            app:title="@string/prefs_fonts_latin_title"
+            app:entries="@array/font_latin_entries"
+            app:entryValues="@array/font_latin_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.fonts.default_size_sp"
+            app:title="@string/prefs_fonts_size_title"
+            app:entries="@array/font_size_entries"
+            app:entryValues="@array/font_size_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_fonts_category_advanced">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.fonts.load_system"
+            app:title="@string/prefs_fonts_load_system_title"
+            app:summary="@string/prefs_fonts_load_system_summary" />
+
+        <ListPreference
+            app:key="sanad.fonts.fallback"
+            app:title="@string/prefs_fonts_fallback_title"
+            app:entries="@array/font_latin_entries"
+            app:entryValues="@array/font_latin_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

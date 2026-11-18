@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_libraries_category_document">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.word_enabled"
+            app:title="@string/prefs_libraries_word_title"
+            app:summary="@string/prefs_libraries_word_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.pdf_enabled"
+            app:title="@string/prefs_libraries_pdf_title"
+            app:summary="@string/prefs_libraries_pdf_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_libraries_category_media">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.ocr_enabled"
+            app:title="@string/prefs_libraries_ocr_title"
+            app:summary="@string/prefs_libraries_ocr_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.tts_enabled"
+            app:title="@string/prefs_libraries_tts_title"
+            app:summary="@string/prefs_libraries_tts_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.stt_enabled"
+            app:title="@string/prefs_libraries_stt_title"
+            app:summary="@string/prefs_libraries_stt_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.image_enabled"
+            app:title="@string/prefs_libraries_image_title"
+            app:summary="@string/prefs_libraries_image_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.signature_enabled"
+            app:title="@string/prefs_libraries_signature_title"
+            app:summary="@string/prefs_libraries_signature_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.qr_enabled"
+            app:title="@string/prefs_libraries_qr_title"
+            app:summary="@string/prefs_libraries_qr_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_libraries_category_analysis">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.text_enabled"
+            app:title="@string/prefs_libraries_text_title"
+            app:summary="@string/prefs_libraries_text_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.charts_enabled"
+            app:title="@string/prefs_libraries_charts_title"
+            app:summary="@string/prefs_libraries_charts_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.lib.latex_enabled"
+            app:title="@string/prefs_libraries_latex_title"
+            app:summary="@string/prefs_libraries_latex_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_adv_category_debug">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.adv.debug_mode"
+            app:title="@string/prefs_adv_debug_title"
+            app:summary="@string/prefs_adv_debug_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.adv.experimental_features"
+            app:title="@string/prefs_adv_experimental_title"
+            app:summary="@string/prefs_adv_experimental_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.adv.override_defaults"
+            app:title="@string/prefs_adv_override_defaults_title"
+            app:summary="@string/prefs_adv_override_defaults_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_adv_category_config">
+
+        <Preference
+            app:key="pref_custom_config"
+            app:title="@string/prefs_adv_custom_config_title"
+            app:summary="@string/prefs_adv_custom_config_summary" />
+
+        <Preference
+            app:key="pref_view_settings_keys"
+            app:title="@string/prefs_adv_view_keys_title"
+            app:summary="@string/prefs_adv_view_keys_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_adv_category_reset">
+
+        <Preference
+            app:key="pref_reset_settings"
+            app:title="@string/prefs_adv_reset_title"
+            app:summary="@string/prefs_adv_reset_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

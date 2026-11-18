@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- ============ STATUS (Live) ============ -->
+    <PreferenceCategory app:title="@string/prefs_logging_category_status">
+
+        <Preference
+            app:key="pref_log_status"
+            app:title="@string/prefs_logging_status_title"
+            app:selectable="false" />
+
+        <Preference
+            app:key="pref_log_preview"
+            app:title="@string/prefs_logging_preview_title"
+            app:selectable="false" />
+    </PreferenceCategory>
+
+    <!-- ============ SETTINGS ============ -->
+    <PreferenceCategory app:title="@string/prefs_logging_category_settings">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.logging.enabled"
+            app:title="@string/prefs_logging_enable_title"
+            app:summary="@string/prefs_logging_enable_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.logging.file_enabled"
+            app:title="@string/prefs_logging_file_title"
+            app:summary="@string/prefs_logging_file_summary"
+            app:dependency="sanad.logging.enabled" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.logging.auto_scroll"
+            app:title="@string/prefs_logging_autoscroll_title"
+            app:summary="@string/prefs_logging_autoscroll_summary" />
+
+        <ListPreference
+            app:key="sanad.logging.min_level"
+            app:title="@string/prefs_logging_level_title"
+            app:entries="@array/log_level_entries"
+            app:entryValues="@array/log_level_values"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="sanad.logging.enabled" />
+    </PreferenceCategory>
+
+    <!-- ============ ACTIONS ============ -->
+    <PreferenceCategory app:title="@string/prefs_logging_category_actions">
+
+        <Preference
+            app:key="pref_log_open_viewer"
+            app:title="@string/prefs_logging_open_viewer_title"
+            app:summary="@string/prefs_logging_open_viewer_summary" />
+
+        <Preference
+            app:key="pref_log_refresh"
+            app:title="@string/prefs_logging_refresh_title"
+            app:summary="@string/prefs_logging_refresh_summary" />
+
+        <Preference
+            app:key="pref_log_share"
+            app:title="@string/prefs_logging_share_title"
+            app:summary="@string/prefs_logging_share_summary" />
+
+        <Preference
+            app:key="pref_log_clear"
+            app:title="@string/prefs_logging_clear_title"
+            app:summary="@string/prefs_logging_clear_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

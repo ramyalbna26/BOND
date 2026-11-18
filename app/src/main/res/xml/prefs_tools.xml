@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_tools_category_ocr">
+
+        <ListPreference
+            app:key="sanad.tools.ocr_language"
+            app:title="@string/prefs_tools_ocr_lang_title"
+            app:entries="@array/ocr_language_entries"
+            app:entryValues="@array/ocr_language_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.tools.ocr_auto_detect"
+            app:title="@string/prefs_tools_ocr_auto_title"
+            app:summary="@string/prefs_tools_ocr_auto_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_tools_category_speech">
+
+        <ListPreference
+            app:key="sanad.tools.tts_speed"
+            app:title="@string/prefs_tools_tts_speed_title"
+            app:entries="@array/tts_speed_entries"
+            app:entryValues="@array/tts_speed_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.tools.stt_language"
+            app:title="@string/prefs_tools_stt_lang_title"
+            app:entries="@array/stt_language_entries"
+            app:entryValues="@array/stt_language_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_tools_category_image">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.tools.background_removal"
+            app:title="@string/prefs_tools_bg_removal_title"
+            app:summary="@string/prefs_tools_bg_removal_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_tools_category_search">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.tools.regex_search"
+            app:title="@string/prefs_tools_regex_title"
+            app:summary="@string/prefs_tools_regex_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.tools.case_sensitive_search"
+            app:title="@string/prefs_tools_case_title"
+            app:summary="@string/prefs_tools_case_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

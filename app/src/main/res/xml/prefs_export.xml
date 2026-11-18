@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_export_category_defaults">
+
+        <ListPreference
+            app:key="sanad.export.default_format"
+            app:title="@string/prefs_export_default_format_title"
+            app:entries="@array/export_format_entries"
+            app:entryValues="@array/export_format_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.export.preset"
+            app:title="@string/prefs_export_preset_title"
+            app:entries="@array/export_preset_entries"
+            app:entryValues="@array/export_preset_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_export_category_location">
+
+        <Preference
+            app:key="pref_export_location"
+            app:title="@string/prefs_export_location_title"
+            app:selectable="false" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.export.ask_location"
+            app:title="@string/prefs_export_ask_location_title"
+            app:summary="@string/prefs_export_ask_location_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.export.overwrite_existing"
+            app:title="@string/prefs_export_overwrite_title"
+            app:summary="@string/prefs_export_overwrite_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_export_category_content">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.export.include_metadata"
+            app:title="@string/prefs_export_metadata_title"
+            app:summary="@string/prefs_export_metadata_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

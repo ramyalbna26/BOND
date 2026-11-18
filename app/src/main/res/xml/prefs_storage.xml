@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_storage_category_paths">
+
+        <Preference
+            app:key="pref_docs_path"
+            app:title="@string/prefs_storage_docs_path_title"
+            app:selectable="false" />
+
+        <Preference
+            app:key="pref_temp_path"
+            app:title="@string/prefs_storage_temp_path_title"
+            app:selectable="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_storage_category_cache">
+
+        <Preference
+            app:key="pref_cache_size"
+            app:title="@string/prefs_storage_cache_size_title"
+            app:selectable="false" />
+
+        <ListPreference
+            app:key="sanad.storage.cache_size_mb"
+            app:title="@string/prefs_storage_cache_limit_title"
+            app:entries="@array/cache_size_entries"
+            app:entryValues="@array/cache_size_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.storage.clear_cache_on_exit"
+            app:title="@string/prefs_storage_clear_cache_exit_title"
+            app:summary="@string/prefs_storage_clear_cache_exit_summary" />
+
+        <Preference
+            app:key="pref_clear_cache"
+            app:title="@string/prefs_storage_clear_cache_title"
+            app:summary="@string/prefs_storage_clear_cache_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_storage_category_backup">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.storage.auto_backup"
+            app:title="@string/prefs_storage_auto_backup_title"
+            app:summary="@string/prefs_storage_auto_backup_summary" />
+
+        <ListPreference
+            app:key="sanad.storage.backup_interval_hours"
+            app:title="@string/prefs_storage_backup_interval_title"
+            app:entries="@array/backup_interval_entries"
+            app:entryValues="@array/backup_interval_values"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="sanad.storage.auto_backup" />
+
+        <Preference
+            app:key="pref_backup_last"
+            app:title="@string/prefs_storage_backup_last_title"
+            app:selectable="false" />
+
+        <Preference
+            app:key="pref_backup_now"
+            app:title="@string/prefs_storage_backup_now_title"
+            app:summary="@string/prefs_storage_backup_now_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ============ التطبيق ============ -->
+    <string name="app_name">سند</string>
+    <string name="app_tagline">سند لكل مستند</string>
+
+    <!-- ============ عام ============ -->
+    <string name="clear">مسح</string>
+    <string name="cancel">إلغاء</string>
+    <string name="confirm">تأكيد</string>
+    <string name="value_yes">نعم</string>
+    <string name="value_no">لا</string>
+    <string name="value_on">مفعّل</string>
+    <string name="value_off">متوقف</string>
+    <string name="no_app_to_open">لا يوجد تطبيق لفتح هذا</string>
+    <string name="no_dialer">لا يوجد تطبيق اتصال</string>
+    <string name="no_email_app">لا يوجد تطبيق بريد</string>
+    <string name="font_system">خط النظام</string>
+
+    <!-- ============ الشاشة الرئيسية ============ -->
+    <string name="main_welcome_title">أهلاً بك</string>
+    <string name="main_welcome_message">كل ما تحتاجه لمستنداتك — في مكان واحد. اضغط الإعدادات للتخصيص.</string>
+    <string name="main_version_format">الإصدار %1$s (بناء %2$d)</string>
+    <string name="main_open_about">حول سند</string>
+    <string name="main_open_library">فتح مكتبتي</string>
+    <string name="open_settings">الإعدادات</string>
+    <string name="open_log_viewer">فتح عارض السجلات</string>
+
+    <!-- ============ المكتبة (Phase 4) ============ -->
+    <string name="home_toolbar_title">مكتبتي</string>
+    <string name="home_tab_recent">الأخيرة</string>
+    <string name="home_tab_files">الملفات</string>
+    <string name="home_tab_favorites">المفضلة</string>
+    <string name="home_action_settings">الإعدادات</string>
+    <string name="home_new_document">مستند جديد</string>
+    <string name="home_new_coming">إنشاء مستند جديد في المرحلة القادمة</string>
+    <string name="home_empty_recent">لا توجد ملفات حديثة بعد — افتح ملفاً ليظهر هنا</string>
+    <string name="home_empty_files">لا توجد ملفات في مكتبتك بعد</string>
+    <string name="home_empty_favorites">لا توجد مفضلة بعد — اضغط النجمة على أي ملف</string>
+
+    <!-- ============ عناصر الملفات ============ -->
+    <string name="file_meta_format">%1$s · %2$s</string>
+    <string name="file_action_open">فتح</string>
+    <string name="file_action_favorite">إضافة/إزالة من المفضلة</string>
+    <string name="file_open_coming">فتح %1$s في المرحلة القادمة</string>
+    <string name="file_added_favorite">تمت الإضافة للمفضلة</string>
+    <string name="file_removed_favorite">تمت الإزالة من المفضلة</string>
+    <string name="file_removed_recent">تمت الإزالة من الحديثة</string>
+
+    <!-- ============ عارض السجلات ============ -->
+    <string name="log_viewer_title">السجلات</string>
+    <string name="scroll_to_bottom">النزول لآخر السجل</string>
+    <string name="clear_logs_message">هيتم مسح كل السجلات من الذاكرة ومن ملف السجل. هل تريد المتابعة؟</string>
+
+    <string name="log_level_verbose">تفصيلي</string>
+    <string name="log_level_debug">تتبع</string>
+    <string name="log_level_info">معلومات</string>
+    <string name="log_level_warn">تحذير</string>
+    <string name="log_level_error">خطأ</string>
+
+    <!-- ============ الإعدادات — الهيكل ============ -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_placeholder_message">هذا القسم قيد الإنشاء — المرحلة القادمة.</string>
+    <string name="settings_restart_required">أعد تشغيل التطبيق لتفعيل التغيير</string>
+
+    <string name="settings_section_logging">السجلات</string>
+    <string name="settings_section_general">عام</string>
+    <string name="settings_section_libraries">المكتبات</string>
+    <string name="settings_section_editor">المحرر</string>
+    <string name="settings_section_word">Word</string>
+    <string name="settings_section_pdf">PDF</string>
+    <string name="settings_section_export">التصدير</string>
+    <string name="settings_section_import">الاستيراد</string>
+    <string name="settings_section_storage">التخزين</string>
+    <string name="settings_section_security">الأمان</string>
+    <string name="settings_section_performance">الأداء</string>
+    <string name="settings_section_privacy">الخصوصية</string>
+    <string name="settings_section_fonts">الخطوط</string>
+    <string name="settings_section_tools">الأدوات</string>
+    <string name="settings_section_sharing">المشاركة</string>
+    <string name="settings_section_controls">التحكم</string>
+    <string name="settings_section_advanced">متقدم</string>
+    <string name="settings_section_about">حول التطبيق</string>
+
+    <!-- ============ اللغة / الثيم ============ -->
+    <string name="language_system">لغة النظام</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_english">الإنجليزية</string>
+    <string name="theme_system">حسب النظام</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+
+    <!-- ============ إعدادات السجلات ============ -->
+    <string name="prefs_logging_category_status">الحالة المباشرة</string>
+    <string name="prefs_logging_category_settings">الإعدادات</string>
+    <string name="prefs_logging_category_actions">إجراءات</string>
+
+    <string name="prefs_logging_status_title">حالة المسجّل</string>
+    <string name="prefs_logging_status_on">التسجيل نشط</string>
+    <string name="prefs_logging_status_off">التسجيل متوقف</string>
+    <string name="prefs_logging_status_file_line">الملف: %1$s · متاح: %2$s</string>
+    <string name="prefs_logging_entries_format">%,d سجل</string>
+
+    <string name="prefs_logging_preview_title">أحدث السجلات</string>
+    <string name="prefs_logging_preview_empty">لا توجد سجلات بعد</string>
+
+    <string name="prefs_logging_enable_title">تفعيل التسجيل</string>
+    <string name="prefs_logging_enable_summary">التسجيل في النظام والذاكرة والمستمعين</string>
+    <string name="prefs_logging_file_title">الكتابة في ملف</string>
+    <string name="prefs_logging_file_summary">إضافة السجلات إلى Download/log/log.txt</string>
+    <string name="prefs_logging_level_title">أقل مستوى</string>
+    <string name="prefs_logging_autoscroll_title">التمرير التلقائي</string>
+    <string name="prefs_logging_autoscroll_summary">إبقاء العارض على آخر سجل جديد</string>
+
+    <string name="prefs_logging_open_viewer_title">فتح العارض الكامل</string>
+    <string name="prefs_logging_open_viewer_summary">عرض كل السجلات بألوان حسب المستوى</string>
+    <string name="prefs_logging_refresh_title">تحديث الحالة</string>
+    <string name="prefs_logging_refresh_summary">إعادة حساب عدد السجلات وحجم الملف</string>
+    <string name="prefs_logging_share_title">مشاركة ملف السجل</string>
+    <string name="prefs_logging_share_summary">إرسال Download/log/log.txt عبر تطبيق آخر</string>
+    <string name="prefs_logging_share_unavailable">ملف السجل غير متاح للمشاركة</string>
+    <string name="prefs_logging_clear_title">مسح كل السجلات</string>
+    <string name="prefs_logging_clear_summary">حذف السجلات من الذاكرة والملف</string>
+    <string name="prefs_logging_cleared">تم مسح السجلات</string>
+    <string name="prefs_logging_refreshed">تم تحديث الحالة</string>
+
+    <!-- ============ الإعدادات العامة ============ -->
+    <string name="prefs_general_category_appearance">المظهر</string>
+    <string name="prefs_general_category_behavior">السلوك</string>
+    <string name="prefs_general_category_data">البيانات</string>
+    <string name="prefs_general_language_title">اللغة</string>
+    <string name="prefs_general_theme_title">الثيم</string>
+    <string name="prefs_general_dynamic_color_title">ألوان ديناميكية</string>
+    <string name="prefs_general_dynamic_color_summary">استخدام ألوان الخلفية (أندرويد 12+)</string>
+    <string name="prefs_general_animations_title">الحركات</string>
+    <string name="prefs_general_animations_summary">تفعيل حركات الواجهة</string>
+    <string name="prefs_general_haptics_title">الاهتزاز</string>
+    <string name="prefs_general_haptics_summary">اهتزاز عند التفاعل</string>
+    <string name="prefs_general_onboarding_title">إظهار الجولة التعريفية</string>
+    <string name="prefs_general_onboarding_summary">إظهار الجولة في التشغيل القادم</string>
+    <string name="prefs_general_reset_first_launch_title">إعادة تعيين التشغيل الأول</string>
+    <string name="prefs_general_reset_first_launch_summary">التشغيل القادم سيعامل كتثبيت جديد</string>
+    <string name="prefs_general_reset_done">تم إعادة تعيين العلم</string>
+
+    <!-- ============ إعدادات المكتبات ============ -->
+    <string name="prefs_libraries_category_document">المستندات</string>
+    <string name="prefs_libraries_category_media">الوسائط والتعرّف الضوئي</string>
+    <string name="prefs_libraries_category_analysis">التحليل</string>
+    <string name="prefs_libraries_word_title">Word (DOCX)</string>
+    <string name="prefs_libraries_word_summary">قراءة وكتابة ملفات DOCX</string>
+    <string name="prefs_libraries_pdf_title">PDF</string>
+    <string name="prefs_libraries_pdf_summary">قراءة وكتابة ودمج وتقسيم PDF</string>
+    <string name="prefs_libraries_ocr_title">التعرّف الضوئي (Tesseract)</string>
+    <string name="prefs_libraries_ocr_summary">استخراج نص من الصور</string>
+    <string name="prefs_libraries_tts_title">تحويل النص لكلام</string>
+    <string name="prefs_libraries_tts_summary">قراءة المستندات بصوت عالٍ</string>
+    <string name="prefs_libraries_stt_title">تحويل الكلام لنص</string>
+    <string name="prefs_libraries_stt_summary">إملاء النصوص للمستندات</string>
+    <string name="prefs_libraries_image_title">أدوات الصور</string>
+    <string name="prefs_libraries_image_summary">قص وتصفية وضغط الصور</string>
+    <string name="prefs_libraries_text_title">أدوات النصوص</string>
+    <string name="prefs_libraries_text_summary">بحث واستبدال وتنسيق النصوص</string>
+    <string name="prefs_libraries_signature_title">لوحة التوقيع</string>
+    <string name="prefs_libraries_signature_summary">رسم وإدراج التوقيعات</string>
+    <string name="prefs_libraries_qr_title">QR / باركود</string>
+    <string name="prefs_libraries_qr_summary">مسح وإنشاء الرموز</string>
+    <string name="prefs_libraries_charts_title">الرسوم البيانية</string>
+    <string name="prefs_libraries_charts_summary">إدراج رسوم بيانية في المستندات</string>
+    <string name="prefs_libraries_latex_title">معادلات LaTeX</string>
+    <string name="prefs_libraries_latex_summary">عرض المعادلات الرياضية</string>
+
+    <!-- ============ إعدادات الخطوط ============ -->
+    <string name="prefs_fonts_category_defaults">الخطوط الافتراضية</string>
+    <string name="prefs_fonts_category_advanced">متقدم</string>
+    <string name="prefs_fonts_arabic_title">الخط العربي</string>
+    <string name="prefs_fonts_latin_title">الخط اللاتيني</string>
+    <string name="prefs_fonts_size_title">الحجم الافتراضي</string>
+    <string name="prefs_fonts_fallback_title">الخط الاحتياطي</string>
+    <string name="prefs_fonts_load_system_title">تحميل خطوط النظام</string>
+    <string name="prefs_fonts_load_system_summary">تضمين الخطوط المثبتة على الجهاز</string>
+
+    <!-- ============ إعدادات المشاركة ============ -->
+    <string name="prefs_sharing_category_general">عام</string>
+    <string name="prefs_sharing_enabled_title">تفعيل المشاركة</string>
+    <string name="prefs_sharing_enabled_summary">السماح بمشاركة المستندات من التطبيق</string>
+    <string name="prefs_sharing_default_action_title">الإجراء الافتراضي</string>
+    <string name="prefs_sharing_watermark_title">إضافة علامة مائية</string>
+    <string name="prefs_sharing_watermark_summary">إضافة علامة عند المشاركة</string>
+    <string name="sharing_action_share">مشاركة</string>
+    <string name="sharing_action_export">تصدير</string>
+    <string name="sharing_action_save">حفظ</string>
+
+    <!-- ============ إعدادات الخصوصية ============ -->
+    <string name="prefs_privacy_category_analytics">التحليلات</string>
+    <string name="prefs_privacy_category_data">البيانات</string>
+    <string name="prefs_privacy_category_policy">قانوني</string>
+    <string name="prefs_privacy_crash_title">إرسال تقارير الأعطال</string>
+    <string name="prefs_privacy_crash_summary">ساعد في إصلاح الأخطاء بمشاركة بيانات مجهولة</string>
+    <string name="prefs_privacy_usage_title">إرسال إحصاءات الاستخدام</string>
+    <string name="prefs_privacy_usage_summary">مشاركة بيانات استخدام مجهولة</string>
+    <string name="prefs_privacy_anonymize_title">إخفاء هوية السجلات</string>
+    <string name="prefs_privacy_anonymize_summary">حذف المسارات والمعلومات الشخصية من السجلات</string>
+    <string name="prefs_privacy_clear_logout_title">مسح البيانات عند الخروج</string>
+    <string name="prefs_privacy_clear_logout_summary">مسح البيانات المحلية عند تسجيل الخروج</string>
+    <string name="prefs_privacy_policy_title">سياسة الخصوصية</string>
+    <string name="prefs_privacy_policy_summary">اقرأ كيف تُعالج بياناتك</string>
+    <string name="prefs_privacy_terms_title">شروط الخدمة</string>
+    <string name="prefs_privacy_terms_summary">شروط وأحكام الاستخدام</string>
+
+    <!-- ============ إعدادات حول التطبيق ============ -->
+    <string name="prefs_about_category_app">التطبيق</string>
+    <string name="prefs_about_category_dev">المطوّر</string>
+    <string name="prefs_about_category_legal">قانوني</string>
+    <string name="prefs_about_version_title">الإصدار</string>
+    <string name="prefs_about_build_title">البناء</string>
+    <string name="prefs_about_developer_title">المطوّر</string>
+    <string name="prefs_about_whatsapp_title">واتساب</string>
+    <string name="prefs_about_phone_title">اتصال</string>
+    <string name="prefs_about_email_title">البريد الإلكتروني</string>
+    <string name="prefs_about_licenses_title">تراخيص مفتوحة المصدر</string>
+    <string name="prefs_about_licenses_summary">المكتبات المستخدمة في التطبيق</string>
+    <string name="prefs_about_privacy_title">سياسة الخصوصية</string>
+    <string name="prefs_about_website_title">الموقع الإلكتروني</string>
+
+    <!-- ============ إعدادات التخزين ============ -->
+    <string name="prefs_storage_category_paths">المسارات</string>
+    <string name="prefs_storage_category_cache">الكاش</string>
+    <string name="prefs_storage_category_backup">النسخ الاحتياطي</string>
+    <string name="prefs_storage_docs_path_title">مجلد المستندات</string>
+    <string name="prefs_storage_temp_path_title">مجلد مؤقت</string>
+    <string name="prefs_storage_cache_size_title">استهلاك الكاش</string>
+    <string name="prefs_storage_cache_usage_format">%1$s مستخدم / %2$s حد أقصى</string>
+    <string name="prefs_storage_cache_limit_title">الحد الأقصى للكاش</string>
+    <string name="prefs_storage_clear_cache_exit_title">مسح الكاش عند الخروج</string>
+    <string name="prefs_storage_clear_cache_exit_summary">حذف الملفات المؤقتة عند إغلاق التطبيق</string>
+    <string name="prefs_storage_clear_cache_title">مسح الكاش الآن</string>
+    <string name="prefs_storage_clear_cache_summary">حذف كل الملفات المؤقتة فوراً</string>
+    <string name="prefs_storage_clear_cache_message">هيتم حذف كل الملفات المؤقتة. مستنداتك لن تتأثر. هل تريد المتابعة؟</string>
+    <string name="prefs_storage_cleared">تم مسح الكاش</string>
+    <string name="prefs_storage_auto_backup_title">النسخ الاحتياطي التلقائي</string>
+    <string name="prefs_storage_auto_backup_summary">نسخ احتياطي دوري للإعدادات والبيانات</string>
+    <string name="prefs_storage_backup_interval_title">الفاصل الزمني للنسخ</string>
+    <string name="backup_interval_1h">كل ساعة</string>
+    <string name="backup_interval_6h">كل 6 ساعات</string>
+    <string name="backup_interval_12h">كل 12 ساعة</string>
+    <string name="backup_interval_24h">يومي</string>
+    <string name="backup_interval_week">أسبوعي</string>
+    
+    <!-- ============ التخزين — النسخ الاحتياطي (المرحلة C / WorkManager) ============ -->
+<string name="prefs_storage_backup_last_title">آخر نسخة احتياطية</string>
+<string name="prefs_storage_backup_last_never">لا توجد نسخ احتياطية بعد</string>
+<string name="prefs_storage_backup_last_format">%1$s · %2$s</string>
+<string name="prefs_storage_backup_now_title">نسخ احتياطي الآن</string>
+<string name="prefs_storage_backup_now_summary">إنشاء نسخة احتياطية فوراً</string>
+<string name="prefs_storage_backup_started">بدأ النسخ الاحتياطي في الخلفية</string>
+
+    <!-- ============ إعدادات الاستيراد ============ -->
+    <string name="prefs_import_category_formats">الصيغ المدعومة</string>
+    <string name="prefs_import_category_encoding">الترميز</string>
+    <string name="prefs_import_category_behavior">السلوك</string>
+    <string name="prefs_import_supported_title">الصيغ</string>
+    <string name="prefs_import_supported_value">DOCX, PDF, TXT, MD, HTML, RTF</string>
+    <string name="prefs_import_auto_encoding_title">كشف الترميز تلقائياً</string>
+    <string name="prefs_import_auto_encoding_summary">تخمين ترميز الملف عند الفتح</string>
+    <string name="prefs_import_default_encoding_title">الترميز الافتراضي</string>
+    <string name="prefs_import_max_size_title">الحجم الأقصى للملف</string>
+    <string name="prefs_import_keep_original_title">الاحتفاظ بالملف الأصلي</string>
+    <string name="prefs_import_keep_original_summary">الاحتفاظ بنسخة من الملف المستورد دون تعديل</string>
+
+    <!-- ============ إعدادات التصدير ============ -->
+    <string name="prefs_export_category_defaults">الافتراضيات</string>
+    <string name="prefs_export_category_location">الموقع</string>
+    <string name="prefs_export_category_content">المحتوى</string>
+    <string name="prefs_export_default_format_title">الصيغة الافتراضية</string>
+    <string name="prefs_export_preset_title">إعداد التصدير المسبق</string>
+    <string name="prefs_export_location_title">مجلد التصدير</string>
+    <string name="prefs_export_ask_location_title">اسأل عن الموقع</string>
+    <string name="prefs_export_ask_location_summary">طلب الموقع عند كل تصدير</string>
+    <string name="prefs_export_overwrite_title">استبدال الموجود</string>
+    <string name="prefs_export_overwrite_summary">استبدال الملفات بنفس الاسم</string>
+    <string name="prefs_export_metadata_title">تضمين البيانات الوصفية</string>
+    <string name="prefs_export_metadata_summary">إدراج المؤلف والعنوان والتاريخ في الملف</string>
+    <string name="export_format_docx">Word (.docx)</string>
+    <string name="export_format_pdf">PDF (.pdf)</string>
+    <string name="export_format_both">كلاهما</string>
+    <string name="export_preset_default">افتراضي</string>
+    <string name="export_preset_print">جاهز للطباعة</string>
+    <string name="export_preset_web">محسّن للويب</string>
+    <string name="export_preset_archive">أرشيف (مضغوط)</string>
+
+    <!-- ============ إعدادات الأداء ============ -->
+    <string name="prefs_perf_category_rendering">العرض</string>
+    <string name="prefs_perf_category_processing">المعالجة</string>
+    <string name="prefs_perf_hardware_accel_title">تسريع الأجهزة</string>
+    <string name="prefs_perf_hardware_accel_summary">استخدام معالج الرسومات لواجهة أسرع</string>
+    <string name="prefs_perf_image_downscale_title">تصغير الصور</string>
+    <string name="prefs_perf_image_downscale_summary">تقليل دقة الصور الكبيرة في الذاكرة</string>
+    <string name="prefs_perf_parallel_tasks_title">المهام المتوازية</string>
+    <string name="prefs_perf_streaming_threshold_title">حد التدفق</string>
+    <string name="prefs_perf_background_workers_title">عمال الخلفية</string>
+
+    <!-- ============ إعدادات الأمان ============ -->
+    <string name="prefs_security_category_lock">القفل</string>
+    <string name="prefs_security_category_privacy">الخصوصية</string>
+    <string name="prefs_security_app_lock_title">قفل التطبيق</string>
+    <string name="prefs_security_app_lock_summary">طلب مصادقة لفتح التطبيق</string>
+    <string name="prefs_security_biometric_title">فتح بالبصمة</string>
+    <string name="prefs_security_biometric_summary">استخدام البصمة بدل رمز PIN</string>
+    <string name="prefs_security_pin_title">تعيين PIN</string>
+    <string name="prefs_security_pin_summary">تكوين رمز القفل الرقمي</string>
+    <string name="prefs_security_pin_coming">إعداد PIN في المرحلة القادمة</string>
+    <string name="prefs_security_auto_lock_title">القفل التلقائي بعد</string>
+    <string name="prefs_security_encrypt_title">تشفير المستندات</string>
+    <string name="prefs_security_encrypt_summary">تخزين المستندات مشفّرة على القرص</string>
+    <string name="prefs_security_hide_recent_title">إخفاء الملفات الأخيرة</string>
+    <string name="prefs_security_hide_recent_summary">عدم إظهار الملفات الأخيرة على شاشة القفل</string>
+    <string name="auto_lock_immediate">فوراً</string>
+    <string name="auto_lock_1min">دقيقة</string>
+    <string name="auto_lock_5min">5 دقائق</string>
+    <string name="auto_lock_15min">15 دقيقة</string>
+    <string name="auto_lock_30min">30 دقيقة</string>
+    <string name="auto_lock_60min">ساعة</string>
+
+    <!-- ============ إعدادات متقدمة ============ -->
+    <string name="prefs_adv_category_debug">التصحيح</string>
+    <string name="prefs_adv_category_config">التكوين</string>
+    <string name="prefs_adv_category_reset">إعادة تعيين</string>
+    <string name="prefs_adv_debug_title">وضع التصحيح</string>
+    <string name="prefs_adv_debug_summary">إظهار سجلات تفصيلية ومعلومات التصحيح</string>
+    <string name="prefs_adv_experimental_title">ميزات تجريبية</string>
+    <string name="prefs_adv_experimental_summary">تفعيل الميزات تحت التطوير</string>
+    <string name="prefs_adv_override_defaults_title">تجاوز الافتراضيات</string>
+    <string name="prefs_adv_override_defaults_summary">السماح للتكوين المخصص باستبدال الافتراضيات</string>
+    <string name="prefs_adv_custom_config_title">تكوين مخصص (JSON)</string>
+    <string name="prefs_adv_custom_config_summary">تجاوزات متقدمة بمفتاح-قيمة</string>
+    <string name="prefs_adv_custom_config_empty">غير معيّن</string>
+    <string name="prefs_adv_custom_config_set">%1$d حرف معيّن</string>
+    <string name="prefs_adv_custom_config_clear">مسح</string>
+    <string name="prefs_adv_custom_config_cleared">تم مسح التكوين</string>
+    <string name="prefs_adv_custom_config_saved">تم حفظ التكوين</string>
+    <string name="prefs_adv_view_keys_title">عرض المفاتيح المحفوظة</string>
+    <string name="prefs_adv_view_keys_summary">عرض كل مفاتيح التفضيلات المحفوظة حالياً</string>
+    <string name="prefs_adv_no_keys">لا توجد مفاتيح محفوظة بعد</string>
+    <string name="prefs_adv_reset_title">إعادة تعيين كل الإعدادات</string>
+    <string name="prefs_adv_reset_summary">حذف كل التفضيلات وإعادة التشغيل</string>
+    <string name="prefs_adv_reset_message">هيتم مسح كل الإعدادات وإعادة تشغيل التطبيق. لا يمكن التراجع. هل تريد المتابعة؟</string>
+
+    <!-- ============ إعدادات المحرر ============ -->
+    <string name="prefs_editor_category_display">العرض</string>
+    <string name="prefs_editor_category_behavior">السلوك</string>
+    <string name="prefs_editor_category_autosave">الحفظ التلقائي</string>
+    <string name="prefs_editor_zoom_title">التكبير الافتراضي</string>
+    <string name="prefs_editor_line_numbers_title">إظهار أرقام الأسطر</string>
+    <string name="prefs_editor_line_numbers_summary">عرض أرقام الأسطر على حافة المحرر</string>
+    <string name="prefs_editor_ruler_title">إظهار المسطرة</string>
+    <string name="prefs_editor_ruler_summary">عرض مسطرة أعلى المحرر</string>
+    <string name="prefs_editor_status_bar_title">إظهار شريط الحالة</string>
+    <string name="prefs_editor_status_bar_summary">عرض عدد الكلمات وموضع المؤشر</string>
+    <string name="prefs_editor_word_wrap_title">التفاف الأسطر</string>
+    <string name="prefs_editor_word_wrap_summary">طي الأسطر الطويلة لتناسب الشاشة</string>
+    <string name="prefs_editor_spell_check_title">التدقيق الإملائي</string>
+    <string name="prefs_editor_spell_check_summary">تسطير الكلمات المكتوبة خطأ</string>
+    <string name="prefs_editor_autosave_title">الحفظ التلقائي</string>
+    <string name="prefs_editor_autosave_summary">حفظ عملك تلقائياً في الخلفية</string>
+    <string name="prefs_editor_autosave_interval_title">فاصل الحفظ التلقائي</string>
+    <string name="autosave_15s">كل 15 ثانية</string>
+    <string name="autosave_30s">كل 30 ثانية</string>
+    <string name="autosave_60s">كل دقيقة</string>
+    <string name="autosave_2m">كل دقيقتين</string>
+    <string name="autosave_5m">كل 5 دقائق</string>
+
+    <!-- ============ إعدادات Word ============ -->
+    <string name="prefs_word_category_page">الصفحة</string>
+    <string name="prefs_word_category_output">المخرجات</string>
+    <string name="prefs_word_page_size_title">حجم الصفحة الافتراضي</string>
+    <string name="prefs_word_orientation_title">الاتجاه الافتراضي</string>
+    <string name="prefs_word_margins_title">الهوامش الافتراضية</string>
+    <string name="prefs_word_compress_images_title">ضغط الصور</string>
+    <string name="prefs_word_compress_images_summary">تقليل حجم الصور في تصدير DOCX</string>
+    <string name="prefs_word_embed_fonts_title">تضمين الخطوط</string>
+    <string name="prefs_word_embed_fonts_summary">تضمين الخطوط في DOCX لضمان الدقة</string>
+    <string name="prefs_word_compatibility_title">وضع التوافق</string>
+    <string name="prefs_word_compatibility_summary">حفظ الملفات متوافقة مع إصدارات Word الأقدم</string>
+    <string name="orientation_portrait">عمودي</string>
+    <string name="orientation_landscape">أفقي</string>
+    <string name="margins_narrow">ضيقة</string>
+    <string name="margins_normal">عادية</string>
+    <string name="margins_wide">واسعة</string>
+    <string name="margins_custom">مخصصة</string>
+
+    <!-- ============ إعدادات PDF ============ -->
+    <string name="prefs_pdf_category_page">الصفحة</string>
+    <string name="prefs_pdf_category_output">المخرجات</string>
+    <string name="prefs_pdf_category_viewer">العارض</string>
+    <string name="prefs_pdf_page_size_title">حجم الصفحة الافتراضي</string>
+    <string name="prefs_pdf_orientation_title">الاتجاه الافتراضي</string>
+    <string name="prefs_pdf_dpi_title">دقة الصور (DPI)</string>
+    <string name="prefs_pdf_compression_title">مستوى الضغط</string>
+    <string name="prefs_pdf_embed_fonts_title">تضمين الخطوط</string>
+    <string name="prefs_pdf_embed_fonts_summary">تضمين الخطوط في PDF لضمان الدقة</string>
+    <string name="prefs_pdf_password_title">حماية بكلمة مرور</string>
+    <string name="prefs_pdf_password_summary">طلب كلمة مرور لفتح ملفات PDF المصدّرة</string>
+    <string name="prefs_pdf_password_coming">إعداد كلمة المرور في المرحلة القادمة</string>
+    <string name="prefs_pdf_scroll_title">تمرير العارض</string>
+    <string name="prefs_pdf_night_mode_title">الوضع الليلي</string>
+    <string name="prefs_pdf_night_mode_summary">عكس ألوان PDF عند العرض ليلاً</string>
+    <string name="pdf_scroll_vertical">عمودي</string>
+    <string name="pdf_scroll_horizontal">أفقي</string>
+    <string name="compression_low">منخفض</string>
+    <string name="compression_medium">متوسط</string>
+    <string name="compression_high">عالي</string>
+    <string name="compression_maximum">أقصى</string>
+
+    <!-- ============ إعدادات الأدوات ============ -->
+    <string name="prefs_tools_category_ocr">التعرّف الضوئي</string>
+    <string name="prefs_tools_category_speech">الكلام</string>
+    <string name="prefs_tools_category_image">الصور</string>
+    <string name="prefs_tools_category_search">البحث</string>
+    <string name="prefs_tools_ocr_lang_title">لغة التعرّف الضوئي</string>
+    <string name="prefs_tools_ocr_auto_title">كشف لغة OCR تلقائياً</string>
+    <string name="prefs_tools_ocr_auto_summary">تخمين اللغة من الصورة</string>
+    <string name="prefs_tools_tts_speed_title">سرعة تحويل النص لكلام</string>
+    <string name="prefs_tools_stt_lang_title">لغة تحويل الكلام لنص</string>
+    <string name="prefs_tools_bg_removal_title">إزالة الخلفية</string>
+    <string name="prefs_tools_bg_removal_summary">تفعيل الإزالة التلقائية لخلفية الصور</string>
+    <string name="prefs_tools_regex_title">بحث بـ Regex</string>
+    <string name="prefs_tools_regex_summary">تفعيل التعبيرات النمطية في البحث</string>
+    <string name="prefs_tools_case_title">بحث حساس للحالة</string>
+    <string name="prefs_tools_case_summary">مطابقة الحالة الدقيقة للأحرف عند البحث</string>
+    <string name="ocr_lang_auto">كشف تلقائي</string>
+    <string name="ocr_lang_arabic">العربية</string>
+    <string name="ocr_lang_english">الإنجليزية</string>
+    <string name="ocr_lang_both">العربية + الإنجليزية</string>
+    <string name="stt_lang_system">لغة النظام</string>
+    <string name="stt_lang_arabic">العربية</string>
+    <string name="stt_lang_english">الإنجليزية</string>
+
+    <!-- ============ إعدادات التحكم ============ -->
+    <string name="prefs_controls_category_image">افتراضيات الصور</string>
+    <string name="prefs_controls_category_text">افتراضيات النصوص</string>
+    <string name="prefs_controls_category_behavior">السلوك</string>
+    <string name="prefs_controls_image_quality_title">جودة الصورة</string>
+    <string name="prefs_controls_image_max_dim_title">أقصى بعد للصورة</string>
+    <string name="prefs_controls_image_format_title">صيغة الصورة</string>
+    <string name="prefs_controls_image_compress_title">ضغط تلقائي للصور</string>
+    <string name="prefs_controls_image_compress_summary">ضغط الصور تلقائياً عند الإدراج</string>
+    <string name="prefs_controls_alt_text_title">اشتراط النص البديل</string>
+    <string name="prefs_controls_alt_text_summary">إلزام إدخال نص بديل عند إدراج صورة</string>
+    <string name="prefs_controls_text_font_title">الخط الافتراضي للنص</string>
+    <string name="prefs_controls_text_size_title">حجم النص الافتراضي</string>
+    <string name="prefs_controls_text_spacing_title">تباعد الأسطر الافتراضي</string>
+    <string name="prefs_controls_text_align_title">محاذاة النص الافتراضية</string>
+    <string name="prefs_controls_word_count_title">إظهار عدد الكلمات</string>
+    <string name="prefs_controls_word_count_summary">عرض عدد الكلمات في شريط حالة المحرر</string>
+    <string name="prefs_controls_apply_default_title">تطبيق النمط الافتراضي</string>
+    <string name="prefs_controls_apply_default_summary">تطبيق النمط الافتراضي على المستندات الجديدة</string>
+    <string name="image_quality_low">منخفضة</string>
+    <string name="image_quality_medium">متوسطة</string>
+    <string name="image_quality_high">عالية</string>
+    <string name="image_max_1024">1024 بكسل</string>
+    <string name="image_max_2048">2048 بكسل</string>
+    <string name="image_max_4096">4096 بكسل</string>
+    <string name="image_max_unlimited">غير محدود</string>
+    <string name="text_align_left">يسار</string>
+    <string name="text_align_center">وسط</string>
+    <string name="text_align_right">يمين</string>
+    <string name="text_align_justify">ضبط</string>
+    
+    <!-- ============ إنشاء مستند (Phase 4 Wave Create) ============ -->
+<string name="create_toolbar_title">مستند جديد</string>
+<string name="create_pick_type">اختر نوع المستند</string>
+<string name="create_type_word_title">مستند Word</string>
+<string name="create_type_word_subtitle">إنشاء ملف ‎.docx‎ جديد</string>
+<string name="create_type_pdf_title">مستند PDF</string>
+<string name="create_type_pdf_subtitle">إنشاء ملف ‎.pdf‎ جديد</string>
+<string name="create_type_text_title">نص عادي</string>
+<string name="create_type_text_subtitle">إنشاء ملف ‎.txt‎ جديد</string>
+<string name="create_type_markdown_title">Markdown</string>
+<string name="create_type_markdown_subtitle">إنشاء ملف ‎.md‎ جديد</string>
+<string name="create_dialog_title">سمِّ مستندك</string>
+<string name="create_dialog_name_hint">اسم الملف</string>
+<string name="create_dialog_create">إنشاء</string>
+<string name="create_success">تم إنشاء %1$s</string>
+<string name="create_failed">تعذر إنشاء المستند</string>
+
+<string name="create_no_types_available">لا توجد أنواع مستندات مفعّلة — افتح الإعدادات ← المكتبات</string>
+<string name="feature_disabled_for_type">هذا النوع من الملفات معطّل من الإعدادات ← المكتبات</string>
+
+<!-- ============ المحرر (Phase 4 Wave Editor) ============ -->
+<string name="editor_toolbar_title">مستند</string>
+<string name="editor_action_save">حفظ</string>
+<string name="editor_saved">تم حفظ المستند</string>
+<string name="editor_save_failed">تعذر حفظ المستند</string>
+<string name="editor_word_count">%1$d كلمة · %2$d حرف</string>
+<string name="editor_pdf_external">جاري فتح PDF في تطبيق آخر. عارض PDF المدمج في المرحلة القادمة.</string>
+<string name="editor_unsaved_title">تعديلات غير محفوظة</string>
+<string name="editor_unsaved_message">لديك تعديلات غير محفوظة. ماذا تريد أن تفعل؟</string>
+<string name="editor_discard">تجاهل</string>
+<string name="editor_save_and_close">حفظ وإغلاق</string>
+
+<string name="editor_saved_toast">تم الحفظ</string>
+<string name="editor_save_error_prefix">فشل الحفظ: %1$s</string>
+
+</resources>

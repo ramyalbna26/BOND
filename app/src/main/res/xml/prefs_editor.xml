@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_editor_category_display">
+
+        <ListPreference
+            app:key="sanad.editor.default_zoom"
+            app:title="@string/prefs_editor_zoom_title"
+            app:entries="@array/editor_zoom_entries"
+            app:entryValues="@array/editor_zoom_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.editor.show_line_numbers"
+            app:title="@string/prefs_editor_line_numbers_title"
+            app:summary="@string/prefs_editor_line_numbers_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.editor.show_ruler"
+            app:title="@string/prefs_editor_ruler_title"
+            app:summary="@string/prefs_editor_ruler_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.editor.show_status_bar"
+            app:title="@string/prefs_editor_status_bar_title"
+            app:summary="@string/prefs_editor_status_bar_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_editor_category_behavior">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.editor.word_wrap"
+            app:title="@string/prefs_editor_word_wrap_title"
+            app:summary="@string/prefs_editor_word_wrap_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.editor.spell_check"
+            app:title="@string/prefs_editor_spell_check_title"
+            app:summary="@string/prefs_editor_spell_check_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_editor_category_autosave">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.editor.autosave_enabled"
+            app:title="@string/prefs_editor_autosave_title"
+            app:summary="@string/prefs_editor_autosave_summary" />
+
+        <ListPreference
+            app:key="sanad.editor.autosave_interval_sec"
+            app:title="@string/prefs_editor_autosave_interval_title"
+            app:entries="@array/autosave_interval_entries"
+            app:entryValues="@array/autosave_interval_values"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="sanad.editor.autosave_enabled" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

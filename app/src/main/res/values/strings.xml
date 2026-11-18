@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ============ App ============ -->
+    <string name="app_name">Bond</string>
+    <string name="app_tagline">Support for every document</string>
+
+    <!-- ============ Common ============ -->
+    <string name="clear">Clear</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="value_yes">Yes</string>
+    <string name="value_no">No</string>
+    <string name="value_on">On</string>
+    <string name="value_off">Off</string>
+    <string name="no_app_to_open">No app available to open this</string>
+    <string name="no_dialer">No dialer app found</string>
+    <string name="no_email_app">No email app found</string>
+    <string name="font_system">System default</string>
+
+    <!-- ============ Main screen ============ -->
+    <string name="main_welcome_title">Welcome</string>
+    <string name="main_welcome_message">Everything you need for your documents — in one place. Tap Settings to configure.</string>
+    <string name="main_version_format">Version %1$s (build %2$d)</string>
+    <string name="main_open_about">About Sanad</string>
+    <string name="main_open_library">Open my library</string>
+    <string name="open_settings">Settings</string>
+    <string name="open_log_viewer">Open log viewer</string>
+
+    <!-- ============ Home / Library (Phase 4) ============ -->
+    <string name="home_toolbar_title">My library</string>
+    <string name="home_tab_recent">Recent</string>
+    <string name="home_tab_files">Files</string>
+    <string name="home_tab_favorites">Favorites</string>
+    <string name="home_action_settings">Settings</string>
+    <string name="home_new_document">New document</string>
+    <string name="home_new_coming">New document flow coming in the next phase</string>
+    <string name="home_empty_recent">No recent files yet — open something to see it here</string>
+    <string name="home_empty_files">No files in your library yet</string>
+    <string name="home_empty_favorites">No favorites yet — tap the star on any file</string>
+
+    <!-- ============ File items ============ -->
+    <string name="file_meta_format">%1$s · %2$s</string>
+    <string name="file_action_open">Open</string>
+    <string name="file_action_favorite">Toggle favorite</string>
+    <string name="file_open_coming">Opening %1$s ships next phase</string>
+    <string name="file_added_favorite">Added to favorites</string>
+    <string name="file_removed_favorite">Removed from favorites</string>
+    <string name="file_removed_recent">Removed from recent</string>
+
+    <!-- ============ Logging viewer ============ -->
+    <string name="log_viewer_title">Logs</string>
+    <string name="scroll_to_bottom">Scroll to bottom</string>
+    <string name="clear_logs_message">This will delete all logged entries from memory and from the log file. Continue?</string>
+
+    <string name="log_level_verbose">Verbose</string>
+    <string name="log_level_debug">Debug</string>
+    <string name="log_level_info">Info</string>
+    <string name="log_level_warn">Warn</string>
+    <string name="log_level_error">Error</string>
+
+    <!-- ============ Settings shell ============ -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_placeholder_message">This section is coming in the next phase.</string>
+    <string name="settings_restart_required">Restart the app to apply</string>
+
+    <string name="settings_section_logging">Logging</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_libraries">Libraries</string>
+    <string name="settings_section_editor">Editor</string>
+    <string name="settings_section_word">Word</string>
+    <string name="settings_section_pdf">PDF</string>
+    <string name="settings_section_export">Export</string>
+    <string name="settings_section_import">Import</string>
+    <string name="settings_section_storage">Storage</string>
+    <string name="settings_section_security">Security</string>
+    <string name="settings_section_performance">Performance</string>
+    <string name="settings_section_privacy">Privacy</string>
+    <string name="settings_section_fonts">Fonts</string>
+    <string name="settings_section_tools">Tools</string>
+    <string name="settings_section_sharing">Sharing</string>
+    <string name="settings_section_controls">Controls</string>
+    <string name="settings_section_advanced">Advanced</string>
+    <string name="settings_section_about">About</string>
+
+    <!-- ============ Language / Theme ============ -->
+    <string name="language_system">System default</string>
+    <string name="language_arabic">Arabic</string>
+    <string name="language_english">English</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <!-- ============ Logging preferences ============ -->
+    <string name="prefs_logging_category_status">Live status</string>
+    <string name="prefs_logging_category_settings">Settings</string>
+    <string name="prefs_logging_category_actions">Actions</string>
+
+    <string name="prefs_logging_status_title">Logger status</string>
+    <string name="prefs_logging_status_on">Logging active</string>
+    <string name="prefs_logging_status_off">Logging paused</string>
+    <string name="prefs_logging_status_file_line">File: %1$s · Available: %2$s</string>
+    <string name="prefs_logging_entries_format">%,d entries</string>
+
+    <string name="prefs_logging_preview_title">Latest entries</string>
+    <string name="prefs_logging_preview_empty">No entries yet</string>
+
+    <string name="prefs_logging_enable_title">Enable logging</string>
+    <string name="prefs_logging_enable_summary">Log to system, memory, and listeners</string>
+    <string name="prefs_logging_file_title">Write to file</string>
+    <string name="prefs_logging_file_summary">Append entries to Download/log/log.txt</string>
+    <string name="prefs_logging_level_title">Minimum level</string>
+    <string name="prefs_logging_autoscroll_title">Auto-scroll viewer</string>
+    <string name="prefs_logging_autoscroll_summary">Keep the log viewer on the newest entry</string>
+
+    <string name="prefs_logging_open_viewer_title">Open full log viewer</string>
+    <string name="prefs_logging_open_viewer_summary">Live-tail all entries with colors</string>
+    <string name="prefs_logging_refresh_title">Refresh status</string>
+    <string name="prefs_logging_refresh_summary">Recalculate entry count and file size</string>
+    <string name="prefs_logging_share_title">Share log file</string>
+    <string name="prefs_logging_share_summary">Send Download/log/log.txt via another app</string>
+    <string name="prefs_logging_share_unavailable">Log file not available to share</string>
+    <string name="prefs_logging_clear_title">Clear all logs</string>
+    <string name="prefs_logging_clear_summary">Remove entries from memory and file</string>
+    <string name="prefs_logging_cleared">Logs cleared</string>
+    <string name="prefs_logging_refreshed">Status refreshed</string>
+
+    <!-- ============ General preferences ============ -->
+    <string name="prefs_general_category_appearance">Appearance</string>
+    <string name="prefs_general_category_behavior">Behavior</string>
+    <string name="prefs_general_category_data">Data</string>
+    <string name="prefs_general_language_title">Language</string>
+    <string name="prefs_general_theme_title">Theme</string>
+    <string name="prefs_general_dynamic_color_title">Dynamic colors</string>
+    <string name="prefs_general_dynamic_color_summary">Use wallpaper colors (Android 12+)</string>
+    <string name="prefs_general_animations_title">Animations</string>
+    <string name="prefs_general_animations_summary">Enable UI animations</string>
+    <string name="prefs_general_haptics_title">Haptic feedback</string>
+    <string name="prefs_general_haptics_summary">Vibrate on interactions</string>
+    <string name="prefs_general_onboarding_title">Show onboarding</string>
+    <string name="prefs_general_onboarding_summary">Show tutorial on next launch</string>
+    <string name="prefs_general_reset_first_launch_title">Reset first launch</string>
+    <string name="prefs_general_reset_first_launch_summary">Next launch will behave like a fresh install</string>
+    <string name="prefs_general_reset_done">First launch flag reset</string>
+
+    <!-- ============ Libraries preferences ============ -->
+    <string name="prefs_libraries_category_document">Documents</string>
+    <string name="prefs_libraries_category_media">Media &amp; OCR</string>
+    <string name="prefs_libraries_category_analysis">Analysis</string>
+    <string name="prefs_libraries_word_title">Word (DOCX)</string>
+    <string name="prefs_libraries_word_summary">Read and write DOCX files</string>
+    <string name="prefs_libraries_pdf_title">PDF</string>
+    <string name="prefs_libraries_pdf_summary">Read, write, merge, split PDFs</string>
+    <string name="prefs_libraries_ocr_title">OCR (Tesseract)</string>
+    <string name="prefs_libraries_ocr_summary">Extract text from images</string>
+    <string name="prefs_libraries_tts_title">Text-to-speech</string>
+    <string name="prefs_libraries_tts_summary">Read documents aloud</string>
+    <string name="prefs_libraries_stt_title">Speech-to-text</string>
+    <string name="prefs_libraries_stt_summary">Dictate text into documents</string>
+    <string name="prefs_libraries_image_title">Image tools</string>
+    <string name="prefs_libraries_image_summary">Crop, filter, compress images</string>
+    <string name="prefs_libraries_text_title">Text tools</string>
+    <string name="prefs_libraries_text_summary">Search, replace, format text</string>
+    <string name="prefs_libraries_signature_title">Signature pad</string>
+    <string name="prefs_libraries_signature_summary">Draw and embed signatures</string>
+    <string name="prefs_libraries_qr_title">QR / Barcode</string>
+    <string name="prefs_libraries_qr_summary">Scan and generate codes</string>
+    <string name="prefs_libraries_charts_title">Charts</string>
+    <string name="prefs_libraries_charts_summary">Insert charts in documents</string>
+    <string name="prefs_libraries_latex_title">LaTeX math</string>
+    <string name="prefs_libraries_latex_summary">Render math equations</string>
+
+    <!-- ============ Fonts preferences ============ -->
+    <string name="prefs_fonts_category_defaults">Default fonts</string>
+    <string name="prefs_fonts_category_advanced">Advanced</string>
+    <string name="prefs_fonts_arabic_title">Arabic font</string>
+    <string name="prefs_fonts_latin_title">Latin font</string>
+    <string name="prefs_fonts_size_title">Default size</string>
+    <string name="prefs_fonts_fallback_title">Fallback font</string>
+    <string name="prefs_fonts_load_system_title">Load system fonts</string>
+    <string name="prefs_fonts_load_system_summary">Include fonts installed on the device</string>
+
+    <!-- ============ Sharing preferences ============ -->
+    <string name="prefs_sharing_category_general">General</string>
+    <string name="prefs_sharing_enabled_title">Enable sharing</string>
+    <string name="prefs_sharing_enabled_summary">Allow sharing documents from the app</string>
+    <string name="prefs_sharing_default_action_title">Default action</string>
+    <string name="prefs_sharing_watermark_title">Include watermark</string>
+    <string name="prefs_sharing_watermark_summary">Add a watermark when sharing</string>
+    <string name="sharing_action_share">Share</string>
+    <string name="sharing_action_export">Export</string>
+    <string name="sharing_action_save">Save</string>
+
+    <!-- ============ Privacy preferences ============ -->
+    <string name="prefs_privacy_category_analytics">Analytics</string>
+    <string name="prefs_privacy_category_data">Data</string>
+    <string name="prefs_privacy_category_policy">Legal</string>
+    <string name="prefs_privacy_crash_title">Send crash reports</string>
+    <string name="prefs_privacy_crash_summary">Help fix bugs by sharing anonymized crash data</string>
+    <string name="prefs_privacy_usage_title">Send usage statistics</string>
+    <string name="prefs_privacy_usage_summary">Share anonymous feature usage data</string>
+    <string name="prefs_privacy_anonymize_title">Anonymize logs</string>
+    <string name="prefs_privacy_anonymize_summary">Strip file paths and personal info from logs</string>
+    <string name="prefs_privacy_clear_logout_title">Clear data on logout</string>
+    <string name="prefs_privacy_clear_logout_summary">Wipe local data when signing out</string>
+    <string name="prefs_privacy_policy_title">Privacy policy</string>
+    <string name="prefs_privacy_policy_summary">Read how your data is handled</string>
+    <string name="prefs_privacy_terms_title">Terms of service</string>
+    <string name="prefs_privacy_terms_summary">Usage terms and conditions</string>
+
+    <!-- ============ About preferences ============ -->
+    <string name="prefs_about_category_app">App</string>
+    <string name="prefs_about_category_dev">Developer</string>
+    <string name="prefs_about_category_legal">Legal</string>
+    <string name="prefs_about_version_title">Version</string>
+    <string name="prefs_about_build_title">Build</string>
+    <string name="prefs_about_developer_title">Developer</string>
+    <string name="prefs_about_whatsapp_title">WhatsApp</string>
+    <string name="prefs_about_phone_title">Call</string>
+    <string name="prefs_about_email_title">Email</string>
+    <string name="prefs_about_licenses_title">Open-source licenses</string>
+    <string name="prefs_about_licenses_summary">Libraries used in this app</string>
+    <string name="prefs_about_privacy_title">Privacy policy</string>
+    <string name="prefs_about_website_title">Website</string>
+
+    <!-- ============ Storage preferences ============ -->
+    <string name="prefs_storage_category_paths">Paths</string>
+    <string name="prefs_storage_category_cache">Cache</string>
+    <string name="prefs_storage_category_backup">Backup</string>
+    <string name="prefs_storage_docs_path_title">Documents folder</string>
+    <string name="prefs_storage_temp_path_title">Temp folder</string>
+    <string name="prefs_storage_cache_size_title">Cache usage</string>
+    <string name="prefs_storage_cache_usage_format">%1$s used / %2$s limit</string>
+    <string name="prefs_storage_cache_limit_title">Cache size limit</string>
+    <string name="prefs_storage_clear_cache_exit_title">Clear cache on exit</string>
+    <string name="prefs_storage_clear_cache_exit_summary">Delete temp files when the app closes</string>
+    <string name="prefs_storage_clear_cache_title">Clear cache now</string>
+    <string name="prefs_storage_clear_cache_summary">Delete all cached files immediately</string>
+    <string name="prefs_storage_clear_cache_message">All cached files will be deleted. Your documents are not affected. Continue?</string>
+    <string name="prefs_storage_cleared">Cache cleared</string>
+    <string name="prefs_storage_auto_backup_title">Automatic backups</string>
+    <string name="prefs_storage_auto_backup_summary">Back up settings and data periodically</string>
+    <string name="prefs_storage_backup_interval_title">Backup interval</string>
+    <string name="backup_interval_1h">Every hour</string>
+    <string name="backup_interval_6h">Every 6 hours</string>
+    <string name="backup_interval_12h">Every 12 hours</string>
+    <string name="backup_interval_24h">Daily</string>
+    <string name="backup_interval_week">Weekly</string>
+    
+    <!-- ============ Storage — backup (Phase C / WorkManager) ============ -->
+<string name="prefs_storage_backup_last_title">Last backup</string>
+<string name="prefs_storage_backup_last_never">No backups yet</string>
+<string name="prefs_storage_backup_last_format">%1$s · %2$s</string>
+<string name="prefs_storage_backup_now_title">Backup now</string>
+<string name="prefs_storage_backup_now_summary">Create a backup immediately</string>
+<string name="prefs_storage_backup_started">Backup started in the background</string>
+
+    <!-- ============ Import preferences ============ -->
+    <string name="prefs_import_category_formats">Supported formats</string>
+    <string name="prefs_import_category_encoding">Encoding</string>
+    <string name="prefs_import_category_behavior">Behavior</string>
+    <string name="prefs_import_supported_title">Formats</string>
+    <string name="prefs_import_supported_value">DOCX, PDF, TXT, MD, HTML, RTF</string>
+    <string name="prefs_import_auto_encoding_title">Auto-detect encoding</string>
+    <string name="prefs_import_auto_encoding_summary">Guess the file encoding when opening</string>
+    <string name="prefs_import_default_encoding_title">Default encoding</string>
+    <string name="prefs_import_max_size_title">Maximum file size</string>
+    <string name="prefs_import_keep_original_title">Keep original file</string>
+    <string name="prefs_import_keep_original_summary">Keep a copy of the imported file untouched</string>
+
+    <!-- ============ Export preferences ============ -->
+    <string name="prefs_export_category_defaults">Defaults</string>
+    <string name="prefs_export_category_location">Location</string>
+    <string name="prefs_export_category_content">Content</string>
+    <string name="prefs_export_default_format_title">Default format</string>
+    <string name="prefs_export_preset_title">Export preset</string>
+    <string name="prefs_export_location_title">Export folder</string>
+    <string name="prefs_export_ask_location_title">Ask for location</string>
+    <string name="prefs_export_ask_location_summary">Prompt every time you export</string>
+    <string name="prefs_export_overwrite_title">Overwrite existing</string>
+    <string name="prefs_export_overwrite_summary">Replace files with the same name</string>
+    <string name="prefs_export_metadata_title">Include metadata</string>
+    <string name="prefs_export_metadata_summary">Embed author, title, and date in the file</string>
+    <string name="export_format_docx">Word (.docx)</string>
+    <string name="export_format_pdf">PDF (.pdf)</string>
+    <string name="export_format_both">Both</string>
+    <string name="export_preset_default">Default</string>
+    <string name="export_preset_print">Print ready</string>
+    <string name="export_preset_web">Web optimized</string>
+    <string name="export_preset_archive">Archive (compressed)</string>
+
+    <!-- ============ Performance preferences ============ -->
+    <string name="prefs_perf_category_rendering">Rendering</string>
+    <string name="prefs_perf_category_processing">Processing</string>
+    <string name="prefs_perf_hardware_accel_title">Hardware acceleration</string>
+    <string name="prefs_perf_hardware_accel_summary">Use GPU for smoother UI</string>
+    <string name="prefs_perf_image_downscale_title">Downscale images</string>
+    <string name="prefs_perf_image_downscale_summary">Reduce resolution of large images in memory</string>
+    <string name="prefs_perf_parallel_tasks_title">Parallel tasks</string>
+    <string name="prefs_perf_streaming_threshold_title">Streaming threshold</string>
+    <string name="prefs_perf_background_workers_title">Background workers</string>
+
+    <!-- ============ Security preferences ============ -->
+    <string name="prefs_security_category_lock">Lock</string>
+    <string name="prefs_security_category_privacy">Privacy</string>
+    <string name="prefs_security_app_lock_title">App lock</string>
+    <string name="prefs_security_app_lock_summary">Require authentication to open the app</string>
+    <string name="prefs_security_biometric_title">Biometric unlock</string>
+    <string name="prefs_security_biometric_summary">Use fingerprint instead of PIN</string>
+    <string name="prefs_security_pin_title">Set PIN</string>
+    <string name="prefs_security_pin_summary">Configure the numeric lock code</string>
+    <string name="prefs_security_pin_coming">PIN setup ships in the next phase</string>
+    <string name="prefs_security_auto_lock_title">Auto-lock after</string>
+    <string name="prefs_security_encrypt_title">Encrypt documents</string>
+    <string name="prefs_security_encrypt_summary">Store documents encrypted on disk</string>
+    <string name="prefs_security_hide_recent_title">Hide recent files</string>
+    <string name="prefs_security_hide_recent_summary">Do not show recent files on the lock screen</string>
+    <string name="auto_lock_immediate">Immediately</string>
+    <string name="auto_lock_1min">1 minute</string>
+    <string name="auto_lock_5min">5 minutes</string>
+    <string name="auto_lock_15min">15 minutes</string>
+    <string name="auto_lock_30min">30 minutes</string>
+    <string name="auto_lock_60min">1 hour</string>
+
+    <!-- ============ Advanced preferences ============ -->
+    <string name="prefs_adv_category_debug">Debug</string>
+    <string name="prefs_adv_category_config">Configuration</string>
+    <string name="prefs_adv_category_reset">Reset</string>
+    <string name="prefs_adv_debug_title">Debug mode</string>
+    <string name="prefs_adv_debug_summary">Show verbose logs and debug info</string>
+    <string name="prefs_adv_experimental_title">Experimental features</string>
+    <string name="prefs_adv_experimental_summary">Enable features still in development</string>
+    <string name="prefs_adv_override_defaults_title">Override defaults</string>
+    <string name="prefs_adv_override_defaults_summary">Allow custom config to replace factory defaults</string>
+    <string name="prefs_adv_custom_config_title">Custom config (JSON)</string>
+    <string name="prefs_adv_custom_config_summary">Advanced key-value overrides</string>
+    <string name="prefs_adv_custom_config_empty">Not set</string>
+    <string name="prefs_adv_custom_config_set">%1$d characters set</string>
+    <string name="prefs_adv_custom_config_clear">Clear</string>
+    <string name="prefs_adv_custom_config_cleared">Config cleared</string>
+    <string name="prefs_adv_custom_config_saved">Config saved</string>
+    <string name="prefs_adv_view_keys_title">View stored keys</string>
+    <string name="prefs_adv_view_keys_summary">See every preference key currently saved</string>
+    <string name="prefs_adv_no_keys">No keys stored yet</string>
+    <string name="prefs_adv_reset_title">Reset all settings</string>
+    <string name="prefs_adv_reset_summary">Delete every preference and restart</string>
+    <string name="prefs_adv_reset_message">All settings will be erased and the app will restart. This cannot be undone. Continue?</string>
+
+    <!-- ============ Editor preferences ============ -->
+    <string name="prefs_editor_category_display">Display</string>
+    <string name="prefs_editor_category_behavior">Behavior</string>
+    <string name="prefs_editor_category_autosave">Autosave</string>
+    <string name="prefs_editor_zoom_title">Default zoom</string>
+    <string name="prefs_editor_line_numbers_title">Show line numbers</string>
+    <string name="prefs_editor_line_numbers_summary">Display line numbers in the editor gutter</string>
+    <string name="prefs_editor_ruler_title">Show ruler</string>
+    <string name="prefs_editor_ruler_summary">Show a ruler at the top of the editor</string>
+    <string name="prefs_editor_status_bar_title">Show status bar</string>
+    <string name="prefs_editor_status_bar_summary">Display word count and cursor position</string>
+    <string name="prefs_editor_word_wrap_title">Word wrap</string>
+    <string name="prefs_editor_word_wrap_summary">Wrap long lines to fit the screen</string>
+    <string name="prefs_editor_spell_check_title">Spell check</string>
+    <string name="prefs_editor_spell_check_summary">Underline misspelled words</string>
+    <string name="prefs_editor_autosave_title">Autosave</string>
+    <string name="prefs_editor_autosave_summary">Save your work automatically in the background</string>
+    <string name="prefs_editor_autosave_interval_title">Autosave interval</string>
+    <string name="autosave_15s">Every 15 seconds</string>
+    <string name="autosave_30s">Every 30 seconds</string>
+    <string name="autosave_60s">Every minute</string>
+    <string name="autosave_2m">Every 2 minutes</string>
+    <string name="autosave_5m">Every 5 minutes</string>
+
+    <!-- ============ Word preferences ============ -->
+    <string name="prefs_word_category_page">Page</string>
+    <string name="prefs_word_category_output">Output</string>
+    <string name="prefs_word_page_size_title">Default page size</string>
+    <string name="prefs_word_orientation_title">Default orientation</string>
+    <string name="prefs_word_margins_title">Default margins</string>
+    <string name="prefs_word_compress_images_title">Compress images</string>
+    <string name="prefs_word_compress_images_summary">Reduce image size in DOCX exports</string>
+    <string name="prefs_word_embed_fonts_title">Embed fonts</string>
+    <string name="prefs_word_embed_fonts_summary">Include fonts in the DOCX for full fidelity</string>
+    <string name="prefs_word_compatibility_title">Compatibility mode</string>
+    <string name="prefs_word_compatibility_summary">Save files compatible with older Word versions</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Landscape</string>
+    <string name="margins_narrow">Narrow</string>
+    <string name="margins_normal">Normal</string>
+    <string name="margins_wide">Wide</string>
+    <string name="margins_custom">Custom</string>
+
+    <!-- ============ PDF preferences ============ -->
+    <string name="prefs_pdf_category_page">Page</string>
+    <string name="prefs_pdf_category_output">Output</string>
+    <string name="prefs_pdf_category_viewer">Viewer</string>
+    <string name="prefs_pdf_page_size_title">Default page size</string>
+    <string name="prefs_pdf_orientation_title">Default orientation</string>
+    <string name="prefs_pdf_dpi_title">Image DPI</string>
+    <string name="prefs_pdf_compression_title">Compression level</string>
+    <string name="prefs_pdf_embed_fonts_title">Embed fonts</string>
+    <string name="prefs_pdf_embed_fonts_summary">Include fonts in the PDF for full fidelity</string>
+    <string name="prefs_pdf_password_title">Password protection</string>
+    <string name="prefs_pdf_password_summary">Require a password to open exported PDFs</string>
+    <string name="prefs_pdf_password_coming">Password setup ships in the next phase</string>
+    <string name="prefs_pdf_scroll_title">Viewer scroll</string>
+    <string name="prefs_pdf_night_mode_title">Night mode</string>
+    <string name="prefs_pdf_night_mode_summary">Invert PDF colors when viewing at night</string>
+    <string name="pdf_scroll_vertical">Vertical</string>
+    <string name="pdf_scroll_horizontal">Horizontal</string>
+    <string name="compression_low">Low</string>
+    <string name="compression_medium">Medium</string>
+    <string name="compression_high">High</string>
+    <string name="compression_maximum">Maximum</string>
+
+    <!-- ============ Tools preferences ============ -->
+    <string name="prefs_tools_category_ocr">OCR</string>
+    <string name="prefs_tools_category_speech">Speech</string>
+    <string name="prefs_tools_category_image">Image</string>
+    <string name="prefs_tools_category_search">Search</string>
+    <string name="prefs_tools_ocr_lang_title">OCR language</string>
+    <string name="prefs_tools_ocr_auto_title">Auto-detect OCR language</string>
+    <string name="prefs_tools_ocr_auto_summary">Guess the language from the image</string>
+    <string name="prefs_tools_tts_speed_title">TTS speed</string>
+    <string name="prefs_tools_stt_lang_title">Speech-to-text language</string>
+    <string name="prefs_tools_bg_removal_title">Background removal</string>
+    <string name="prefs_tools_bg_removal_summary">Enable automatic background removal for images</string>
+    <string name="prefs_tools_regex_title">Regex search</string>
+    <string name="prefs_tools_regex_summary">Enable regular expressions in search</string>
+    <string name="prefs_tools_case_title">Case-sensitive search</string>
+    <string name="prefs_tools_case_summary">Match exact letter case when searching</string>
+    <string name="ocr_lang_auto">Auto detect</string>
+    <string name="ocr_lang_arabic">Arabic</string>
+    <string name="ocr_lang_english">English</string>
+    <string name="ocr_lang_both">Arabic + English</string>
+    <string name="stt_lang_system">System default</string>
+    <string name="stt_lang_arabic">Arabic</string>
+    <string name="stt_lang_english">English</string>
+
+    <!-- ============ Controls preferences ============ -->
+    <string name="prefs_controls_category_image">Image defaults</string>
+    <string name="prefs_controls_category_text">Text defaults</string>
+    <string name="prefs_controls_category_behavior">Behavior</string>
+    <string name="prefs_controls_image_quality_title">Image quality</string>
+    <string name="prefs_controls_image_max_dim_title">Image max dimension</string>
+    <string name="prefs_controls_image_format_title">Image format</string>
+    <string name="prefs_controls_image_compress_title">Auto-compress images</string>
+    <string name="prefs_controls_image_compress_summary">Automatically compress images on insert</string>
+    <string name="prefs_controls_alt_text_title">Require alt text</string>
+    <string name="prefs_controls_alt_text_summary">Force alt text when inserting images</string>
+    <string name="prefs_controls_text_font_title">Default text font</string>
+    <string name="prefs_controls_text_size_title">Default text size</string>
+    <string name="prefs_controls_text_spacing_title">Default line spacing</string>
+    <string name="prefs_controls_text_align_title">Default text alignment</string>
+    <string name="prefs_controls_word_count_title">Show word count</string>
+    <string name="prefs_controls_word_count_summary">Display word count in the editor status bar</string>
+    <string name="prefs_controls_apply_default_title">Apply default style</string>
+    <string name="prefs_controls_apply_default_summary">Apply default style to new documents</string>
+    <string name="image_quality_low">Low</string>
+    <string name="image_quality_medium">Medium</string>
+    <string name="image_quality_high">High</string>
+    <string name="image_max_1024">1024 px</string>
+    <string name="image_max_2048">2048 px</string>
+    <string name="image_max_4096">4096 px</string>
+    <string name="image_max_unlimited">Unlimited</string>
+    <string name="text_align_left">Left</string>
+    <string name="text_align_center">Center</string>
+    <string name="text_align_right">Right</string>
+    <string name="text_align_justify">Justify</string>
+    
+    <!-- ============ Create document (Phase 4 Wave Create) ============ -->
+<string name="create_toolbar_title">New document</string>
+<string name="create_pick_type">Choose a document type</string>
+<string name="create_type_word_title">Word document</string>
+<string name="create_type_word_subtitle">Create a new .docx file</string>
+<string name="create_type_pdf_title">PDF document</string>
+<string name="create_type_pdf_subtitle">Create a new .pdf file</string>
+<string name="create_type_text_title">Plain text</string>
+<string name="create_type_text_subtitle">Create a new .txt file</string>
+<string name="create_type_markdown_title">Markdown</string>
+<string name="create_type_markdown_subtitle">Create a new .md file</string>
+<string name="create_dialog_title">Name your document</string>
+<string name="create_dialog_name_hint">File name</string>
+<string name="create_dialog_create">Create</string>
+<string name="create_success">Created %1$s</string>
+<string name="create_failed">Could not create the document</string>
+
+<string name="create_no_types_available">No document types enabled — open Settings → Libraries</string>
+<string name="feature_disabled_for_type">This file type is disabled in Settings → Libraries</string>
+
+<!-- ============ Editor (Phase 4 Wave Editor) ============ -->
+<string name="editor_toolbar_title">Document</string>
+<string name="editor_action_save">Save</string>
+<string name="editor_saved">Document saved</string>
+<string name="editor_save_failed">Could not save the document</string>
+<string name="editor_word_count">%1$d words · %2$d chars</string>
+<string name="editor_pdf_external">Opening PDF in another app. In-app PDF viewer ships next phase.</string>
+<string name="editor_unsaved_title">Unsaved changes</string>
+<string name="editor_unsaved_message">You have unsaved edits. What would you like to do?</string>
+<string name="editor_discard">Discard</string>
+<string name="editor_save_and_close">Save and close</string>
+
+<string name="editor_saved_toast">Saved</string>
+<string name="editor_save_error_prefix">Save failed: %1$s</string>
+
+</resources>

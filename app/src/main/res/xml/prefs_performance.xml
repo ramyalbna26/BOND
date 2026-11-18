@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_perf_category_rendering">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.perf.hardware_acceleration"
+            app:title="@string/prefs_perf_hardware_accel_title"
+            app:summary="@string/prefs_perf_hardware_accel_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.perf.image_downscale"
+            app:title="@string/prefs_perf_image_downscale_title"
+            app:summary="@string/prefs_perf_image_downscale_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_perf_category_processing">
+
+        <ListPreference
+            app:key="sanad.perf.max_parallel_tasks"
+            app:title="@string/prefs_perf_parallel_tasks_title"
+            app:entries="@array/parallel_tasks_entries"
+            app:entryValues="@array/parallel_tasks_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.perf.streaming_threshold_mb"
+            app:title="@string/prefs_perf_streaming_threshold_title"
+            app:entries="@array/streaming_threshold_entries"
+            app:entryValues="@array/streaming_threshold_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.perf.background_workers"
+            app:title="@string/prefs_perf_background_workers_title"
+            app:entries="@array/background_workers_entries"
+            app:entryValues="@array/background_workers_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

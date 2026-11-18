@@ -1,0 +1,21 @@
+{
+  "allFiles": [
+    {
+      "file": "/sdcard/CodeOnTheGoProjects/BOND/app/build.gradle.kts",
+      "selection": {
+        "end": {
+          "column": 46,
+          "index": 5340,
+          "line": 149
+        },
+        "start": {
+          "column": 46,
+          "index": 5340,
+          "line": 149
+        }
+      }
+    }
+  ],
+  "projectPath": "/sdcard/CodeOnTheGoProjects/BOND",
+  "selectedFile": "/sdcard/CodeOnTheGoProjects/BOND/app/build.gradle.kts"
+}

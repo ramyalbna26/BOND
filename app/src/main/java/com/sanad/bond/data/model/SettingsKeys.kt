@@ -1,0 +1,203 @@
+package com.sanad.bond.data.model
+
+/**
+ * Central registry of every SharedPreferences key used in Sanad.
+ * All keys are namespaced under "sanad." to avoid collisions with
+ * any third-party library that might write to the same prefs file.
+ *
+ * Group prefixes:
+ *   logging., general., lib., editor., word., pdf., export., import.,
+ *   storage., security., perf., privacy., fonts., tools., share.,
+ *   controls., adv., about.
+ *
+ * Rule: NEVER write a raw string literal for a preference key outside this object.
+ */
+object SettingsKeys {
+
+    // ============================================================
+    // Logging
+    // ============================================================
+    const val LOGGING_ENABLED             = "sanad.logging.enabled"
+    const val LOGGING_FILE_ENABLED        = "sanad.logging.file_enabled"
+    const val LOGGING_MIN_LEVEL           = "sanad.logging.min_level"           // VERBOSE..ERROR
+    const val LOGGING_MEMORY_BUFFER       = "sanad.logging.memory_buffer"       // int, lines
+    const val LOGGING_AUTO_SCROLL         = "sanad.logging.auto_scroll"         // boolean
+    const val LOGGING_MAX_FILE_SIZE_MB    = "sanad.logging.max_file_size_mb"    // int
+
+    // ============================================================
+    // General
+    // ============================================================
+    const val GENERAL_LANGUAGE            = "sanad.general.language"            // ar / en / system
+    const val GENERAL_THEME               = "sanad.general.theme"               // light / dark / system
+    const val GENERAL_THEME_PRESET        = "sanad.general.theme_preset"
+    const val GENERAL_DYNAMIC_COLOR       = "sanad.general.dynamic_color"       // API 31+
+    const val GENERAL_FIRST_LAUNCH        = "sanad.general.first_launch"
+    const val GENERAL_SHOW_ONBOARDING     = "sanad.general.show_onboarding"
+    const val GENERAL_ANIMATIONS          = "sanad.general.animations"
+    const val GENERAL_HAPTICS             = "sanad.general.haptics"
+
+    // ============================================================
+    // Libraries (feature toggles)
+    // ============================================================
+    const val LIB_WORD_ENABLED            = "sanad.lib.word_enabled"
+    const val LIB_PDF_ENABLED             = "sanad.lib.pdf_enabled"
+    const val LIB_OCR_ENABLED             = "sanad.lib.ocr_enabled"
+    const val LIB_TTS_ENABLED             = "sanad.lib.tts_enabled"
+    const val LIB_STT_ENABLED             = "sanad.lib.stt_enabled"
+    const val LIB_IMAGE_ENABLED           = "sanad.lib.image_enabled"
+    const val LIB_TEXT_ENABLED            = "sanad.lib.text_enabled"
+    const val LIB_SIGNATURE_ENABLED       = "sanad.lib.signature_enabled"
+    const val LIB_QR_ENABLED              = "sanad.lib.qr_enabled"
+    const val LIB_CHARTS_ENABLED          = "sanad.lib.charts_enabled"
+    const val LIB_LATEX_ENABLED           = "sanad.lib.latex_enabled"
+
+    // ============================================================
+    // Editor
+    // ============================================================
+    const val EDITOR_DEFAULT_ZOOM            = "sanad.editor.default_zoom"
+    const val EDITOR_SHOW_LINE_NUMBERS       = "sanad.editor.show_line_numbers"
+    const val EDITOR_SHOW_RULER              = "sanad.editor.show_ruler"
+    const val EDITOR_AUTOSAVE_ENABLED        = "sanad.editor.autosave_enabled"
+    const val EDITOR_AUTOSAVE_INTERVAL_SEC   = "sanad.editor.autosave_interval_sec"
+    const val EDITOR_SPELL_CHECK             = "sanad.editor.spell_check"
+    const val EDITOR_WORD_WRAP               = "sanad.editor.word_wrap"
+    const val EDITOR_SHOW_STATUS_BAR         = "sanad.editor.show_status_bar"
+
+    // ============================================================
+    // Word (DOCX)
+    // ============================================================
+    const val WORD_DEFAULT_PAGE_SIZE      = "sanad.word.default_page_size"
+    const val WORD_DEFAULT_ORIENTATION    = "sanad.word.default_orientation"   // portrait / landscape
+    const val WORD_DEFAULT_MARGINS        = "sanad.word.default_margins"
+    const val WORD_COMPRESS_IMAGES        = "sanad.word.compress_images"
+    const val WORD_EMBED_FONTS            = "sanad.word.embed_fonts"
+    const val WORD_KEEP_COMPATIBILITY     = "sanad.word.keep_compatibility"
+
+    // ============================================================
+    // PDF
+    // ============================================================
+    const val PDF_DEFAULT_PAGE_SIZE       = "sanad.pdf.default_page_size"
+    const val PDF_DEFAULT_ORIENTATION     = "sanad.pdf.default_orientation"
+    const val PDF_IMAGE_DPI               = "sanad.pdf.image_dpi"
+    const val PDF_COMPRESSION_LEVEL       = "sanad.pdf.compression_level"      // 0..9
+    const val PDF_EMBED_FONTS             = "sanad.pdf.embed_fonts"
+    const val PDF_PASSWORD_PROTECTION     = "sanad.pdf.password_protection"
+    const val PDF_VIEWER_SCROLL           = "sanad.pdf.viewer_scroll"          // vertical / horizontal
+    const val PDF_VIEWER_NIGHT_MODE       = "sanad.pdf.viewer_night_mode"
+
+    // ============================================================
+    // Export
+    // ============================================================
+    const val EXPORT_DEFAULT_FORMAT       = "sanad.export.default_format"      // docx / pdf / both
+    const val EXPORT_DEFAULT_LOCATION     = "sanad.export.default_location"
+    const val EXPORT_ASK_LOCATION         = "sanad.export.ask_location"
+    const val EXPORT_OVERWRITE_EXISTING   = "sanad.export.overwrite_existing"
+    const val EXPORT_INCLUDE_METADATA     = "sanad.export.include_metadata"
+    const val EXPORT_PRESET               = "sanad.export.preset"
+
+    // ============================================================
+    // Import
+    // ============================================================
+    const val IMPORT_SUPPORTED_FORMATS    = "sanad.import.supported_formats"   // csv list
+    const val IMPORT_AUTO_DETECT_ENCODING = "sanad.import.auto_detect_encoding"
+    const val IMPORT_DEFAULT_ENCODING     = "sanad.import.default_encoding"
+    const val IMPORT_MAX_FILE_SIZE_MB     = "sanad.import.max_file_size_mb"
+    const val IMPORT_KEEP_ORIGINAL        = "sanad.import.keep_original"
+
+    // ============================================================
+    // Storage
+    // ============================================================
+    const val STORAGE_DOCUMENTS_DIR       = "sanad.storage.documents_dir"
+    const val STORAGE_TEMP_DIR            = "sanad.storage.temp_dir"
+    const val STORAGE_CACHE_SIZE_MB       = "sanad.storage.cache_size_mb"
+    const val STORAGE_CLEAR_CACHE_ON_EXIT = "sanad.storage.clear_cache_on_exit"
+    const val STORAGE_AUTO_BACKUP         = "sanad.storage.auto_backup"
+    const val STORAGE_BACKUP_INTERVAL_HRS = "sanad.storage.backup_interval_hours"
+
+    // ============================================================
+    // Security
+    // ============================================================
+    const val SECURITY_APP_LOCK           = "sanad.security.app_lock"
+    const val SECURITY_BIOMETRIC          = "sanad.security.biometric"
+    const val SECURITY_PIN                = "sanad.security.pin"               // hashed
+    const val SECURITY_AUTO_LOCK_MIN      = "sanad.security.auto_lock_minutes"
+    const val SECURITY_ENCRYPT_DOCUMENTS  = "sanad.security.encrypt_documents"
+    const val SECURITY_HIDE_RECENT        = "sanad.security.hide_recent"
+
+    // ============================================================
+    // Performance
+    // ============================================================
+    const val PERF_HARDWARE_ACCEL         = "sanad.perf.hardware_acceleration"
+    const val PERF_IMAGE_DOWNSCALE        = "sanad.perf.image_downscale"
+    const val PERF_MAX_PARALLEL_TASKS     = "sanad.perf.max_parallel_tasks"
+    const val PERF_STREAMING_THRESHOLD_MB = "sanad.perf.streaming_threshold_mb"
+    const val PERF_BACKGROUND_WORKERS     = "sanad.perf.background_workers"
+
+    // ============================================================
+    // Privacy
+    // ============================================================
+    const val PRIVACY_SEND_CRASH_REPORTS  = "sanad.privacy.send_crash_reports"
+    const val PRIVACY_SEND_USAGE_STATS    = "sanad.privacy.send_usage_stats"
+    const val PRIVACY_ANONYMIZE_LOGS      = "sanad.privacy.anonymize_logs"
+    const val PRIVACY_CLEAR_ON_LOGOUT     = "sanad.privacy.clear_on_logout"
+    const val PRIVACY_SHOW_POLICY         = "sanad.privacy.show_privacy_policy"
+
+    // ============================================================
+    // Fonts
+    // ============================================================
+    const val FONTS_DEFAULT_ARABIC        = "sanad.fonts.default_arabic"
+    const val FONTS_DEFAULT_LATIN         = "sanad.fonts.default_latin"
+    const val FONTS_DEFAULT_SIZE_SP       = "sanad.fonts.default_size_sp"
+    const val FONTS_FALLBACK              = "sanad.fonts.fallback"
+    const val FONTS_LOAD_SYSTEM           = "sanad.fonts.load_system"
+
+    // ============================================================
+    // Tools
+    // ============================================================
+    const val TOOLS_OCR_LANGUAGE          = "sanad.tools.ocr_language"         // ara / eng / auto
+    const val TOOLS_OCR_AUTO_DETECT       = "sanad.tools.ocr_auto_detect"
+    const val TOOLS_TTS_VOICE             = "sanad.tools.tts_voice"
+    const val TOOLS_TTS_SPEED             = "sanad.tools.tts_speed"            // 0.5..2.0
+    const val TOOLS_STT_LANGUAGE          = "sanad.tools.stt_language"
+    const val TOOLS_BACKGROUND_REMOVAL    = "sanad.tools.background_removal"
+    const val TOOLS_REGEX_SEARCH          = "sanad.tools.regex_search"
+    const val TOOLS_CASE_SENSITIVE_SEARCH = "sanad.tools.case_sensitive_search"
+
+    // ============================================================
+    // Sharing
+    // ============================================================
+    const val SHARING_ENABLED             = "sanad.share.enabled"
+    const val SHARING_DEFAULT_ACTION      = "sanad.share.default_action"       // share / export / save
+    const val SHARING_INCLUDE_WATERMARK   = "sanad.share.include_watermark"
+
+    // ============================================================
+    // Controls (image + text)
+    // ============================================================
+    const val CONTROLS_IMAGE_QUALITY          = "sanad.controls.image_quality"          // low / med / high
+    const val CONTROLS_IMAGE_MAX_DIMENSION    = "sanad.controls.image_max_dimension"    // px
+    const val CONTROLS_IMAGE_FORMAT           = "sanad.controls.image_format"           // png / jpg / webp
+    const val CONTROLS_IMAGE_AUTO_COMPRESS    = "sanad.controls.image_auto_compress"
+    const val CONTROLS_IMAGE_ALT_TEXT_REQ     = "sanad.controls.image_alt_text_required"
+    const val CONTROLS_TEXT_DEFAULT_FONT      = "sanad.controls.text_default_font"
+    const val CONTROLS_TEXT_DEFAULT_SIZE      = "sanad.controls.text_default_size"
+    const val CONTROLS_TEXT_DEFAULT_SPACING   = "sanad.controls.text_default_spacing"
+    const val CONTROLS_TEXT_DEFAULT_ALIGN     = "sanad.controls.text_default_alignment"
+    const val CONTROLS_TEXT_DEFAULT_PARA_STYLE= "sanad.controls.text_default_paragraph_style"
+    const val CONTROLS_TEXT_SHOW_WORD_COUNT   = "sanad.controls.text_show_word_count"
+    const val CONTROLS_TEXT_APPLY_DEFAULT_STYLE = "sanad.controls.text_apply_default_style"
+
+    // ============================================================
+    // Advanced
+    // ============================================================
+    const val ADV_DEBUG_MODE              = "sanad.adv.debug_mode"
+    const val ADV_EXPERIMENTAL_FEATURES   = "sanad.adv.experimental_features"
+    const val ADV_OVERRIDE_DEFAULTS       = "sanad.adv.override_defaults"
+    const val ADV_CUSTOM_CONFIG_JSON      = "sanad.adv.custom_config_json"
+    const val ADV_RESET_ON_NEXT_LAUNCH    = "sanad.adv.reset_on_next_launch"
+
+    // ============================================================
+    // About
+    // ============================================================
+    const val ABOUT_VERSION_SHOWN         = "sanad.about.version_shown"
+    const val ABOUT_LAST_UPDATE_CHECK     = "sanad.about.last_update_check"
+}

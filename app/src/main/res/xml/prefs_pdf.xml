@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_pdf_category_page">
+
+        <ListPreference
+            app:key="sanad.pdf.default_page_size"
+            app:title="@string/prefs_pdf_page_size_title"
+            app:entries="@array/page_size_entries"
+            app:entryValues="@array/page_size_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.pdf.default_orientation"
+            app:title="@string/prefs_pdf_orientation_title"
+            app:entries="@array/orientation_entries"
+            app:entryValues="@array/orientation_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_pdf_category_output">
+
+        <ListPreference
+            app:key="sanad.pdf.image_dpi"
+            app:title="@string/prefs_pdf_dpi_title"
+            app:entries="@array/pdf_dpi_entries"
+            app:entryValues="@array/pdf_dpi_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.pdf.compression_level"
+            app:title="@string/prefs_pdf_compression_title"
+            app:entries="@array/pdf_compression_entries"
+            app:entryValues="@array/pdf_compression_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.pdf.embed_fonts"
+            app:title="@string/prefs_pdf_embed_fonts_title"
+            app:summary="@string/prefs_pdf_embed_fonts_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.pdf.password_protection"
+            app:title="@string/prefs_pdf_password_title"
+            app:summary="@string/prefs_pdf_password_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_pdf_category_viewer">
+
+        <ListPreference
+            app:key="sanad.pdf.viewer_scroll"
+            app:title="@string/prefs_pdf_scroll_title"
+            app:entries="@array/pdf_scroll_entries"
+            app:entryValues="@array/pdf_scroll_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.pdf.viewer_night_mode"
+            app:title="@string/prefs_pdf_night_mode_title"
+            app:summary="@string/prefs_pdf_night_mode_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

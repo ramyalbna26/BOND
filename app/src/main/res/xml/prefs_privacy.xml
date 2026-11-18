@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_privacy_category_analytics">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.privacy.send_crash_reports"
+            app:title="@string/prefs_privacy_crash_title"
+            app:summary="@string/prefs_privacy_crash_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.privacy.send_usage_stats"
+            app:title="@string/prefs_privacy_usage_title"
+            app:summary="@string/prefs_privacy_usage_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_privacy_category_data">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.privacy.anonymize_logs"
+            app:title="@string/prefs_privacy_anonymize_title"
+            app:summary="@string/prefs_privacy_anonymize_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.privacy.clear_on_logout"
+            app:title="@string/prefs_privacy_clear_logout_title"
+            app:summary="@string/prefs_privacy_clear_logout_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_privacy_category_policy">
+
+        <Preference
+            app:key="pref_privacy_policy"
+            app:title="@string/prefs_privacy_policy_title"
+            app:summary="@string/prefs_privacy_policy_summary" />
+
+        <Preference
+            app:key="pref_privacy_terms"
+            app:title="@string/prefs_privacy_terms_title"
+            app:summary="@string/prefs_privacy_terms_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

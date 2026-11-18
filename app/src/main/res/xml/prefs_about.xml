@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_about_category_app">
+
+        <Preference
+            app:key="pref_about_version"
+            app:title="@string/prefs_about_version_title"
+            app:selectable="false" />
+
+        <Preference
+            app:key="pref_about_build"
+            app:title="@string/prefs_about_build_title"
+            app:selectable="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_about_category_dev">
+
+        <Preference
+            app:key="pref_about_developer"
+            app:title="@string/prefs_about_developer_title"
+            app:selectable="false" />
+
+        <Preference
+            app:key="pref_about_whatsapp"
+            app:title="@string/prefs_about_whatsapp_title" />
+
+        <Preference
+            app:key="pref_about_phone"
+            app:title="@string/prefs_about_phone_title" />
+
+        <Preference
+            app:key="pref_about_email"
+            app:title="@string/prefs_about_email_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_about_category_legal">
+
+        <Preference
+            app:key="pref_about_licenses"
+            app:title="@string/prefs_about_licenses_title"
+            app:summary="@string/prefs_about_licenses_summary" />
+
+        <Preference
+            app:key="pref_about_privacy"
+            app:title="@string/prefs_about_privacy_title" />
+
+        <Preference
+            app:key="pref_about_website"
+            app:title="@string/prefs_about_website_title" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

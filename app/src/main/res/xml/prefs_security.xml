@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_security_category_lock">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.security.app_lock"
+            app:title="@string/prefs_security_app_lock_title"
+            app:summary="@string/prefs_security_app_lock_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.security.biometric"
+            app:title="@string/prefs_security_biometric_title"
+            app:summary="@string/prefs_security_biometric_summary"
+            app:dependency="sanad.security.app_lock" />
+
+        <Preference
+            app:key="pref_set_pin"
+            app:title="@string/prefs_security_pin_title"
+            app:summary="@string/prefs_security_pin_summary"
+            app:dependency="sanad.security.app_lock" />
+
+        <ListPreference
+            app:key="sanad.security.auto_lock_minutes"
+            app:title="@string/prefs_security_auto_lock_title"
+            app:entries="@array/auto_lock_entries"
+            app:entryValues="@array/auto_lock_values"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="sanad.security.app_lock" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_security_category_privacy">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.security.encrypt_documents"
+            app:title="@string/prefs_security_encrypt_title"
+            app:summary="@string/prefs_security_encrypt_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.security.hide_recent"
+            app:title="@string/prefs_security_hide_recent_title"
+            app:summary="@string/prefs_security_hide_recent_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

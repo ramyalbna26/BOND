@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/prefs_word_category_page">
+
+        <ListPreference
+            app:key="sanad.word.default_page_size"
+            app:title="@string/prefs_word_page_size_title"
+            app:entries="@array/page_size_entries"
+            app:entryValues="@array/page_size_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.word.default_orientation"
+            app:title="@string/prefs_word_orientation_title"
+            app:entries="@array/orientation_entries"
+            app:entryValues="@array/orientation_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="sanad.word.default_margins"
+            app:title="@string/prefs_word_margins_title"
+            app:entries="@array/word_margins_entries"
+            app:entryValues="@array/word_margins_values"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/prefs_word_category_output">
+
+        <SwitchPreferenceCompat
+            app:key="sanad.word.compress_images"
+            app:title="@string/prefs_word_compress_images_title"
+            app:summary="@string/prefs_word_compress_images_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.word.embed_fonts"
+            app:title="@string/prefs_word_embed_fonts_title"
+            app:summary="@string/prefs_word_embed_fonts_summary" />
+
+        <SwitchPreferenceCompat
+            app:key="sanad.word.keep_compatibility"
+            app:title="@string/prefs_word_compatibility_title"
+            app:summary="@string/prefs_word_compatibility_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

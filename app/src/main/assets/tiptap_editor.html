@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>محرر سند</title>
+
+  <!--
+    CommonJS shim: html-docx-js is bundled by Browserify and expects
+    `module.exports` / `exports` to exist on the global scope. Setting
+    them here prevents "ReferenceError: exports is not defined" when
+    the script is loaded as a plain <script src>.
+  -->
+  <script>
+    window.module = { exports: {} };
+    window.exports = window.module.exports;
+  </script>
+
+  <!-- مكتبات التصدير (تحتاج إنترنت للتصدير فقط) -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/turndown@7.1.2/dist/turndown.js"></script>
+
+  <style>
+    :root {
+      --bg: #fafafa; --surface: #fff; --text: #1a1a1a; --border: #e0e0e0;
+      --primary: #4a90e2; --primary-light: #d6e8ff; --primary-dark: #2a6bb0;
+      --toolbar-bg: #fff; --shadow: rgba(0,0,0,0.08); --gray: #666;
+    }
+    body.dark {
+      --bg: #1a1a1a; --surface: #252525; --text: #e0e0e0; --border: #3a3a3a;
+      --primary: #64b5f6; --primary-light: #1e3a5f; --primary-dark: #4a90e2;
+      --toolbar-bg: #252525; --shadow: rgba(0,0,0,0.5); --gray: #aaa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ===== التبويبات ===== */
+    #tabs {
+      display: flex; gap: 2px; padding: 0 8px;
+      background: var(--toolbar-bg); border-bottom: 2px solid var(--border);
+      position: sticky; top: 0; z-index: 101;
+      overflow-x: auto;
+    }
+    #tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: 8px 16px; border: none; background: transparent;
+      color: var(--gray); cursor: pointer; font-size: 13px;
+      font-weight: 600; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; white-space: nowrap;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ===== شريط الأدوات ===== */
+    .toolbar {
+      display: none; flex-wrap: wrap; gap: 3px; padding: 6px 8px;
+      background: var(--toolbar-bg); border-bottom: 1px solid var(--border);
+      position: sticky; top: 37px; z-index: 100;
+      align-items: center;
+    }
+    .toolbar.active { display: flex; }
+
+    .toolbar button {
+      min-width: 34px; height: 34px; border: 1px solid var(--border);
+      border-radius: 5px; background: var(--surface); color: var(--text);
+      cursor: pointer; font-size: 13px; padding: 0 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .toolbar button:hover { background: var(--primary-light); border-color: var(--primary); }
+    .toolbar button.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .toolbar select {
+      height: 34px; border: 1px solid var(--border); border-radius: 5px;
+      padding: 0 6px; background: var(--surface); color: var(--text);
+      font-size: 12px; cursor: pointer;
+    }
+    .toolbar input[type="color"] {
+      width: 34px; height: 34px; border: 1px solid var(--border);
+      border-radius: 5px; background: var(--surface); cursor: pointer;
+      padding: 2px;
+    }
+    .toolbar input[type="number"] {
+      width: 50px; height: 34px; border: 1px solid var(--border);
+      border-radius: 5px; padding: 0 4px; background: var(--surface);
+      color: var(--text); font-size: 12px; text-align: center;
+    }
+
+    .separator {
+      width: 1px; height: 24px; background: var(--border); margin: 0 3px;
+    }
+
+    .group-label {
+      font-size: 10px; color: var(--gray); padding: 0 4px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* ===== منطقة المحرر ===== */
+    #editor-wrapper {
+      max-width: 900px; margin: 16px auto; padding: 0 12px 100px;
+    }
+    #editor-container {
+      background: var(--surface); border-radius: 6px;
+      padding: 32px; min-height: 70vh;
+      box-shadow: 0 1px 3px var(--shadow);
+      border: 1px solid var(--border);
+    }
+    #editor {
+      outline: none; min-height: 60vh; line-height: 1.8;
+      font-size: 16px; color: var(--text); direction: rtl;
+    }
+    #editor p { margin: 0 0 10px; }
+    #editor h1 { font-size: 28px; margin: 20px 0 10px; }
+    #editor h2 { font-size: 22px; margin: 16px 0 8px; }
+    #editor h3 { font-size: 18px; margin: 12px 0 6px; }
+    #editor table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    #editor table td, #editor table th {
+      border: 1px solid var(--border); padding: 8px 10px;
+    }
+    #editor table th { background: var(--primary-light); font-weight: bold; }
+    #editor img { max-width: 100%; height: auto; border-radius: 4px; margin: 8px 0; }
+    #editor blockquote {
+      border-right: 4px solid var(--primary); padding-right: 12px;
+      margin: 12px 0; color: var(--gray);
+    }
+    #editor ul, #editor ol { padding-right: 28px; margin: 8px 0; }
+    #editor hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    #editor a { color: var(--primary); text-decoration: underline; }
+
+    /* ===== وضع الكود HTML ===== */
+    #source-editor {
+      display: none; width: 100%; min-height: 60vh;
+      font-family: 'Courier New', monospace; font-size: 13px;
+      padding: 16px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface); color: var(--text); resize: vertical;
+    }
+
+    /* ===== شريط الحالة ===== */
+    #status-bar {
+      display: flex; flex-wrap: wrap; gap: 16px; padding: 8px 16px;
+      font-size: 12px; color: var(--gray);
+      background: var(--toolbar-bg); border-top: 1px solid var(--border);
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    }
+    #status-bar span { display: inline-flex; align-items: center; gap: 4px; }
+    #status-bar .dot { width: 6px; height: 6px; border-radius: 50%; background: #4caf50; }
+
+    /* ===== نوافذ منبثقة ===== */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); z-index: 500;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); color: var(--text);
+      border-radius: 8px; padding: 20px; min-width: 280px; max-width: 90vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .modal h3 { margin-bottom: 12px; font-size: 16px; }
+    .modal input, .modal select {
+      width: 100%; padding: 8px 10px; margin-bottom: 10px;
+      border: 1px solid var(--border); border-radius: 5px;
+      background: var(--surface); color: var(--text); font-size: 14px;
+    }
+    .modal .actions { display: flex; gap: 8px; margin-top: 12px; }
+    .modal .actions button {
+      flex: 1; padding: 10px; border: 1px solid var(--border);
+      border-radius: 5px; background: var(--surface); color: var(--text);
+      cursor: pointer; font-size: 14px;
+    }
+    .modal .actions button.primary {
+      background: var(--primary); color: white; border-color: var(--primary);
+    }
+    .modal .actions button:hover { opacity: 0.9; }
+
+    /* ===== إشعار Toast ===== */
+    #toast {
+      position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 10px 24px; border-radius: 24px;
+      font-size: 14px; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; z-index: 999; max-width: 90vw; text-align: center;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ===== بحث واستبدال ===== */
+    #find-panel {
+      display: none; padding: 12px; background: var(--primary-light);
+      border-radius: 6px; margin-bottom: 12px;
+    }
+    #find-panel.open { display: block; }
+    #find-panel input {
+      width: 100%; padding: 6px 10px; margin-bottom: 6px;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--surface); color: var(--text); font-size: 13px;
+    }
+    #find-panel .row { display: flex; gap: 6px; }
+    #find-panel .row button {
+      flex: 1; padding: 6px; border: 1px solid var(--border);
+      border-radius: 4px; background: var(--surface); color: var(--text);
+      font-size: 12px; cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      #editor-container { padding: 16px; }
+      .toolbar button { min-width: 30px; height: 30px; font-size: 11px; padding: 0 5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== التبويبات ===== -->
+  <div id="tabs">
+    <button class="tab active" data-tab="home" onclick="switchTab('home')">الرئيسية</button>
+    <button class="tab" data-tab="insert" onclick="switchTab('insert')">إدراج</button>
+    <button class="tab" data-tab="layout" onclick="switchTab('layout')">التخطيط</button>
+    <button class="tab" data-tab="view" onclick="switchTab('view')">عرض</button>
+  </div>
+
+  <!-- ===== تبويب الرئيسية ===== -->
+  <div class="toolbar active" id="toolbar-home">
+    <span class="group-label">تراجع</span>
+    <button onclick="cmd('undo')" title="تراجع (Ctrl+Z)">↶</button>
+    <button onclick="cmd('redo')" title="إعادة (Ctrl+Y)">↷</button>
+    <span class="separator"></span>
+
+    <span class="group-label">الخط</span>
+    <select id="fontFamily" onchange="cmd('fontName', this.value)" title="نوع الخط">
+      <option value="'Segoe UI', Tahoma, Arial, sans-serif">Segoe UI</option>
+      <option value="Cairo, sans-serif">Cairo</option>
+      <option value="'Traditional Arabic', serif">Traditional Arabic</option>
+      <option value="'Arial', sans-serif">Arial</option>
+      <option value="'Tahoma', sans-serif">Tahoma</option>
+      <option value="'Courier New', monospace">Courier New</option>
+      <option value="'Georgia', serif">Georgia</option>
+    </select>
+    <select id="fontSize" onchange="cmd('fontSize', this.value)" title="حجم الخط">
+      <option value="2">صغير</option>
+      <option value="3" selected>عادي</option>
+      <option value="4">متوسط</option>
+      <option value="5">كبير</option>
+      <option value="6">كبير جدًا</option>
+      <option value="7">ضخم</option>
+    </select>
+    <span class="separator"></span>
+
+    <span class="group-label">تنسيق</span>
+    <button onclick="cmd('bold')" title="عريض (Ctrl+B)" style="font-weight:bold">B</button>
+    <button onclick="cmd('italic')" title="مائل (Ctrl+I)" style="font-style:italic">I</button>
+    <button onclick="cmd('underline')" title="تسطير (Ctrl+U)" style="text-decoration:underline">U</button>
+    <button onclick="cmd('strikeThrough')" title="يتوسطه خط"><s>S</s></button>
+    <button onclick="cmd('superscript')" title="أعلى">X²</button>
+    <button onclick="cmd('subscript')" title="أسفل">X₂</button>
+    <span class="separator"></span>
+
+    <span class="group-label">ألوان</span>
+    <input type="color" id="foreColor" onchange="cmd('foreColor', this.value)" value="#000000" title="لون النص" />
+    <input type="color" id="bgColor" onchange="cmd('hiliteColor', this.value)" value="#ffff00" title="لون التظليل" />
+    <span class="separator"></span>
+
+    <span class="group-label">محاذاة</span>
+    <button onclick="cmd('justifyRight')" title="يمين">≡</button>
+    <button onclick="cmd('justifyCenter')" title="وسط">≡</button>
+    <button onclick="cmd('justifyLeft')" title="يسار">≡</button>
+    <button onclick="cmd('justifyFull')" title="ضبط">≡</button>
+    <span class="separator"></span>
+
+    <span class="group-label">قوائم</span>
+    <button onclick="cmd('insertUnorderedList')" title="قائمة نقطية">• ≡</button>
+    <button onclick="cmd('insertOrderedList')" title="قائمة رقمية">1. ≡</button>
+    <button onclick="cmd('outdent')" title="إزاحة يسار">⇤</button>
+    <button onclick="cmd('indent')" title="إزاحة يمين">⇥</button>
+    <span class="separator"></span>
+
+    <button onclick="cmd('removeFormat')" title="إزالة كل التنسيق">✖ تنسيق</button>
+  </div>
+
+  <!-- ===== تبويب إدراج ===== -->
+  <div class="toolbar" id="toolbar-insert">
+    <span class="group-label">وسائط</span>
+    <button onclick="insertImageFromDevice()" title="إدراج صورة من الجهاز">🖼️ صورة</button>
+    <button onclick="openLinkDialog()" title="إدراج رابط">🔗 رابط</button>
+    <button onclick="insertEmoji()" title="إيموجي">😀 إيموجي</button>
+    <span class="separator"></span>
+
+    <span class="group-label">عناصر</span>
+    <button onclick="openTableDialog()" title="إدراج جدول">▦ جدول</button>
+    <button onclick="cmd('insertHorizontalRule')" title="خط فاصل">━ فاصل</button>
+    <button onclick="cmd('formatBlock', 'blockquote')" title="اقتباس">❝ اقتباس</button>
+    <button onclick="cmd('formatBlock', 'pre')" title="كود">⌨ كود</button>
+    <span class="separator"></span>
+
+    <span class="group-label">عناوين</span>
+    <select onchange="cmd('formatBlock', this.value)" title="نمط الفقرة">
+      <option value="p">نص عادي</option>
+      <option value="h1">عنوان 1</option>
+      <option value="h2">عنوان 2</option>
+      <option value="h3">عنوان 3</option>
+      <option value="h4">عنوان 4</option>
+    </select>
+    <span class="separator"></span>
+
+    <button onclick="insertDateTime()" title="إدراج تاريخ ووقت">📅 تاريخ/وقت</button>
+  </div>
+
+  <!-- ===== تبويب التخطيط ===== -->
+  <div class="toolbar" id="toolbar-layout">
+    <span class="group-label">اتجاه</span>
+    <button onclick="cmd('direction', 'rtl')" title="من اليمين لليسار">RTL</button>
+    <button onclick="cmd('direction', 'ltr')" title="من اليسار لليمين">LTR</button>
+    <span class="separator"></span>
+
+    <span class="group-label">مسافات الأسطر</span>
+    <select onchange="setLineHeight(this.value)" title="مسافة الأسطر">
+      <option value="1">1.0</option>
+      <option value="1.15">1.15</option>
+      <option value="1.5" selected>1.5</option>
+      <option value="2">2.0</option>
+      <option value="2.5">2.5</option>
+    </select>
+    <span class="separator"></span>
+
+    <button onclick="toggleFindReplace()" title="بحث واستبدال">🔍 بحث</button>
+    <button onclick="clearDocument()" title="مسح كل المحتوى">🗑 مسح الكل</button>
+  </div>
+
+  <!-- ===== تبويب عرض ===== -->
+  <div class="toolbar" id="toolbar-view">
+    <span class="group-label">الوضع</span>
+    <button onclick="setViewMode('wysiwyg')" id="btn-wysiwyg" class="active" title="تحرير عادي">📝 تحرير</button>
+    <button onclick="setViewMode('source')" id="btn-source" title="كود HTML">⌨ كود</button>
+    <button onclick="toggleDarkMode()" title="الوضع الداكن">🌙 داكن</button>
+    <span class="separator"></span>
+
+    <span class="group-label">أدوات</span>
+    <button onclick="window.print()" title="طباعة">🖨 طباعة</button>
+    <button onclick="saveToLocalStorage()" title="حفظ محلي">💾 حفظ محلي</button>
+    <button onclick="loadFromLocalStorage()" title="تحميل محلي">📂 تحميل</button>
+  </div>
+
+  <!-- ===== منطقة المحرر ===== -->
+  <div id="editor-wrapper">
+    <div id="find-panel">
+      <input type="text" id="findInput" placeholder="ابحث..." />
+      <input type="text" id="replaceInput" placeholder="استبدل بـ..." />
+      <div class="row">
+        <button onclick="findNext()">التالي</button>
+        <button onclick="replaceOne()">استبدال</button>
+        <button onclick="replaceAll()">استبدال الكل</button>
+        <button onclick="toggleFindReplace()">إغلاق</button>
+      </div>
+    </div>
+
+    <div id="editor-container">
+      <div id="editor" contenteditable="true" spellcheck="false"></div>
+      <textarea id="source-editor" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <!-- ===== شريط الحالة ===== -->
+  <div id="status-bar">
+    <span><span class="dot"></span> <span id="saveStatus">جاهز</span></span>
+    <span>📝 <span id="wordCount">0</span> كلمة</span>
+    <span>🔤 <span id="charCount">0</span> حرف</span>
+    <span>⏱️ <span id="readTime">0</span> د</span>
+  </div>
+
+  <!-- ===== نافذة الجدول ===== -->
+  <div class="modal-overlay" id="tableModal">
+    <div class="modal">
+      <h3>إدراج جدول</h3>
+      <input type="number" id="tableRows" value="3" min="1" max="20" placeholder="عدد الصفوف" />
+      <input type="number" id="tableCols" value="3" min="1" max="10" placeholder="عدد الأعمدة" />
+      <div class="actions">
+        <button onclick="closeModal('tableModal')">إلغاء</button>
+        <button class="primary" onclick="insertTable()">إدراج</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== نافذة الرابط ===== -->
+  <div class="modal-overlay" id="linkModal">
+    <div class="modal">
+      <h3>إدراج رابط</h3>
+      <input type="text" id="linkText" placeholder="نص الرابط" />
+      <input type="url" id="linkUrl" placeholder="https://example.com" />
+      <div class="actions">
+        <button onclick="closeModal('linkModal')">إلغاء</button>
+        <button class="primary" onclick="insertLink()">إدراج</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- ============================================================
+       السكريبت الرئيسي
+       ============================================================ -->
+  <script>
+    // ============================================================
+    // 1. المتغيرات العامة
+    // ============================================================
+    const editor = document.getElementById('editor');
+    const sourceEditor = document.getElementById('source-editor');
+    let currentViewMode = 'wysiwyg';
+    let currentTab = 'home';
+    let autoSaveTimer = null;
+    let contentChangedTimer = null;
+
+    // ============================================================
+    // 2. الجسر مع أندرويد
+    // ============================================================
+    function sendToAndroid(type, payload) {
+      if (window.AndroidBridge) {
+        window.AndroidBridge.postMessage(JSON.stringify({ type, payload }));
+      }
+    }
+
+    // ============================================================
+    // 3. استقبال الإعدادات من أندرويد
+    // ============================================================
+    window.applySettings = function(settings) {
+      if (settings.darkMode) document.body.classList.add('dark');
+
+      if (settings.fontSize) {
+        editor.style.fontSize = settings.fontSize + 'px';
+      }
+
+      if (settings.html && settings.html !== "" && settings.html !== "<p>ابدأ الكتابة هنا...</p>") {
+        editor.innerHTML = settings.html;
+      } else {
+        editor.innerHTML = '<p><br></p>';
+      }
+
+      updateStatus();
+      sendToAndroid('editorReady', {});
+      setTimeout(() => editor.focus(), 200);
+    };
+
+    // ============================================================
+    // 4. التبديل بين التبويبات
+    // ============================================================
+    function switchTab(tabName) {
+      currentTab = tabName;
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tabName);
+      });
+      document.querySelectorAll('.toolbar').forEach(t => t.classList.remove('active'));
+      document.getElementById('toolbar-' + tabName).classList.add('active');
+    }
+
+    // ============================================================
+    // 5. تنفيذ أوامر التنسيق
+    // ============================================================
+    function cmd(command, value = null) {
+      editor.focus();
+      document.execCommand(command, false, value);
+      updateStatus();
+    }
+
+    function setLineHeight(value) {
+      editor.style.lineHeight = value;
+      editor.querySelectorAll('p, h1, h2, h3, h4, li').forEach(el => {
+        el.style.lineHeight = value;
+      });
+    }
+
+    // ============================================================
+    // 6. إدراج صورة من الجهاز
+    // ============================================================
+    function insertImageFromDevice() {
+      if (window.AndroidBridge && window.AndroidBridge.pickImage) {
+        window.AndroidBridge.pickImage();
+      } else {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            editor.focus();
+            document.execCommand('insertImage', false, ev.target.result);
+            updateStatus();
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      }
+    }
+
+    // تُستدعى من Kotlin بعد اختيار الصورة
+    window.insertImageFromBase64 = function(base64) {
+      editor.focus();
+      document.execCommand('insertImage', false, base64);
+      updateStatus();
+    };
+
+    // ============================================================
+    // 7. الإيموجي
+    // ============================================================
+    function insertEmoji() {
+      const emojis = ['😀','😂','🥰','😎','🤔','👍','🔥','🎉','✅','❤️','📌','💡','⭐','🌟','💯','🎯','🚀','💎'];
+      const choice = prompt('اختر إيموجي:\n' + emojis.join(' '));
+      if (choice) cmd('insertText', choice);
+    }
+
+    // ============================================================
+    // 8. الجداول
+    // ============================================================
+    function openTableDialog() {
+      document.getElementById('tableModal').classList.add('open');
+    }
+
+    function insertTable() {
+      const rows = parseInt(document.getElementById('tableRows').value) || 3;
+      const cols = parseInt(document.getElementById('tableCols').value) || 3;
+
+      let html = '<table><tbody>';
+      for (let r = 0; r < rows; r++) {
+        html += '<tr>';
+        for (let c = 0; c < cols; c++) {
+          const tag = r === 0 ? 'th' : 'td';
+          html += `<${tag}>خلية</${tag}>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table><p><br></p>';
+
+      cmd('insertHTML', html);
+      closeModal('tableModal');
+    }
+
+    // ============================================================
+    // 9. الروابط
+    // ============================================================
+    function openLinkDialog() {
+      const sel = window.getSelection().toString();
+      if (sel) document.getElementById('linkText').value = sel;
+      document.getElementById('linkModal').classList.add('open');
+    }
+
+    function insertLink() {
+      const text = document.getElementById('linkText').value || 'رابط';
+      const url = document.getElementById('linkUrl').value;
+      if (!url) return;
+
+      const html = `<a href="${url}" target="_blank">${text}</a>`;
+      cmd('insertHTML', html);
+      closeModal('linkModal');
+    }
+
+    // ============================================================
+    // 10. التاريخ والوقت
+    // ============================================================
+    function insertDateTime() {
+      const now = new Date();
+      const formatted = now.toLocaleDateString('ar-EG') + ' ' + now.toLocaleTimeString('ar-EG');
+      cmd('insertText', formatted);
+    }
+
+    // ============================================================
+    // 11. أوضاع العرض
+    // ============================================================
+    function setViewMode(mode) {
+      currentViewMode = mode;
+
+      if (mode === 'wysiwyg') {
+        sourceEditor.style.display = 'none';
+        editor.style.display = 'block';
+        editor.innerHTML = sourceEditor.value || editor.innerHTML;
+        document.getElementById('btn-wysiwyg').classList.add('active');
+        document.getElementById('btn-source').classList.remove('active');
+      } else if (mode === 'source') {
+        sourceEditor.value = editor.innerHTML;
+        sourceEditor.style.display = 'block';
+        editor.style.display = 'none';
+        document.getElementById('btn-source').classList.add('active');
+        document.getElementById('btn-wysiwyg').classList.remove('active');
+      }
+    }
+
+    // ============================================================
+    // 12. البحث والاستبدال
+    // ============================================================
+    function toggleFindReplace() {
+      const panel = document.getElementById('find-panel');
+      panel.classList.toggle('open');
+    }
+
+    function findNext() {
+      const term = document.getElementById('findInput').value;
+      if (!term) return;
+      window.find(term);
+    }
+
+    function replaceOne() {
+      const find = document.getElementById('findInput').value;
+      const replace = document.getElementById('replaceInput').value;
+      if (!find) return;
+      editor.innerHTML = editor.innerHTML.replace(find, replace);
+      updateStatus();
+    }
+
+    function replaceAll() {
+      const find = document.getElementById('findInput').value;
+      const replace = document.getElementById('replaceInput').value;
+      if (!find) return;
+      editor.innerHTML = editor.innerHTML.split(find).join(replace);
+      updateStatus();
+      showToast(`تم استبدال كل "${find}"`);
+    }
+
+    // ============================================================
+    // 13. الوضع الداكن
+    // ============================================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('editor-dark', document.body.classList.contains('dark') ? '1' : '0');
+    }
+
+    if (localStorage.getItem('editor-dark') === '1') {
+      document.body.classList.add('dark');
+    }
+
+    // ============================================================
+    // 14. الحفظ المحلي
+    // ============================================================
+    function saveToLocalStorage() {
+      localStorage.setItem('editor-content', editor.innerHTML);
+      showToast('تم الحفظ محليًا');
+    }
+
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('editor-content');
+      if (saved) {
+        editor.innerHTML = saved;
+        showToast('تم التحميل من الحفظ المحلي');
+      } else {
+        showToast('لا يوجد محتوى محفوظ');
+      }
+    }
+
+    function autoSave() {
+      localStorage.setItem('editor-content', editor.innerHTML);
+    }
+
+    // ============================================================
+    // 15. مسح المستند
+    // ============================================================
+    function clearDocument() {
+      if (confirm('هل تريد مسح كل المحتوى؟')) {
+        editor.innerHTML = '<p><br></p>';
+        updateStatus();
+      }
+    }
+
+    // ============================================================
+    // 16. تحديث شريط الحالة
+    // ============================================================
+    function updateStatus() {
+      const text = editor.innerText || "";
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const chars = text.length;
+      document.getElementById('wordCount').textContent = words;
+      document.getElementById('charCount').textContent = chars;
+      document.getElementById('readTime').textContent = Math.max(1, Math.ceil(words / 200));
+    }
+
+    // ============================================================
+    // 17. الإشعارات
+    // ============================================================
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // ============================================================
+    // 18. إغلاق النوافذ المنبثقة
+    // ============================================================
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    // ============================================================
+    // 19. مراقبة التغييرات في المحرر
+    //
+    // Debounce contentChanged: without this, every keystroke fires a
+    // postMessage over the JS bridge, which costs ~10-20ms and makes
+    // typing laggy on low-end devices. 500ms of inactivity is the
+    // sweet spot — responsive enough for autosave, cheap enough to
+    // stay smooth while typing.
+    // ============================================================
+    editor.addEventListener('input', () => {
+      updateStatus();
+
+      clearTimeout(contentChangedTimer);
+      contentChangedTimer = setTimeout(() => {
+        sendToAndroid('contentChanged', { html: editor.innerHTML });
+      }, 500);
+
+      document.getElementById('saveStatus').textContent = 'جاري الحفظ...';
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        autoSave();
+        document.getElementById('saveStatus').textContent = 'تم الحفظ';
+      }, 1000);
+    });
+
+    // منع لصق التنسيق الغريب
+    editor.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+
+    // ============================================================
+    // 20. دوال التصدير (تستدعيها أندرويد عبر evaluateJavascript)
+    //
+    // ملاحظة: في الإصدار الحالي، الحفظ يتم من زر Save في Compose
+    // (عبر evaluateJavascript("window.getHTML()"))، وليس من هذه
+    // الدوال. الـ TiptapWebView بيتجاهل رسائل saveFile/saveHtmlAs*
+    // عمداً. الدوال دي محفوظة للمرحلة القادمة لو هيتعمل تصدير مباشر.
+    // ============================================================
+    window.exportWord = function(filename) {
+      const name = (filename || 'document') + '.docx';
+
+      // Primary path: html-docx-js (keeps formatting: bold, lists, tables)
+      if (typeof window.htmlDocx !== 'undefined' && window.htmlDocx && window.htmlDocx.asBlob) {
+        const html = `
+          <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                xmlns:w='urn:schemas-microsoft-com:office:word'
+                xmlns='http://www.w3.org/TR/REC-html40'>
+          <head>
+            <meta charset='utf-8'>
+            <title>${filename || 'Document'}</title>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; line-height: 1.8; }
+              table { border-collapse: collapse; width: 100%; }
+              td, th { border: 1px solid #ccc; padding: 8px; }
+              img { max-width: 100%; }
+              h1, h2, h3 { margin: 16px 0 8px; }
+            </style>
+          </head>
+          <body dir="rtl">${editor.innerHTML}</body></html>`;
+
+        try {
+          const blob = window.htmlDocx.asBlob(html);
+          const reader = new FileReader();
+          reader.onloadend = function() {
+            const base64 = reader.result.split(',')[1];
+            sendToAndroid('saveFile', { filename: name, base64 });
+          };
+          reader.readAsDataURL(blob);
+          return;
+        } catch (e) {
+          console.warn('html-docx-js failed, falling back to Kotlin:', e);
+        }
+      }
+
+      showToast('جاري التصدير بدون إنترنت...');
+      sendToAndroid('saveHtmlAsWord', {
+        filename: name,
+        html: editor.innerHTML
+      });
+    };
+
+    window.exportPDF = function(filename) {
+      const name = (filename || 'document') + '.pdf';
+
+      if (typeof window.html2pdf !== 'undefined' && window.html2pdf) {
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: name,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+          window.html2pdf().set(opt).from(editor).outputPdf('datauristring').then(function(pdfBase64) {
+            const base64 = pdfBase64.split(',')[1];
+            sendToAndroid('saveFile', { filename: name, base64 });
+          }).catch(function(err) {
+            console.warn('html2pdf failed, falling back to Kotlin:', err);
+            showToast('جاري التصدير بدون إنترنت...');
+            sendToAndroid('saveHtmlAsPdf', {
+              filename: name,
+              html: editor.innerHTML
+            });
+          });
+          return;
+        } catch (e) {
+          console.warn('html2pdf threw, falling back to Kotlin:', e);
+        }
+      }
+
+      showToast('جاري التصدير بدون إنترنت...');
+      sendToAndroid('saveHtmlAsPdf', {
+        filename: name,
+        html: editor.innerHTML
+      });
+    };
+
+    window.exportHTML = function(filename) {
+      const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>${filename || 'Document'}</title></head><body>${editor.innerHTML}</body></html>`;
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        const base64 = reader.result.split(',')[1];
+        sendToAndroid('saveFile', { filename: (filename || 'document') + '.html', base64 });
+      };
+      reader.readAsDataURL(blob);
+    };
+
+    // يستدعيها ViewModel للحصول على HTML للحفظ
+    window.getHTML = function() {
+      return editor.innerHTML;
+    };
+
+    // ============================================================
+    // 21. اختصارات لوحة المفاتيح
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'b') { e.preventDefault(); cmd('bold'); }
+        if (e.key === 'i') { e.preventDefault(); cmd('italic'); }
+        if (e.key === 'u') { e.preventDefault(); cmd('underline'); }
+        if (e.key === 'f') { e.preventDefault(); toggleFindReplace(); }
+      }
+    });
+
+    // ============================================================
+    // 22. التهيئة الأولية
+    // ============================================================
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        editor.focus();
+        sendToAndroid('editorReady', {});
+      }, 500);
+    });
+
+    // ============================================================
+    // 23. تقرير توفر مكتبات التصدير في الـ log
+    // ============================================================
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const hasDocx = typeof window.htmlDocx !== 'undefined';
+        const hasPdf = typeof window.html2pdf !== 'undefined';
+        if (!hasDocx) {
+          console.warn('[Sanad] html-docx-js not loaded — will use Kotlin fallback');
+        }
+        if (!hasPdf) {
+          console.warn('[Sanad] html2pdf not loaded — will use Kotlin fallback');
+        }
+      }, 800);
+    });
+  </script>
+</body>
+</html>
