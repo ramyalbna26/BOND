@@ -10,7 +10,6 @@ import com.sanad.bond.core.logging.LogEntry
 import com.sanad.bond.core.logging.LogLevel
 
 class LogAdapter : RecyclerView.Adapter<LogAdapter.VH>() {
-
     private val items = ArrayList<LogEntry>(512)
 
     fun submit(newItems: List<LogEntry>) {
@@ -48,12 +47,14 @@ class LogAdapter : RecyclerView.Adapter<LogAdapter.VH>() {
             b.textLine.text = e.format()
             b.textLine.setTextColor(colorFor(e.level))
         }
+
         private fun colorFor(level: LogLevel): Int = when (level) {
             LogLevel.VERBOSE -> Color.parseColor("#9E9E9E")
             LogLevel.DEBUG   -> Color.parseColor("#42A5F5")
             LogLevel.INFO    -> Color.parseColor("#66BB6A")
             LogLevel.WARN    -> Color.parseColor("#FFA726")
             LogLevel.ERROR   -> Color.parseColor("#EF5350")
+            LogLevel.ASSERT  -> Color.parseColor("#000000")
         }
     }
 }

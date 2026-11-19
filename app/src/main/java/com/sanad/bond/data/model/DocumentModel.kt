@@ -1,10 +1,5 @@
 package com.sanad.bond.data.model
 
-/**
- * النموذج الموحد لكل الفئات الأربعة (Word, PDF, Text, Markdown).
- * المحرر يتعامل مع DocumentModel فقط — لا POI، لا PDFBox، لا Compose.
- * HTML هي الصيغة الداخلية (الوحيدة القابلة للتحويل بلا فقدان تنسيق).
- */
 data class DocumentModel(
     val meta: DocMeta,
     val content: DocContent
@@ -12,7 +7,7 @@ data class DocumentModel(
 
 data class DocMeta(
     val fileName: String,
-    val fileUri: String?,           // null = مستند جديد غير محفوظ
+    val fileUri: String?,
     val docType: DocType,
     val createdAt: Long = System.currentTimeMillis(),
     val modifiedAt: Long = System.currentTimeMillis(),
@@ -26,11 +21,9 @@ data class DocContent(
     val plainText: String = ""
 ) {
     fun isEmpty(): Boolean = plainText.isBlank()
-
     fun wordCount(): Int =
         if (plainText.isBlank()) 0
         else plainText.trim().split(Regex("\\s+")).size
-
     fun charCount(): Int = plainText.length
 
     companion object {

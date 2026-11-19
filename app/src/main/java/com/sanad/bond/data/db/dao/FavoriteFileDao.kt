@@ -9,16 +9,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FavoriteFileDao {
-
     @Query("SELECT * FROM favorite_files ORDER BY favoritedAt DESC")
-    fun observeAll(): Flow<List<FavoriteFile>>
+    fun getAllFavoriteFiles(): Flow<List<FavoriteFile>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM favorite_files WHERE uri = :uri)")
     suspend fun isFavorite(uri: String): Boolean
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun add(file: FavoriteFile)
+    suspend fun insertFavoriteFile(file: FavoriteFile)
 
     @Query("DELETE FROM favorite_files WHERE uri = :uri")
-    suspend fun remove(uri: String)
+    suspend fun deleteFavoriteFile(uri: String)
 }

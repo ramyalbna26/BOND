@@ -20,7 +20,8 @@ import kotlinx.coroutines.launch
  */
 abstract class BaseFragment : Fragment() {
 
-    protected val tag: String get() = this::class.java.simpleName
+    @get:JvmName("logTag")
+protected val tag: String get() = this::class.java.simpleName
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

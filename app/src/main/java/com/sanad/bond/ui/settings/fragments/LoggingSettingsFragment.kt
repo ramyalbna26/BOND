@@ -17,44 +17,23 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Professional logging hub — replaces the ad-hoc logging screen from MainActivity.
- *
- *  - Live status (entries count, file size, availability, path)
- *  - Live preview of the last 3 entries (throttled, updates every ~500ms)
- *  - All settings (enable, file, auto-scroll, min level)
- *  - Actions (open viewer, refresh, share file, clear)
- *
- * Implements LogManager.LogListener to keep the status card in sync with the
- * logger without polling.
- */
 class LoggingSettingsFragment : BasePreferenceFragment(), LogManager.LogListener {
-
     private lateinit var statusPref: Preference
     private lateinit var previewPref: Preference
-
-    // Throttle: don't rebuild the summary on every single log line
     private var lastUiUpdate = 0L
     private val uiUpdateIntervalMs = 500L
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.prefs_logging, rootKey)
-
         statusPref  = requireNotNull(find("pref_log_status"))
         previewPref = requireNotNull(find("pref_log_preview"))
-
         bindLoggingToggle()
         bindFileToggle()
         bindMinLevel()
         bindAutoScroll()
         bindActions()
-
         refreshStatus()
     }
-
-    // ============================================================
-    // Lifecycle — start/stop live listener
-    // ============================================================
 
     override fun onResume() {
         super.onResume()
@@ -67,23 +46,14 @@ class LoggingSettingsFragment : BasePreferenceFragment(), LogManager.LogListener
         super.onPause()
     }
 
-    // ============================================================
-    // LogListener — throttled UI refresh
-    // ============================================================
-
     override fun onLog(entry: LogEntry) {
         val now = System.currentTimeMillis()
         if (now - lastUiUpdate < uiUpdateIntervalMs) return
         lastUiUpdate = now
-
         activity?.runOnUiThread {
             if (isAdded && view != null) refreshStatus()
         }
     }
-
-    // ============================================================
-    // Bindings
-    // ============================================================
 
     private fun bindLoggingToggle() {
         find<SwitchPreferenceCompat>(SettingsKeys.LOGGING_ENABLED)?.apply {
@@ -139,26 +109,19 @@ class LoggingSettingsFragment : BasePreferenceFragment(), LogManager.LogListener
     }
 
     private fun bindActions() {
-        // 1. Open full viewer
         find<Preference>("pref_log_open_viewer")?.setOnPreferenceClickListener {
             startActivity(Intent(requireContext(), LogViewerActivity::class.java))
             true
         }
-
-        // 2. Refresh stats
         find<Preference>("pref_log_refresh")?.setOnPreferenceClickListener {
             refreshStatus()
             showMessage(R.string.prefs_logging_refreshed)
             true
         }
-
-        // 3. Share the log file
         find<Preference>("pref_log_share")?.setOnPreferenceClickListener {
             shareLogFile()
             true
         }
-
-        // 4. Clear (with confirmation)
         find<Preference>("pref_log_clear")?.setOnPreferenceClickListener {
             showConfirm(
                 titleRes = R.string.prefs_logging_clear_title,
@@ -171,10 +134,6 @@ class LoggingSettingsFragment : BasePreferenceFragment(), LogManager.LogListener
             true
         }
     }
-
-    // ============================================================
-    // Status rendering
-    // ============================================================
 
     private fun refreshStatus() {
         renderStatusCard()
@@ -214,7 +173,6 @@ class LoggingSettingsFragment : BasePreferenceFragment(), LogManager.LogListener
             previewPref.summary = getString(R.string.prefs_logging_preview_empty)
             return
         }
-
         val formatter = SimpleDateFormat("HH:mm:ss", Locale.US)
         previewPref.summary = recent.joinToString("\n") { entry ->
             val time = formatter.format(Date(entry.timestamp))
@@ -223,20 +181,15 @@ class LoggingSettingsFragment : BasePreferenceFragment(), LogManager.LogListener
         }
     }
 
-    // ============================================================
-    // Share
-    // ============================================================
-
     private fun shareLogFile() {
         val uri = LogManager.shareableLogUri()
         if (uri == null) {
             showMessage(R.string.prefs_logging_share_unavailable)
             return
         }
-
         val share = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_STREAM, uri as? android.net.Uri)
             putExtra(Intent.EXTRA_SUBJECT, "Sanad logs")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }

@@ -10,22 +10,9 @@ import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-/**
- * Exports DocContent to a DOCX with basic HTML → WordprocessingML mapping.
- *
- * Supported inline: <b>, <strong>, <i>, <em>, <u>, <s>, <br>.
- * Block: <p>, <h1>-<h4>, <li>. Everything else is stripped but text kept.
- *
- * Page size, orientation, and margins are read from Settings → Word
- * and applied to the document's <w:sectPr> section properties.
- *
- * Images / tables are out of scope for the offline fallback.
- */
 object DocxExporter {
-
     private const val TAG = "DocxExporter"
 
-    /** Page dimensions in twips (1 twip = 1/1440 inch). Width × Height. */
     private val PAGE_SIZES_TWIPS: Map<String, Pair<Int, Int>> = mapOf(
         "A4" to (11906 to 16838),
         "A5" to (8391 to 11906),
@@ -34,11 +21,10 @@ object DocxExporter {
         "Legal" to (12240 to 20160)
     )
 
-    /** Uniform margins in twips. */
     private val MARGIN_TWIPS: Map<String, Int> = mapOf(
-        "narrow" to 720,     // 0.5 inch
-        "normal" to 1440,    // 1.0 inch
-        "wide" to 2880       // 2.0 inch
+        "narrow" to 720,
+        "normal" to 1440,
+        "wide" to 2880
     )
 
     fun export(context: Context, uri: Uri, content: DocContent) {
@@ -49,8 +35,6 @@ object DocxExporter {
                 ?: throw java.io.IOException("Cannot write DOCX: $uri")
         }
 
-        // Read the user's Word settings — the toggles in Settings → Word
-        // now have a real effect on the output file.
         val pageSizeName = SettingsRepository.getString(
             SettingsKeys.WORD_DEFAULT_PAGE_SIZE, "A4"
         )
@@ -60,22 +44,18 @@ object DocxExporter {
         val marginsName = SettingsRepository.getString(
             SettingsKeys.WORD_DEFAULT_MARGINS, "normal"
         )
-
         val (baseWidth, baseHeight) = PAGE_SIZES_TWIPS[pageSizeName]
             ?: PAGE_SIZES_TWIPS.getValue("A4")
-
         val (finalWidth, finalHeight) = if (orientationName == "landscape") {
             baseHeight to baseWidth
         } else {
             baseWidth to baseHeight
         }
-
         val marginTwips = MARGIN_TWIPS[marginsName] ?: 1440
 
         LogManager.d(
             TAG,
-            "DOCX page: $pageSizeName $orientationName " +
-                "(${finalWidth}x${finalHeight} twips), margins=$marginTwips"
+            "DOCX page: $pageSizeName $orientationName (${finalWidth}x${finalHeight} twips), margins=$marginTwips"
         )
 
         val documentXml = buildDocumentXml(
@@ -113,7 +93,6 @@ object DocxExporter {
         val chunks = normalized.split(
             Regex("(?i)</?(p|h1|h2|h3|h4|li|ul|ol|div|blockquote|pre)[^>]*>")
         )
-
         for (raw in chunks) {
             val trimmed = raw.trim()
             if (trimmed.isEmpty()) continue
@@ -138,7 +117,6 @@ object DocxExporter {
             }
             sb.append("</w:p>")
         }
-
         return """
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -205,26 +183,32 @@ object DocxExporter {
     }
 
     private fun escapeXml(text: String): String = text
-        .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
 
     private fun decodeEntities(text: String): String = text
-        .replace("&nbsp;", " ").replace("&amp;", "&")
-        .replace("&lt;", "<").replace("&gt;", ">")
-        .replace("&quot;", "\"").replace("&#39;", "'").replace("&apos;", "'")
+        .replace(" ", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
+        .replace("&apos;", "'")
 
     private val DOCX_CONTENT_TYPES = """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-            <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-            <Default Extension="xml" ContentType="application/xml"/>
-            <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+        <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+        <Default Extension="xml" ContentType="application/xml"/>
+        <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
         </Types>
     """.trimIndent()
 
     private val DOCX_RELS = """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-            <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
         </Relationships>
     """.trimIndent()
 }

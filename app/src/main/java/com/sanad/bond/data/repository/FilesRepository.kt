@@ -1,72 +1,139 @@
 package com.sanad.bond.data.repository
 
-import com.sanad.bond.core.base.BaseRepository
-import com.sanad.bond.core.result.Result
-import com.sanad.bond.data.db.dao.FavoriteFileDao
-import com.sanad.bond.data.db.dao.RecentFileDao
+import android.content.Context
+import android.net.Uri
+import androidx.room.Room
+import com.sanad.bond.core.logging.LogManager
+import com.sanad.bond.data.db.SanadDatabase
+import com.sanad.bond.data.db.entity.FavoriteFile
+import com.sanad.bond.data.db.entity.RecentFile
 import com.sanad.bond.data.model.FileItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import java.io.File
 
-interface FilesRepository {
-    fun getRecentFiles(): Flow<List<FileItem>>
-    fun getFavoriteFiles(): Flow<List<FileItem>>
-    suspend fun addRecentFile(file: FileItem): Result<Unit>
-    suspend fun removeRecentFile(fileId: String): Result<Unit>
-    suspend fun toggleFavorite(file: FileItem): Result<Boolean>
-    suspend fun isFavorite(fileId: String): Result<Boolean>
-    suspend fun clearRecentFiles(): Result<Unit>
-}
+object FilesRepository {
 
-@Singleton
-class FilesRepositoryImpl @Inject constructor(
-    private val recentFileDao: RecentFileDao,
-    private val favoriteFileDao: FavoriteFileDao
-) : BaseRepository(), FilesRepository {
+    private const val TAG = "FilesRepository"
+    private lateinit var db: SanadDatabase
 
-    override fun getRecentFiles(): Flow<List<FileItem>> {
-        return recentFileDao.getAllRecentFiles()
+    fun init(context: Context) {
+        db = Room.databaseBuilder(
+            context.applicationContext,
+            SanadDatabase::class.java,
+            "sanad.db"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+        LogManager.i(TAG, "FilesRepository initialized")
     }
 
-    override fun getFavoriteFiles(): Flow<List<FileItem>> {
-        return favoriteFileDao.getAllFavoriteFiles()
-    }
-
-    override suspend fun addRecentFile(file: FileItem): Result<Unit> {
-        return safeDbCall("addRecentFile") {
-            recentFileDao.insertRecentFile(file.toEntity())
+    fun observeRecent(): Flow<List<FileItem>> = combine(
+        db.recentFileDao().getAllRecentFiles(),
+        db.favoriteFileDao().getAllFavoriteFiles()
+    ) { recent, favorites ->
+        val favUris = favorites.mapTo(HashSet()) { it.uri }
+        recent.map { r ->
+            FileItem(
+                uri = r.uri,
+                displayName = r.displayName,
+                mimeType = r.mimeType,
+                sizeBytes = r.sizeBytes,
+                lastModified = r.lastOpenedAt,
+                isFavorite = r.uri in favUris
+            )
         }
     }
 
-    override suspend fun removeRecentFile(fileId: String): Result<Unit> {
-        return safeDbCall("removeRecentFile") {
-            recentFileDao.deleteRecentFile(fileId)
+    fun observeFavorites(): Flow<List<FileItem>> = combine(
+        db.favoriteFileDao().getAllFavoriteFiles(),
+        db.recentFileDao().getAllRecentFiles()
+    ) { favorites, recent ->
+        val recentByUri = recent.associateBy { it.uri }
+        favorites.map { f ->
+            FileItem(
+                uri = f.uri,
+                displayName = f.displayName,
+                mimeType = f.mimeType,
+                sizeBytes = f.sizeBytes,
+                lastModified = recentByUri[f.uri]?.lastOpenedAt ?: f.favoritedAt,
+                isFavorite = true
+            )
         }
     }
 
-    override suspend fun toggleFavorite(file: FileItem): Result<Boolean> {
-        return safeDbCall("toggleFavorite") {
-            val isFavorite = favoriteFileDao.isFavorite(file.id)
-            if (isFavorite) {
-                favoriteFileDao.deleteFavoriteFile(file.id)
-                false
-            } else {
-                favoriteFileDao.insertFavoriteFile(file.toFavoriteEntity())
-                true
+    suspend fun recordRecent(uri: String, displayName: String, mimeType: String, sizeBytes: Long) {
+        db.recentFileDao().insertRecentFile(
+            RecentFile(
+                uri = uri,
+                displayName = displayName,
+                mimeType = mimeType,
+                sizeBytes = sizeBytes,
+                lastOpenedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
+    suspend fun toggleFavorite(item: FileItem): Boolean {
+        val isFav = db.favoriteFileDao().isFavorite(item.uri)
+        return if (isFav) {
+            db.favoriteFileDao().deleteFavoriteFile(item.uri)
+            false
+        } else {
+            db.favoriteFileDao().insertFavoriteFile(
+                FavoriteFile(
+                    uri = item.uri,
+                    displayName = item.displayName,
+                    mimeType = item.mimeType,
+                    sizeBytes = item.sizeBytes,
+                    favoritedAt = System.currentTimeMillis()
+                )
+            )
+            true
+        }
+    }
+
+    suspend fun removeRecent(uri: String) {
+        db.recentFileDao().deleteRecentFile(uri)
+    }
+
+    suspend fun scanAppFiles(context: Context): List<FileItem> = withContext(Dispatchers.IO) {
+        val favUris: Set<String> = try {
+            db.favoriteFileDao().getAllFavoriteFiles()
+                .first()
+                .mapTo(HashSet()) { it.uri }
+        } catch (_: Throwable) { emptySet() }
+
+        val dir = context.getExternalFilesDir(null) ?: context.filesDir
+        dir.listFiles()
+            ?.asSequence()
+            ?.filter { it.isFile && !it.name.startsWith(".") }
+            ?.filter { it.extension.lowercase() in setOf("docx", "pdf", "txt", "md") }
+            ?.map { file ->
+                val uri = Uri.fromFile(file).toString()
+                FileItem(
+                    uri = uri,
+                    displayName = file.name,
+                    mimeType = guessMime(file.name),
+                    sizeBytes = file.length(),
+                    lastModified = file.lastModified(),
+                    isFavorite = uri in favUris
+                )
             }
-        }
+            ?.sortedByDescending { it.lastModified }
+            ?.toList()
+            ?: emptyList()
     }
 
-    override suspend fun isFavorite(fileId: String): Result<Boolean> {
-        return safeDbCall("isFavorite") {
-            favoriteFileDao.isFavorite(fileId)
+    private fun guessMime(name: String): String =
+        when (name.substringAfterLast('.', "").lowercase()) {
+            "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "pdf" -> "application/pdf"
+            "txt" -> "text/plain"
+            "md" -> "text/markdown"
+            else -> "application/octet-stream"
         }
-    }
-
-    override suspend fun clearRecentFiles(): Result<Unit> {
-        return safeDbCall("clearRecentFiles") {
-            recentFileDao.clearAllRecentFiles()
-        }
-    }
 }

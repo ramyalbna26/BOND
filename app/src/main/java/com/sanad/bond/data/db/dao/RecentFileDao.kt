@@ -9,16 +9,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecentFileDao {
-
     @Query("SELECT * FROM recent_files ORDER BY lastOpenedAt DESC")
-    fun observeAll(): Flow<List<RecentFile>>
+    fun getAllRecentFiles(): Flow<List<RecentFile>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(file: RecentFile)
+    suspend fun insertRecentFile(file: RecentFile)
 
     @Query("DELETE FROM recent_files WHERE uri = :uri")
-    suspend fun delete(uri: String)
+    suspend fun deleteRecentFile(uri: String)
 
     @Query("DELETE FROM recent_files")
-    suspend fun clearAll()
+    suspend fun clearAllRecentFiles()
 }
