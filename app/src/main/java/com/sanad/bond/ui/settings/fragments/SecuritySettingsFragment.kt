@@ -43,13 +43,24 @@ class SecuritySettingsFragment : BasePreferenceFragment() {
     private fun bindBiometric() {
         val pref = find<SwitchPreferenceCompat>(SettingsKeys.SECURITY_BIOMETRIC) ?: return
 
-        val hasFingerprint = try {
-            requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)
+        // Use androidx.biometric.BiometricManager instead of the deprecated
+        // PackageManager.FEATURE_FINGERPRINT (API 28+, and it misses face /
+        // iris sensors). BIOMETRIC_WEAK matches the authenticators
+        // BiometricPrompt accepts by default.
+        val canAuth = try {
+            androidx.biometric.BiometricManager.from(requireContext())
+                .canAuthenticate(
+                    androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+                )
         } catch (_: Exception) {
-            false
+            androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
         }
 
-        if (!hasFingerprint) {
+        val biometricAvailable = canAuth == androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
+
+        if (!biometricAvailable) {
+            // Hide the toggle on devices with no biometric hardware OR when
+            // it's temporarily unavailable (enrollment locked, etc.).
             pref.isVisible = false
             return
         }

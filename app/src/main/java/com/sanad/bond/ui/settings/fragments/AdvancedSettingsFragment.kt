@@ -141,16 +141,29 @@ class AdvancedSettingsFragment : BasePreferenceFragment() {
         LogManager.w(logTag, "Factory reset initiated")
         SettingsRepository.clearAll()
 
-        // Restart the app so Application.onCreate re-applies defaults
+        // Re-apply theme + locale defaults immediately so the user sees the
+        // change without a process kill. Previously this called
+        // Runtime.getRuntime().exit(0) 300ms after starting a new task,
+        // which raced the task launch and showed a crash dialog on some
+        // OEMs. We now re-apply the AppCompat night mode + locale list
+        // (which recreate the activity stack for us) and let the process
+        // die naturally.
+        try {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            )
+            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+            )
+        } catch (t: Throwable) {
+            LogManager.w(logTag, "Re-apply theme/locale failed: ${t.message}")
+        }
+
+        // Start a fresh MainActivity task and tear down the current stack.
         val intent = Intent(requireContext(), MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
         startActivity(intent)
-
-        // Give the new MainActivity task time to come up before we kill the
-        // process, otherwise the user sees a white/crashed screen.
-        Handler(Looper.getMainLooper()).postDelayed({
-            Runtime.getRuntime().exit(0)
-        }, 300)
+        requireActivity().finishAffinity()
     }
 }

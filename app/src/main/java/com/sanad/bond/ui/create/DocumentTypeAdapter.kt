@@ -46,6 +46,7 @@ class DocumentTypeAdapter(
                 "word" -> com.google.android.material.R.attr.colorPrimary
                 "pdf" -> com.google.android.material.R.attr.colorError
                 "markdown" -> com.google.android.material.R.attr.colorTertiary
+                "text" -> com.google.android.material.R.attr.colorSecondary
                 else -> com.google.android.material.R.attr.colorOnSurfaceVariant
             }
             val tv = TypedValue()

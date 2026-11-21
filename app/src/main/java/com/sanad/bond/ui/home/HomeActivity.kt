@@ -10,7 +10,9 @@ import com.sanad.bond.databinding.ActivityHomeBinding
 import com.sanad.bond.core.logging.LogManager
 import com.sanad.bond.ui.create.CreateActivity
 import com.sanad.bond.ui.settings.SettingsActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding

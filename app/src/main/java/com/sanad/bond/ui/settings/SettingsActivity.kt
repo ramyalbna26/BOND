@@ -13,7 +13,9 @@ import com.sanad.bond.R
 import com.sanad.bond.data.model.SettingsSection
 import com.sanad.bond.databinding.ActivitySettingsBinding
 import com.sanad.bond.core.logging.LogManager
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding

@@ -73,6 +73,18 @@ object DocxExporter {
             zip.putNextEntry(ZipEntry("_rels/.rels"))
             zip.write(DOCX_RELS.toByteArray(Charsets.UTF_8))
             zip.closeEntry()
+            // word/_rels/document.xml.rels — required by the OOXML spec;
+            // some Word versions prompt to "repair" the file when it is
+            // missing. Previously omitted.
+            zip.putNextEntry(ZipEntry("word/_rels/document.xml.rels"))
+            zip.write(DOCX_DOCUMENT_RELS.toByteArray(Charsets.UTF_8))
+            zip.closeEntry()
+            // word/styles.xml — defines the Normal style. Without it Word
+            // falls back to its default style table, which on some locales
+            // renders Arabic in a non-Arabic font.
+            zip.putNextEntry(ZipEntry("word/styles.xml"))
+            zip.write(DOCX_STYLES.toByteArray(Charsets.UTF_8))
+            zip.closeEntry()
             zip.putNextEntry(ZipEntry("word/document.xml"))
             zip.write(documentXml.toByteArray(Charsets.UTF_8))
             zip.closeEntry()
@@ -90,6 +102,16 @@ object DocxExporter {
             .replace("\r\n", "\n")
             .replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")
 
+        // Arabic font from Settings → Fonts. "system"/empty means let Word
+        // choose; otherwise we emit <w:rFonts w:cs="…"/> so Word uses a font
+        // that actually has Arabic glyphs (the default Calibri may not).
+        val arabicFont = SettingsRepository.getString(
+            SettingsKeys.FONTS_DEFAULT_ARABIC, ""
+        ).trim()
+        val rFontsXml = if (arabicFont.isNotEmpty() && arabicFont != "system") {
+            """<w:rFonts w:ascii="$arabicFont" w:hAnsi="$arabicFont" w:cs="$arabicFont"/>"""
+        } else ""
+
         val chunks = normalized.split(
             Regex("(?i)</?(p|h1|h2|h3|h4|li|ul|ol|div|blockquote|pre)[^>]*>")
         )
@@ -98,15 +120,28 @@ object DocxExporter {
             if (trimmed.isEmpty()) continue
             val runs = parseRuns(trimmed)
             if (runs.isEmpty()) continue
+
+            // RTL detection: if any run in this paragraph contains Arabic /
+            // Hebrew, mark the paragraph and every run as RTL so Word
+            // shapes and reorders correctly.
+            val paragraphRtl = runs.any { isRtl(it.text) }
+
             sb.append("<w:p>")
+            if (paragraphRtl) {
+                // <w:bidi/> must come inside <w:pPr>; without it Word draws
+                // the paragraph LTR even if the runs are marked RTL.
+                sb.append("<w:pPr><w:bidi/></w:pPr>")
+            }
             for (run in runs) {
                 if (run.text.isEmpty()) continue
                 sb.append("<w:r>")
                 val rPr = buildString {
+                    if (rFontsXml.isNotEmpty()) append(rFontsXml)
                     if (run.bold) append("<w:b/>")
                     if (run.italic) append("<w:i/>")
                     if (run.underline) append("<w:u w:val=\"single\"/>")
                     if (run.strike) append("<w:strike/>")
+                    if (paragraphRtl) append("<w:rtl w:val=\"1\"/>")
                 }
                 if (rPr.isNotEmpty()) {
                     sb.append("<w:rPr>").append(rPr).append("</w:rPr>")
@@ -186,6 +221,26 @@ object DocxExporter {
         .replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&apos;")
+
+    /**
+     * True if the paragraph contains any Arabic / Hebrew character — used
+     * to decide whether to emit `<w:bidi/>` (RTL paragraph) and `<w:rtl/>`
+     * (RTL run). Without these Word renders Arabic LTR and reordering is
+     * unreliable, which is fatal for an Arabic-first app.
+     */
+    private fun isRtl(text: String): Boolean {
+        for (ch in text) {
+            val c = ch.code
+            // Arabic block (0x0600–0x06FF) + Supplement (0x0750–0x077F) +
+            // Hebrew (0x0590–0x05FF)
+            if (c in 0x0600..0x06FF || c in 0x0750..0x077F || c in 0x0590..0x05FF) {
+                return true
+            }
+        }
+        return false
+    }
 
     private fun decodeEntities(text: String): String = text
         .replace(" ", " ")
@@ -202,6 +257,7 @@ object DocxExporter {
         <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
         <Default Extension="xml" ContentType="application/xml"/>
         <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+        <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
         </Types>
     """.trimIndent()
 
@@ -210,5 +266,37 @@ object DocxExporter {
         <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
         <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
         </Relationships>
+    """.trimIndent()
+
+    private val DOCX_DOCUMENT_RELS = """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+        </Relationships>
+    """.trimIndent()
+
+    private val DOCX_STYLES = """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:docDefaults>
+            <w:rPrDefault>
+            <w:rPr>
+                <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+                <w:lang w:val="ar-SA" w:bidi="ar-SA"/>
+            </w:rPr>
+            </w:rPrDefault>
+            <w:pPrDefault>
+            <w:pPr>
+                <w:spacing w:after="160" w:line="259" w:lineRule="auto"/>
+            </w:pPr>
+            </w:pPrDefault>
+        </w:docDefaults>
+        <w:style w:type="paragraph" w:default="1" w:styleId="Normal">
+            <w:name w:val="Normal"/>
+            <w:qFormat/>
+        </w:style>
+        </w:styles>
     """.trimIndent()
 }

@@ -15,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sanad.bond.R
 import com.sanad.bond.core.logging.LogManager
 import org.json.JSONTokener
 
@@ -67,7 +69,7 @@ fun EditorScreen(
         if (migration) {
             Toast.makeText(
                 context,
-                "تم نقل الملف إلى مجلد التطبيق (الملف الأصلي في Downloads لم يعد قابلاً للوصول)",
+                context.getString(R.string.editor_migration_notice),
                 Toast.LENGTH_LONG
             ).show()
             viewModel.acknowledgeMigration()
@@ -103,7 +105,10 @@ fun EditorScreen(
                         },
                         navigationIcon = {
                             IconButton(onClick = onBack) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, "رجوع")
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.cd_back)
+                                )
                             }
                         },
                         actions = {
@@ -125,7 +130,10 @@ fun EditorScreen(
                                         viewModel.saveWithHtml(html)
                                     }
                                 }) {
-                                    Icon(Icons.Default.Save, "حفظ")
+                                    Icon(
+                                        Icons.Default.Save,
+                                        contentDescription = stringResource(R.string.cd_save)
+                                    )
                                 }
                             }
                         }
@@ -140,13 +148,16 @@ fun EditorScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "فشل الحفظ: $errorMessage",
+                                    stringResource(
+                                        R.string.editor_save_error_prefix,
+                                        errorMessage
+                                    ),
                                     modifier = Modifier.weight(1f),
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     fontSize = 12.sp
                                 )
                                 TextButton(onClick = { showSaveFailure = false }) {
-                                    Text("إخفاء")
+                                    Text(stringResource(R.string.editor_hide))
                                 }
                             }
                         }

@@ -501,5 +501,9 @@
 
 <string name="editor_saved_toast">تم الحفظ</string>
 <string name="editor_save_error_prefix">فشل الحفظ: %1$s</string>
+<string name="editor_migration_notice">تم نقل الملف إلى مجلد التطبيق (الملف الأصلي في Downloads لم يعد قابلاً للوصول)</string>
+<string name="editor_hide">إخفاء</string>
+<string name="cd_back">رجوع</string>
+<string name="cd_save">حفظ</string>
 
 </resources>

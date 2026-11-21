@@ -7,7 +7,9 @@ import com.sanad.bond.databinding.ActivityMainBinding
 import com.sanad.bond.core.logging.LogManager
 import com.sanad.bond.ui.home.HomeActivity
 import com.sanad.bond.ui.settings.SettingsActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding

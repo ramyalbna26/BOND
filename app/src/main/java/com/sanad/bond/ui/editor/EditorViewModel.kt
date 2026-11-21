@@ -11,13 +11,35 @@ import com.sanad.bond.data.model.SettingsKeys
 import com.sanad.bond.data.repository.DocumentRepository
 import com.sanad.bond.data.repository.SettingsRepository
 import com.sanad.bond.core.logging.LogManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import android.os.Handler
+import android.os.Looper
 
-class EditorViewModel(app: Application) : AndroidViewModel(app) {
+/**
+ * FOUNDATION FIXES applied here:
+ *
+ *  1. @HiltViewModel + @Inject constructor — the Hilt graph was configured
+ *     (HiltAndroidApp, DatabaseModule, DispatcherModule) but NO ViewModel
+ *     was annotated, so `by viewModels()` could not use the Hilt factory.
+ *     Now it does. The activity must (and does) carry @AndroidEntryPoint.
+ *
+ *  2. onContentChanged race — the @JavascriptInterface callback in
+ *     TiptapWebView runs on a WebView/binder thread, NOT Main. The old code
+ *     mutated `currentDoc` and `_state` directly from that thread while
+ *     `save()`/`autoSaveWithHtml()` read `currentDoc` on Main → torn reads
+ *     and lost edits under fast typing. We now hop to the Main looper before
+ *     touching state.
+ */
+@HiltViewModel
+class EditorViewModel @Inject constructor(app: Application) : AndroidViewModel(app) {
+
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private val _state = MutableStateFlow<EditorState>(EditorState.Loading)
     val state: StateFlow<EditorState> = _state.asStateFlow()
@@ -104,14 +126,22 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Called from TiptapWebView's @JavascriptInterface (binder thread).
+     * We MUST hop to the Main looper before mutating `currentDoc` / `_state`,
+     * because save()/autoSaveWithHtml() read `currentDoc` on Main. Direct
+     * mutation from the binder thread caused torn reads and lost edits.
+     */
     fun onContentChanged(html: String, plainText: String) {
-        val current = currentDoc ?: return
-        val updated = current.copy(
-            meta = current.meta.copy(modifiedAt = System.currentTimeMillis()),
-            content = DocContent(html = html, plainText = plainText)
-        )
-        currentDoc = updated
-        _state.value = EditorState.Ready(updated)
+        mainHandler.post {
+            val current = currentDoc ?: return@post
+            val updated = current.copy(
+                meta = current.meta.copy(modifiedAt = System.currentTimeMillis()),
+                content = DocContent(html = html, plainText = plainText)
+            )
+            currentDoc = updated
+            _state.value = EditorState.Ready(updated)
+        }
     }
 
     fun saveWithHtml(html: String) {

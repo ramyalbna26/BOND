@@ -7,7 +7,9 @@ import com.sanad.bond.R
 import com.sanad.bond.databinding.ActivityLogViewerBinding
 import com.sanad.bond.core.logging.LogEntry
 import com.sanad.bond.core.logging.LogManager
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LogViewerActivity : AppCompatActivity(), LogManager.LogListener {
 
     private lateinit var binding: ActivityLogViewerBinding

@@ -190,6 +190,13 @@ dependencies {
     implementation(libs.poi)
     implementation(libs.poi.scratchpad)
 
+    // ---- Markdown (commonmark + GFM tables) ----
+    // Used by MarkdownConverter instead of the old hand-rolled regex parser,
+    // which produced malformed HTML (orphan </p><p> between blocks) and
+    // dropped lists / links / images / code blocks.
+    implementation(libs.commonmark)
+    implementation(libs.commonmark.ext.gfm.tables)
+
     // ---- Hilt Dependency Injection ----
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

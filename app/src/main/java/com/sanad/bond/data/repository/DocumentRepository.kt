@@ -2,9 +2,9 @@ package com.sanad.bond.data.repository
 
 import android.content.Context
 import android.net.Uri
-import androidx.room.Room
 import com.sanad.bond.core.logging.LogManager
 import com.sanad.bond.data.db.SanadDatabase
+import com.sanad.bond.data.db.entity.DocumentHtml
 import com.sanad.bond.data.model.DocContent
 import com.sanad.bond.data.model.DocMeta
 import com.sanad.bond.data.model.DocType
@@ -20,30 +20,28 @@ object DocumentRepository {
 
     private const val TAG = "DocumentRepository"
 
-    private fun getDb(context: Context): SanadDatabase =
-        Room.databaseBuilder(
-            context.applicationContext,
-            SanadDatabase::class.java,
-            "sanad.db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
+    /**
+     * The single shared Room instance. Previously this opened a NEW
+     * `Room.databaseBuilder(...).fallbackToDestructiveMigration().build()`
+     * on EVERY load()/save() call and never closed it — a severe resource
+     * leak plus a data-wipe race with the Hilt singleton. Now it reuses
+     * [SanadDatabase.getInstance].
+     */
+    private fun db(context: Context): SanadDatabase =
+        SanadDatabase.getInstance(context)
 
     suspend fun load(context: Context, uri: Uri, fileName: String): DocumentModel =
         withContext(Dispatchers.IO) {
-            val db = getDb(context)
+            val dao = db(context).documentHtmlDao()
             val docType = getDocTypeFromFileName(fileName)
             val uriString = uri.toString()
             LogManager.i(TAG, "Loading $fileName as ${docType.name}")
 
-            // 1. HTML snapshot from DB via raw query (avoids DAO API mismatch)
+            // 1. HTML snapshot from DB via the typed DAO (was a raw
+            //    `db.query("SELECT ...")` that bypassed Room — undefined
+            //    behaviour across SQLite/Room versions).
             val storedHtml: String? = try {
-                db.query(
-                    "SELECT html FROM document_html WHERE uri = ? LIMIT 1",
-                    arrayOf<Any>(uriString)
-                ).use { c ->
-                    if (c.moveToFirst()) c.getString(0) else null
-                }
+                dao.getDocumentById(uriString)?.html
             } catch (t: Throwable) {
                 LogManager.e(TAG, "Read HTML from DB failed", t)
                 null
@@ -82,7 +80,7 @@ object DocumentRepository {
         withContext(Dispatchers.IO) {
             val uriString = doc.meta.fileUri ?: error("Document has no URI")
             val uri = Uri.parse(uriString)
-            val db = getDb(context)
+            val dao = db(context).documentHtmlDao()
             LogManager.i(TAG, "Saving ${doc.meta.fileName} as ${doc.meta.docType.name}")
 
             // 1. Binary
@@ -93,11 +91,16 @@ object DocumentRepository {
                     writeText(context, uri, doc.content.plainText)
             }
 
-            // 2. HTML to DB via raw query (INSERT OR REPLACE)
+            // 2. HTML to DB via the typed DAO (was a raw
+            //    `db.query("INSERT OR REPLACE ...")` — RoomDatabase.query()
+            //    is documented for SELECT; using it for INSERT is undefined).
             try {
-                db.query(
-                    "INSERT OR REPLACE INTO document_html (uri, html, updatedAt) VALUES (?, ?, ?)",
-                    arrayOf<Any>(uriString, doc.content.html, System.currentTimeMillis())
+                dao.insertDocument(
+                    DocumentHtml(
+                        uri = uriString,
+                        html = doc.content.html,
+                        updatedAt = System.currentTimeMillis()
+                    )
                 )
                 LogManager.d(TAG, "HTML saved to DB (${doc.content.html.length} chars)")
             } catch (t: Throwable) {

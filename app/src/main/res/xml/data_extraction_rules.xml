@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  FOUNDATION FIX:
+  - DO NOT exclude all sharedpref: the old rule wiped user settings
+    (theme, language, autosave, backup schedule, …) on every cloud
+    backup / D2D restore. The app's own BackupWorker already snapshots
+    sanad_settings.xml to app-external storage, but cloud backup is the
+    user's only restore path after a factory reset, so prefs must be
+    included.
+  - DO exclude the database domain: a restored -wal/-shm file that does
+    not match the on-device SQLite version corrupts the DB on restore.
+    The app re-creates document_html via the v1→v2 migration; cloud
+    restore of a stale sanad.db would defeat that.
+-->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="sharedpref" path="." />
+        <exclude domain="database" path="." />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="sharedpref" path="." />
+        <exclude domain="database" path="." />
     </device-transfer>
 </data-extraction-rules>

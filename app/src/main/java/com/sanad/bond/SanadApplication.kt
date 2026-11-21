@@ -67,10 +67,19 @@ class SanadApplication : Application() {
             LogManager.bootLog("[5/7] DynamicColors FAILED: ${t.message}")
         }
 
-        // 6. Theme
+        // 6. Theme — read from the SAME file PreferenceFragmentCompat writes
+        // to (sanad_settings via SettingsRepository). The value is one of
+        // "system" / "light" / "dark" (ListPreference in prefs_general.xml)
+        // mapped to AppCompatDelegate night-mode constants.
         try {
-            val prefs = getSharedPreferences("sanad_prefs", MODE_PRIVATE)
-            val themeMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            val themeMode = when (SettingsRepository.getString(
+                com.sanad.bond.data.model.SettingsKeys.GENERAL_THEME,
+                "system"
+            )) {
+                "dark" -> AppCompatDelegate.MODE_NIGHT_YES
+                "light" -> AppCompatDelegate.MODE_NIGHT_NO
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
             AppCompatDelegate.setDefaultNightMode(themeMode)
             LogManager.bootLog("[6/7] Theme applied: $themeMode")
         } catch (t: Throwable) {
@@ -79,11 +88,17 @@ class SanadApplication : Application() {
 
         // 7. Locale + Backup
         try {
-            val prefs = getSharedPreferences("sanad_prefs", MODE_PRIVATE)
-            val langCode = prefs.getString("language_code", "ar") ?: "ar"
-            AppCompatDelegate.setApplicationLocales(
-                LocaleListCompat.forLanguageTags(langCode)
-            )
+            // Language tag from sanad_settings ("ar" / "en" / "system").
+            val langCode = SettingsRepository.getString(
+                com.sanad.bond.data.model.SettingsKeys.GENERAL_LANGUAGE,
+                "ar"
+            ).ifBlank { "ar" }
+            val tags = if (langCode == "system") {
+                androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+            } else {
+                androidx.core.os.LocaleListCompat.forLanguageTags(langCode)
+            }
+            AppCompatDelegate.setApplicationLocales(tags)
             BackupScheduler.schedule(this)
             LogManager.bootLog("[7/7] Locale + Backup OK")
         } catch (t: Throwable) {

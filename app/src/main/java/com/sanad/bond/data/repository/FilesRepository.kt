@@ -2,7 +2,6 @@ package com.sanad.bond.data.repository
 
 import android.content.Context
 import android.net.Uri
-import androidx.room.Room
 import com.sanad.bond.core.logging.LogManager
 import com.sanad.bond.data.db.SanadDatabase
 import com.sanad.bond.data.db.entity.FavoriteFile
@@ -18,22 +17,26 @@ import java.io.File
 object FilesRepository {
 
     private const val TAG = "FilesRepository"
-    private lateinit var db: SanadDatabase
+
+    // The single shared Room instance owned by SanadDatabase. Previously
+    // this opened its OWN Room.databaseBuilder with
+    // fallbackToDestructiveMigration() — racing the Hilt-provided singleton
+    // and silently wiping user data on schema mismatch. See SanadDatabase.
+    @Volatile
+    private var db: SanadDatabase? = null
 
     fun init(context: Context) {
-        db = Room.databaseBuilder(
-            context.applicationContext,
-            SanadDatabase::class.java,
-            "sanad.db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-        LogManager.i(TAG, "FilesRepository initialized")
+        if (db != null) return
+        db = SanadDatabase.getInstance(context)
+        LogManager.i(TAG, "FilesRepository initialized (shared SanadDatabase instance)")
     }
 
+    private fun requireDb(): SanadDatabase =
+        db ?: error("FilesRepository.init(context) must be called first")
+
     fun observeRecent(): Flow<List<FileItem>> = combine(
-        db.recentFileDao().getAllRecentFiles(),
-        db.favoriteFileDao().getAllFavoriteFiles()
+        requireDb().recentFileDao().getAllRecentFiles(),
+        requireDb().favoriteFileDao().getAllFavoriteFiles()
     ) { recent, favorites ->
         val favUris = favorites.mapTo(HashSet()) { it.uri }
         recent.map { r ->
@@ -49,8 +52,8 @@ object FilesRepository {
     }
 
     fun observeFavorites(): Flow<List<FileItem>> = combine(
-        db.favoriteFileDao().getAllFavoriteFiles(),
-        db.recentFileDao().getAllRecentFiles()
+        requireDb().favoriteFileDao().getAllFavoriteFiles(),
+        requireDb().recentFileDao().getAllRecentFiles()
     ) { favorites, recent ->
         val recentByUri = recent.associateBy { it.uri }
         favorites.map { f ->
@@ -66,7 +69,7 @@ object FilesRepository {
     }
 
     suspend fun recordRecent(uri: String, displayName: String, mimeType: String, sizeBytes: Long) {
-        db.recentFileDao().insertRecentFile(
+        requireDb().recentFileDao().insertRecentFile(
             RecentFile(
                 uri = uri,
                 displayName = displayName,
@@ -78,12 +81,13 @@ object FilesRepository {
     }
 
     suspend fun toggleFavorite(item: FileItem): Boolean {
-        val isFav = db.favoriteFileDao().isFavorite(item.uri)
+        val dao = requireDb().favoriteFileDao()
+        val isFav = dao.isFavorite(item.uri)
         return if (isFav) {
-            db.favoriteFileDao().deleteFavoriteFile(item.uri)
+            dao.deleteFavoriteFile(item.uri)
             false
         } else {
-            db.favoriteFileDao().insertFavoriteFile(
+            dao.insertFavoriteFile(
                 FavoriteFile(
                     uri = item.uri,
                     displayName = item.displayName,
@@ -97,12 +101,12 @@ object FilesRepository {
     }
 
     suspend fun removeRecent(uri: String) {
-        db.recentFileDao().deleteRecentFile(uri)
+        requireDb().recentFileDao().deleteRecentFile(uri)
     }
 
     suspend fun scanAppFiles(context: Context): List<FileItem> = withContext(Dispatchers.IO) {
         val favUris: Set<String> = try {
-            db.favoriteFileDao().getAllFavoriteFiles()
+            requireDb().favoriteFileDao().getAllFavoriteFiles()
                 .first()
                 .mapTo(HashSet()) { it.uri }
         } catch (_: Throwable) { emptySet() }

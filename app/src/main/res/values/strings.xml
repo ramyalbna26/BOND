@@ -501,5 +501,9 @@
 
 <string name="editor_saved_toast">Saved</string>
 <string name="editor_save_error_prefix">Save failed: %1$s</string>
+<string name="editor_migration_notice">The file was moved into the app folder (the original copy in Downloads is no longer accessible)</string>
+<string name="editor_hide">Hide</string>
+<string name="cd_back">Back</string>
+<string name="cd_save">Save</string>
 
 </resources>

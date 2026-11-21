@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- log_viewer_menu: use app:showAsAction (not android:) so the icons
+     actually appear in the Material toolbar under AppCompatActivity.
+     With android:showAsAction the items only land in the overflow. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_scroll_to_bottom"
         android:title="@string/scroll_to_bottom"
         android:icon="@android:drawable/arrow_down_float"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_clear"
         android:title="@string/clear"
         android:icon="@android:drawable/ic_menu_delete"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
 </menu>

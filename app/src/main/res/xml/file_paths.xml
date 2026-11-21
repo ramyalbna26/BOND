@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-path name="download" path="Download/" />
-    <external-files-path name="files" path="." />
+    <!-- Internal files dir — REQUIRED so LogManager can share
+         filesDir/sanad_log.txt via FileProvider. Without this entry
+         FileProvider.getUriForFile throws IllegalArgumentException:
+         "Failed to find configured root that contains /data/.../files/…". -->
+    <files-path name="internal_files" path="." />
+
+    <!-- App-private external files dir (getExternalFilesDir(null)) — used by
+         BackupWorker (backups/) and FileList scanning. Safe under scoped
+         storage (no permission needed on API 19+). -->
+    <external-files-path name="external_files" path="." />
+
+    <!-- Cache dir — used for transient export/share files. -->
     <cache-path name="cache" path="." />
+
+    <!-- Public Downloads folder. NOTE: under scoped storage (targetSdk 35)
+         the app cannot write here without MANAGE_EXTERNAL_STORAGE, so this
+         is only useful for SHARING files that already exist there. Kept for
+         backward compatibility with the pre-Q LogFileWriter path. -->
+    <external-path name="download" path="Download/" />
 </paths>

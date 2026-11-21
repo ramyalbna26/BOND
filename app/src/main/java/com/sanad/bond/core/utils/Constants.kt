@@ -5,16 +5,24 @@ package com.sanad.bond.core.utils
  */
 object Constants {
 
-    // Database
-    const val DATABASE_NAME = "sanad_database"
+    // Database — MUST match the name passed to Room.databaseBuilder
+    // (SanadDatabase.kt, BackupWorker.DB_PREFIX) and the schemas dir.
+    const val DATABASE_NAME = "sanad.db"
     const val DATABASE_VERSION = 2
 
-    // Preferences
-    const val PREFERENCES_NAME = "sanad_prefs"
-    const val KEY_THEME_MODE = "theme_mode"
-    const val KEY_LANGUAGE_CODE = "language_code"
-    const val KEY_AUTO_BACKUP = "auto_backup"
-    const val KEY_BACKUP_INTERVAL = "backup_interval"
+    // Preferences — MUST match SettingsRepository.PREFS_NAME and the name
+    // assigned in BasePreferenceFragment so PreferenceFragmentCompat writes
+    // to the same file SettingsRepository reads from.
+    const val PREFERENCES_NAME = "sanad_settings"
+
+    // Theme / language keys — MUST match SettingsKeys.GENERAL_THEME /
+    // GENERAL_LANGUAGE. Old short keys (theme_mode / language_code) were
+    // read from the wrong prefs file by SanadApplication and never matched
+    // what PreferenceFragmentCompat wrote.
+    const val KEY_THEME_MODE = "sanad.general.theme"
+    const val KEY_LANGUAGE_CODE = "sanad.general.language"
+    const val KEY_AUTO_BACKUP = "sanad.storage.auto_backup"
+    const val KEY_BACKUP_INTERVAL = "sanad.storage.backup_interval_hours"
 
     // File Extensions
     const val EXT_PDF = ".pdf"

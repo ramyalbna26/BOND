@@ -25,6 +25,7 @@ import com.sanad.bond.core.logging.LogManager
 import com.sanad.bond.services.document.DocxExporter
 import com.sanad.bond.services.document.PdfExporter
 import com.sanad.bond.ui.editor.EditorActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +33,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@AndroidEntryPoint
 class CreateActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreateBinding
@@ -141,10 +143,19 @@ class CreateActivity : AppCompatActivity() {
 
         val wordEnabled = SettingsRepository.getBoolean(SettingsKeys.LIB_WORD_ENABLED, true)
         val pdfEnabled = SettingsRepository.getBoolean(SettingsKeys.LIB_PDF_ENABLED, true)
+        // TEXT and MARKDOWN are gated by LIB_TEXT_ENABLED (markdown is a
+        // text format). Previously these two types were declared in the
+        // enum and handled in writeEmptyDocument but never shown in the
+        // list, so users could not create .txt / .md files.
+        val textEnabled = SettingsRepository.getBoolean(SettingsKeys.LIB_TEXT_ENABLED, true)
 
         val allowedTypes = buildList {
             if (wordEnabled) add(DocumentType.WORD)
             if (pdfEnabled) add(DocumentType.PDF)
+            if (textEnabled) {
+                add(DocumentType.TEXT)
+                add(DocumentType.MARKDOWN)
+            }
         }
         adapter.submitList(allowedTypes)
 

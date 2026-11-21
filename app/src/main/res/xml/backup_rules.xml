@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy full-backup rules (Android < 12). On Android 12+ data_extraction_rules
+  takes precedence. Kept consistent with data_extraction_rules: exclude the
+  database domain (WAL/SHM mismatch corrupts the DB on restore) and ALLOW
+  sharedpref so user settings survive cloud restore.
+-->
 <full-backup-content>
-    <exclude domain="sharedpref" path="." />
+    <exclude domain="database" path="." />
 </full-backup-content>

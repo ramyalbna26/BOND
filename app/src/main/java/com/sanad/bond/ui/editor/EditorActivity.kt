@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,18 +11,18 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.sanad.bond.R
 import com.sanad.bond.data.repository.SettingsRepository
 import com.sanad.bond.core.logging.LogManager
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class EditorActivity : ComponentActivity() {
 
     private val viewModel: EditorViewModel by viewModels()
-    private var webView: WebView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,16 +51,6 @@ class EditorActivity : ComponentActivity() {
             ) {
                 val state by viewModel.state.collectAsState()
 
-                // Toast on successful save
-                LaunchedEffect(state) {
-                    val s = state
-                    if (s is EditorState.Ready) {
-                        // Only toast after an actual save (initialHtml changed)
-                        // Heuristic: if modifiedAt > load time, show toast
-                        // (avoids toast on first load)
-                    }
-                }
-
                 EditorScreen(
                     state = state,
                     viewModel = viewModel,
@@ -70,12 +59,17 @@ class EditorActivity : ComponentActivity() {
                         runOnUiThread {
                             Toast.makeText(
                                 this@EditorActivity,
-                                "تم الحفظ بنجاح",
+                                getString(R.string.editor_saved_toast),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     },
-                    webViewRef = { wv -> webView = wv }
+                    // The WebView reference is no longer needed here:
+                    // TiptapWebView now owns its lifecycle via onRelease
+                    // (destroy + removeJavascriptInterface) when the
+                    // composition leaves. Previously this member was
+                    // assigned but never read and never destroyed → leak.
+                    webViewRef = { }
                 )
             }
         }

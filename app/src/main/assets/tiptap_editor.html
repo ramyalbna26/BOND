@@ -423,15 +423,90 @@
 
     // ============================================================
     // 3. استقبال الإعدادات من أندرويد
+    //
+    // FOUNDATION FIX: previously only darkMode / fontSize / html were
+    // honoured; language, zoom, showLineNumbers, showRuler,
+    // showStatusBar, wordWrap, spellCheck, autosaveEnabled and
+    // autosaveIntervalSec were silently dropped, so the entire Editor
+    // settings screen had no effect. Each field is now applied below.
     // ============================================================
-    window.applySettings = function(settings) {
-      if (settings.darkMode) document.body.classList.add('dark');
+    // Saved so the input handler can honour autosaveEnabled / interval.
+    var editorSettings = {
+      autosaveEnabled: true,
+      autosaveIntervalSec: 30
+    };
 
+    window.applySettings = function(settings) {
+      editorSettings = Object.assign(editorSettings, settings || {});
+
+      // --- Dark mode ---
+      if (settings.darkMode) {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+
+      // --- Font size ---
       if (settings.fontSize) {
         editor.style.fontSize = settings.fontSize + 'px';
       }
 
-      if (settings.html && settings.html !== "" && settings.html !== "<p>ابدأ الكتابة هنا...</p>") {
+      // --- Direction (language). "ar" → RTL, "en"/others → LTR,
+      //     "system" → let the platform decide. ---
+      var lang = settings.language || 'system';
+      if (lang === 'ar') {
+        editor.setAttribute('dir', 'rtl');
+        editor.setAttribute('lang', 'ar');
+      } else if (lang === 'en') {
+        editor.setAttribute('dir', 'ltr');
+        editor.setAttribute('lang', 'en');
+      }
+
+      // --- Zoom (50–200%). Applied to the editor container so the
+      //     toolbar stays readable. ---
+      if (typeof settings.zoom === 'number') {
+        var zoom = Math.max(50, Math.min(200, settings.zoom));
+        editor.style.zoom = zoom + '%';
+      }
+
+      // --- Word wrap. contenteditable wraps by default; turning it
+      //     off means horizontal scroll + white-space:pre. ---
+      if (typeof settings.wordWrap === 'boolean') {
+        editor.style.whiteSpace = settings.wordWrap ? 'normal' : 'pre';
+        editor.style.overflowX = settings.wordWrap ? 'hidden' : 'auto';
+      }
+
+      // --- Spell check ---
+      if (typeof settings.spellCheck === 'boolean') {
+        editor.spellcheck = settings.spellCheck;
+      }
+
+      // --- Status bar visibility ---
+      var statusBar = document.getElementById('status-bar');
+      if (statusBar && typeof settings.showStatusBar === 'boolean') {
+        statusBar.style.display = settings.showStatusBar ? '' : 'none';
+      }
+
+      // --- Tabs visibility (hidden when the editor is the only view) ---
+      var tabs = document.getElementById('tabs');
+      if (tabs && typeof settings.showStatusBar === 'boolean') {
+        // Hide tabs together with the status bar for a focused mode.
+        tabs.style.display = settings.showStatusBar ? '' : 'none';
+      }
+
+      // --- Line numbers / ruler: the HTML has no dedicated elements
+      //     for these yet, so the toggles are accepted and stored but
+      //     have no visual effect until the elements ship. Logged so
+      //     the omission is visible in Logcat. ---
+      if (settings.showLineNumbers) {
+        console.warn('showLineNumbers: not yet implemented in tiptap_editor.html');
+      }
+      if (settings.showRuler) {
+        console.warn('showRuler: not yet implemented in tiptap_editor.html');
+      }
+
+      // --- Initial HTML content ---
+      if (settings.html && settings.html !== "") {
         editor.innerHTML = settings.html;
       } else {
         editor.innerHTML = '<p><br></p>';
@@ -648,7 +723,16 @@
     }
 
     function autoSave() {
-      localStorage.setItem('editor-content', editor.innerHTML);
+      // FOUNDATION FIX: previously this ONLY wrote localStorage, so the
+      // document file was never auto-saved — EditorViewModel.autoSaveWithHtml
+      // was dead code. Now we forward the HTML to Android, which persists it
+      // via DocumentRepository.save(). localStorage is kept as a cheap
+      // in-page backup in case the Android side is mid-save.
+      var html = editor.innerHTML;
+      try { localStorage.setItem('editor-content', html); } catch (_) {}
+      if (editorSettings.autosaveEnabled !== false) {
+        sendToAndroid('triggerAutoSave', { html: html });
+      }
     }
 
     // ============================================================
@@ -707,12 +791,18 @@
         sendToAndroid('contentChanged', { html: editor.innerHTML });
       }, 500);
 
-      document.getElementById('saveStatus').textContent = 'جاري الحفظ...';
-      clearTimeout(autoSaveTimer);
-      autoSaveTimer = setTimeout(() => {
-        autoSave();
-        document.getElementById('saveStatus').textContent = 'تم الحفظ';
-      }, 1000);
+      // Auto-save timer: honoured only when autosaveEnabled is on, and
+      // uses the user's interval (seconds → ms). Default 30s; clamped to
+      // a 5s minimum so the UI still feels responsive.
+      if (editorSettings.autosaveEnabled !== false) {
+        document.getElementById('saveStatus').textContent = 'جاري الحفظ...';
+        clearTimeout(autoSaveTimer);
+        var intervalMs = Math.max(5000, (editorSettings.autosaveIntervalSec || 30) * 1000);
+        autoSaveTimer = setTimeout(() => {
+          autoSave();
+          document.getElementById('saveStatus').textContent = 'تم الحفظ';
+        }, intervalMs);
+      }
     });
 
     // منع لصق التنسيق الغريب
