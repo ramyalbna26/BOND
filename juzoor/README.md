@@ -22,9 +22,18 @@ expanded to a buildable APK on-device.
 * **Memory-bounded tree** — `ProjectTreePager` reads folder names, keeps only
   one 100-row page and lists the next page on demand. Opening a folder with
   18,000+ entries no longer creates 18,000 rows.
-* **Safe fallback** — if Jadx cannot load a DEX on a low-memory phone, only
-  that DEX falls back to the previous stubs; the rest of the Java tree stays
-  real. A corrupt DEX never crashes the conversion.
+* **Low-memory decompilation** — when a DEX is too large for the current
+  heap, `DexBatcher` rewrites it into smaller valid DEX files (complete outer +
+  inner class groups) and decompiles them one at a time. A batch that still
+  runs out of memory is split again down to a single class group, so a big APK does
+  not take the whole conversion down with it.
+* **No source cache in RAM** — Jadx normally keeps every generated class in
+  memory. Juzoor streams each `.java` file straight to disk, keeps only the
+  newest live-canvas row, and releases string/resource analysis data before
+  decompilation starts.
+* **Safe fallback** — if one class cannot be decompiled even alone, only that
+  DEX falls back to the previous stubs; the rest of the Java tree stays real.
+  A corrupt DEX never crashes the conversion.
 * **Kotlin API mirrors** — Kotlin files keep real package, class, field and
   method signatures next to the Java tree. JVM bytecode does not retain the
   original Kotlin source, so executable bodies live in `.java`; this is stated

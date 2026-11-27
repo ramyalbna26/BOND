@@ -27,6 +27,7 @@ import com.ramyelbanna.juzoor.ui.Ui;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Live decompilation canvas.
@@ -51,6 +52,23 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
     private LiveCanvasView canvas;
     private boolean finished;
     private final Handler ui = new Handler(Looper.getMainLooper());
+    private final AtomicReference<PendingFile> queuedFile = new AtomicReference<PendingFile>();
+    private final Runnable fileTick = new Runnable() {
+        @Override
+        public void run() {
+            renderQueuedFile();
+        }
+    };
+
+    private static final class PendingFile {
+        final String path;
+        final int percent;
+
+        PendingFile(String path, int percent) {
+            this.path = path;
+            this.percent = percent;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -242,15 +260,21 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
     }
 
     @Override
-    public void onFile(final String file, final int percent) {
-        ui.post(new Runnable() {
-            @Override
-            public void run() {
-                canvas.addFile(file, percent);
-                files.setText(getString(R.string.canvas_files) + ": " + ConversionService.getFileCount());
-                status.setText(file);
-            }
-        });
+    public void onFile(String file, int percent) {
+        // A large APK can report thousands of files.  Keep only the newest
+        // pending row instead of queueing one Runnable per file, which would
+        // itself grow the heap while Jadx is already under memory pressure.
+        queuedFile.set(new PendingFile(file, percent));
+        ui.removeCallbacks(fileTick);
+        ui.postDelayed(fileTick, 50L);
+    }
+
+    private void renderQueuedFile() {
+        PendingFile pending = queuedFile.getAndSet(null);
+        if (pending == null || canvas == null) return;
+        canvas.addFile(pending.path, pending.percent);
+        files.setText(getString(R.string.canvas_files) + ": " + ConversionService.getFileCount());
+        status.setText(pending.path);
     }
 
     @Override
@@ -260,6 +284,7 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
         ui.post(new Runnable() {
             @Override
             public void run() {
+                renderQueuedFile();
                 canvas.setRunning(false);
                 bar.setProgress(100);
                 pct.setText("100%");
@@ -291,6 +316,7 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
     @Override
     protected void onDestroy() {
+        ui.removeCallbacks(fileTick);
         ConversionService.removeListener(this);
         super.onDestroy();
     }

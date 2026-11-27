@@ -35,10 +35,12 @@ public class DexStringsTest {
         assertEquals(6, r.total);
         assertEquals("every DEX string must be extracted, not only decoded ones",
                 6, DexStrings.readStrings(bytes(dex)).size());
-        assertTrue(r.decoded.contains("Hello World!"));
-        assertTrue(r.decoded.contains("Hello, hex!"));
-        assertTrue(r.decoded.contains("secret message"));
-        assertTrue(r.decoded.contains("raw xor payload"));
+        String decoded = new String(java.nio.file.Files.readAllBytes(r.decodedFile.toPath()),
+                StandardCharsets.UTF_8);
+        assertTrue(decoded.contains("Hello World!"));
+        assertTrue(decoded.contains("Hello, hex!"));
+        assertTrue(decoded.contains("secret message"));
+        assertTrue(decoded.contains("raw xor payload"));
         assertTrue(r.recovered >= 4);
         assertTrue(r.rawStrings > 0);
         assertTrue(r.rawFile.isFile());

@@ -139,6 +139,10 @@ public class ConversionEngine {
                 copyTree(new File(merged, "kotlin"), new File(main, "kotlin"), "kotlin");
                 log.log(LogManager.DEBUG, "Raw resources, assets and native libraries copied");
             }
+            // The resource table is no longer needed after the manifest and
+            // resources were written.  Dropping it before Jadx keeps a large
+            // string/resource pool out of the decompiler's memory budget.
+            baseTable = null;
             checkCancel();
 
             /* ------------------------------------------------------- framework */
@@ -259,6 +263,9 @@ public class ConversionEngine {
                 log.progress(80, "Detecting libraries");
                 libs = LibrarySupport.detect(new ArrayList<>(descriptors));
                 result.libraryCount = libs.size();
+                // Library detection is the last consumer of the descriptor
+                // set; release it before the memory-heavy Java decompiler.
+                descriptors.clear();
                 for (LibrarySupport.Library l : libs) result.libraries.add(l.name);
                 try {
                     ZipUtil.writeFile(new File(analysis, "libraries.json"), LibrarySupport.toJson(libs));
@@ -297,6 +304,8 @@ public class ConversionEngine {
 
             /* ------------------------------------------------ real Java source */
             if (options.sourceStubs && options.generateProject) {
+                // Give Jadx the largest possible heap on low-memory devices.
+                System.gc();
                 File javaRoot = new File(main, "recovered/java");
                 File kotlinRoot = new File(main, "recovered/kotlin");
                 log.progress(87, "Decompiling Java sources with Jadx");

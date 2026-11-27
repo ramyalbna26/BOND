@@ -14,6 +14,9 @@
 ## Phase 2 — Real source and developer tools
 - [x] Embedded Jadx 1.5.1 Java decompiler with real method bodies
 - [x] One-DEX-at-a-time memory budget and per-DEX stub fallback
+- [x] Memory-bounded DEX batching with adaptive class-group retry
+- [x] No Jadx in-memory source cache; generated Java streams straight to disk
+- [x] Coalesced live-canvas updates so file events cannot flood the heap
 - [x] Explicit DEX plugin registration (no desktop service-loader dependency)
 - [x] Kotlin API mirrors generated from the DEX class table
 - [x] Global regex search across Java, XML, assets and .so

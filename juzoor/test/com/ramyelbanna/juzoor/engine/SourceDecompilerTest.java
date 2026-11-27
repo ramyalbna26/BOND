@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Collections;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -40,6 +41,42 @@ public class SourceDecompilerTest {
             assertFalse("A real decompilation must not be a throwing stub",
                     code.contains("UnsupportedOperationException"));
             assertTrue(code.contains("decompiled with Jadx"));
+        } finally {
+            delete(root);
+        }
+    }
+
+    @Test
+    public void batchedDecompileKeepsEveryClassAndInnerClass() throws Exception {
+        File root = Files.createTempDirectory("juzoor-jadx-batch-").toFile();
+        try {
+            File dex = new File(root, "multi.dex");
+            copyResource("/multi.dex", dex);
+            File java = new File(root, "java");
+            File work = new File(root, "work");
+
+            // Force four small DEX batches even though the fixture would fit
+            // in one run; this exercises the low-memory path used on phones.
+            SourceDecompiler.Stats stats = SourceDecompiler.decompile(
+                    Collections.singletonList(dex), java, work, new SilentSink(), 2);
+
+            assertTrue("Batching must not fall back to stubs", stats.failedDexes.isEmpty());
+            assertEquals("Every top-level class must be written exactly once", 6, stats.javaFiles);
+            for (String name : new String[]{"Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"}) {
+                assertTrue("Missing " + name + ".java", new File(java, "demo/" + name + ".java").isFile());
+            }
+            String alpha = new String(Files.readAllBytes(
+                    new File(java, "demo/Alpha.java").toPath()), Charset.forName("UTF-8"));
+            assertTrue("Batched output must keep real method bodies", alpha.contains("return \"alpha\""));
+            String zeta = new String(Files.readAllBytes(
+                    new File(java, "demo/Zeta.java").toPath()), Charset.forName("UTF-8"));
+            assertTrue("Inner classes must stay inside their outer class", zeta.contains("class Nested"));
+            assertTrue("Nested inner classes must stay with the same outer class",
+                    zeta.contains("class Deeper"));
+            assertFalse("A split batch must never create an inner class file",
+                    new File(java, "demo/Zeta$Nested.java").isFile());
+            assertFalse("A split batch must never create a nested-inner file",
+                    new File(java, "demo/Zeta$Nested$Deeper.java").isFile());
         } finally {
             delete(root);
         }

@@ -43,7 +43,6 @@ public final class DexStrings {
         public int rawStrings;   // extra strings found by the byte-by-byte scan
         public int rawDecoded;   // Base64/hex payloads decoded by that scan
         public final List<String> samples = new ArrayList<>();
-        public final List<String> decoded = new ArrayList<>();
         public File stringsFile;
         public File decodedFile;
         public File rawFile;
@@ -87,7 +86,6 @@ public final class DexStrings {
             classify(entry, r, decoded, keys, budget);
         }
         r.recovered = decoded.size();
-        r.decoded.addAll(decoded);
         File dir = new File(analysisDir, "strings");
         dir.mkdirs();
         String base = r.name.replaceAll("[^A-Za-z0-9._-]", "_");
