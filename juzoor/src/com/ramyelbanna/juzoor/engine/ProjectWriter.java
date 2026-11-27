@@ -1,0 +1,260 @@
+package com.ramyelbanna.juzoor.engine;
+
+import com.ramyelbanna.juzoor.core.LogManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Emits a complete, openable Android Studio project around the recovered
+ * artefacts: Gradle scripts, wrapper properties, manifest, package tree,
+ * ProGuard rules, README and a machine readable metadata file.
+ */
+public final class ProjectWriter {
+
+    private ProjectWriter() {
+    }
+
+    public static void write(File root, ConversionResult r, ConversionOptions o,
+                             List<LibrarySupport.Library> libs, String decodedManifest,
+                             LogSink log) throws IOException {
+        String pkg = empty(r.packageName) ? "com.recovered.app" : r.packageName;
+        String name = projectName(r);
+        String versionName = empty(r.versionName) ? "1.0" : r.versionName;
+        long versionCode = r.versionCode <= 0 ? 1 : r.versionCode;
+
+        write(new File(root, "settings.gradle"), settings(name));
+        write(new File(root, "build.gradle"), rootBuild());
+        write(new File(root, "gradle.properties"), gradleProps());
+        write(new File(root, "gradle/wrapper/gradle-wrapper.properties"), wrapper());
+        write(new File(root, "app/build.gradle"), appBuild(pkg, versionName, versionCode, r.minSdk, r.targetSdk, libs));
+        write(new File(root, "app/proguard-rules.pro"), proguard());
+        write(new File(root, "app/src/main/AndroidManifest.xml"), manifest(pkg, decodedManifest));
+        write(new File(root, ".gitignore"), gitignore());
+        write(new File(root, "README.md"), readme(r, pkg, name));
+        write(new File(root, "juzoor.json"), meta(r, pkg));
+
+        // Package tree so the project is immediately navigable.
+        if (o.javaTree) {
+            File pkgDir = new File(root, "app/src/main/java/" + pkg.replace('.', '/'));
+            pkgDir.mkdirs();
+            write(new File(pkgDir, "package-info.java"),
+                    "/** Recovered by Juzoor. Add the decompiled Java sources here. */\npackage " + pkg + ";\n");
+            write(new File(root, "app/src/main/recovered/README.md"),
+                    "# Recovered source (not compiled)\n\n"
+                            + "`java/` and `kotlin/` contain the IDE-friendly class skeletons generated\n"
+                            + "from the DEX class table. They are intentionally kept outside the Gradle\n"
+                            + "source set: the original APK does not ship dependency jars, so compiling\n"
+                            + "recovered stubs without those jars would produce errors. The project\n"
+                            + "itself builds cleanly with the decoded manifest and resources.\n");
+        }
+        log.log(LogManager.DEBUG, "Gradle project written (" + name + ", " + libs.size() + " dependencies)");
+    }
+
+    /** Rewrites README.md + juzoor.json after the final file count is known. */
+    public static void refresh(File root, ConversionResult r) {
+        String pkg = empty(r.packageName) ? "com.recovered.app" : r.packageName;
+        try {
+            write(new File(root, "README.md"), readme(r, pkg, projectName(r)));
+            write(new File(root, "juzoor.json"), meta(r, pkg));
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static String projectName(ConversionResult r) {
+        String label = r.appLabel == null ? "" : r.appLabel.replaceAll("[^A-Za-z0-9 ]", "").trim();
+        if (label.isEmpty()) {
+            String p = r.packageName == null ? "" : r.packageName;
+            int dot = p.lastIndexOf('.');
+            label = dot >= 0 && dot + 1 < p.length() ? p.substring(dot + 1) : "RecoveredApp";
+            label = label.replaceAll("[^A-Za-z0-9]", "");
+        }
+        if (label.isEmpty()) label = "RecoveredApp";
+        return label;
+    }
+
+    private static boolean empty(String s) {
+        return s == null || s.isEmpty();
+    }
+
+    private static void write(File f, String content) throws IOException {
+        File parent = f.getParentFile();
+        if (parent != null && !parent.exists()) parent.mkdirs();
+        ZipUtil.writeFile(f, content);
+    }
+
+    private static String settings(String name) {
+        return "rootProject.name = \"" + name + "\"\ninclude ':app'\n";
+    }
+
+    private static String rootBuild() {
+        return "// Recovered by Juzoor 2.3\n"
+                + "buildscript {\n"
+                + "    repositories {\n        google()\n        mavenCentral()\n    }\n"
+                + "    dependencies {\n        classpath 'com.android.tools.build:gradle:8.5.2'\n    }\n}\n\n"
+                + "allprojects {\n    repositories {\n        google()\n        mavenCentral()\n        maven { url 'https://jitpack.io' }\n    }\n}\n\n"
+                + "tasks.register('clean', Delete) {\n    delete rootProject.layout.buildDirectory\n}\n";
+    }
+
+    private static String gradleProps() {
+        return "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\n"
+                + "android.useAndroidX=true\n"
+                + "android.nonTransitiveRClass=false\n"
+                + "android.enableJetifier=true\n"
+                + "kotlin.code.style=official\n";
+    }
+
+    private static String wrapper() {
+        return "distributionBase=GRADLE_USER_HOME\n"
+                + "distributionPath=wrapper/dists\n"
+                + "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.7-bin.zip\n"
+                + "networkTimeout=10000\n"
+                + "validateDistributionUrl=true\n"
+                + "zipStoreBase=GRADLE_USER_HOME\n"
+                + "zipStorePath=wrapper/dists\n";
+    }
+
+    private static String appBuild(String pkg, String versionName, long versionCode,
+                                   int minSdk, int targetSdk, List<LibrarySupport.Library> libs) {
+        StringBuilder deps = new StringBuilder();
+        deps.append("    implementation 'androidx.appcompat:appcompat:1.7.0'\n");
+        deps.append("    implementation 'com.google.android.material:material:1.12.0'\n");
+        for (String c : LibrarySupport.gradleDependencies(libs)) {
+            if (c.startsWith("androidx.appcompat:") || c.startsWith("com.google.android.material:")) continue;
+            deps.append("    implementation '").append(c).append("'\n");
+        }
+        for (LibrarySupport.Library l : libs) {
+            if (l.note.startsWith("annotationProcessor ")) {
+                deps.append("    ").append(l.note).append('\n');
+            }
+        }
+        return "// Recovered by Juzoor 2.3\n"
+                + "plugins { id 'com.android.application' }\n\n"
+                + "android {\n"
+                + "    namespace '" + pkg + "'\n"
+                + "    compileSdk 34\n\n"
+                + "    defaultConfig {\n"
+                + "        applicationId '" + pkg + "'\n"
+                + "        minSdk " + Math.max(21, minSdk) + "\n"
+                + "        targetSdk " + Math.min(34, Math.max(21, targetSdk)) + "\n"
+                + "        versionCode " + versionCode + "\n"
+                + "        versionName '" + versionName + "'\n"
+                + "    }\n\n"
+                + "    buildTypes {\n"
+                + "        release {\n"
+                + "            minifyEnabled false\n"
+                + "            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\n"
+                + "        }\n"
+                + "    }\n\n"
+                + "    compileOptions {\n"
+                + "        sourceCompatibility JavaVersion.VERSION_17\n"
+                + "        targetCompatibility JavaVersion.VERSION_17\n"
+                + "    }\n\n"
+                + "    packaging {\n"
+                + "        jniLibs { useLegacyPackaging = false }\n"
+                + "    }\n\n"
+                + "    sourceSets {\n"
+                + "        main {\n"
+                + "            manifest.srcFile 'src/main/AndroidManifest.xml'\n"
+                + "            java.srcDirs = ['src/main/java']\n"
+                + "            res.srcDirs = ['src/main/res']\n"
+                + "            assets.srcDirs = ['src/main/assets']\n"
+                + "            jniLibs.srcDirs = ['src/main/jniLibs']\n"
+                + "        }\n"
+                + "    }\n"
+                + "}\n\n"
+                + "dependencies {\n" + deps + "}\n";
+    }
+
+    private static String proguard() {
+        return "-dontwarn **\n"
+                + "-keep class ** { *; }\n"
+                + "-keepclassmembers class * { native <methods>; }\n"
+                + "-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod\n";
+    }
+
+    private static String manifest(String pkg, String decoded) {
+        if (decoded != null && decoded.contains("<manifest")) {
+            // The decoded manifest is already valid XML; keep it verbatim so no
+            // component, permission or intent filter is lost. The package
+            // attribute is owned by the Gradle namespace now.
+            String cleaned = decoded.replaceFirst("(?s)(<manifest\\b[^>]*?)\\s+package=\"[^\"]*\"", "$1");
+            // The Gradle DSL owns the SDK levels; a manifest <uses-sdk> only
+            // produces an AGP warning.  AGP also warns about an explicit
+            // extractNativeLibs="false"; the packaging block below owns it.
+            cleaned = cleaned.replaceAll("(?s)\\s*<uses-sdk[^>]*/>", "");
+            return cleaned.replaceAll("\\s+android:extractNativeLibs=\"false\"", "");
+        }
+        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                + "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n"
+                + "    package=\"" + pkg + "\">\n"
+                + "    <application android:label=\"Recovered\" android:allowBackup=\"true\" />\n"
+                + "</manifest>\n";
+    }
+
+    private static String gitignore() {
+        return "*.iml\n.gradle\n/local.properties\n/.idea\n.DS_Store\n/build\n/app/build\n/captures\n.externalNativeBuild\n.cxx\n";
+    }
+
+    private static String readme(ConversionResult r, String pkg, String name) {
+        StringBuilder b = new StringBuilder();
+        b.append("# ").append(name).append(" — recovered source\n\n");
+        b.append("Generated by **Juzoor 2.3** (APK → Source Code).\n\n");
+        b.append("| Property | Value |\n|---|---|\n");
+        b.append("| Package | `").append(pkg).append("` |\n");
+        b.append("| Version | ").append(r.versionName).append(" (").append(r.versionCode).append(") |\n");
+        b.append("| Classes | ").append(r.classCount).append(" |\n");
+        b.append("| Resources | ").append(r.resourceCount).append(" |\n");
+        b.append("| DEX files | ").append(r.dexCount).append(" |\n");
+        b.append("| Framework | ").append(r.frameworkLabel)
+                .append(r.frameworkAssets > 0 ? " (" + r.frameworkAssets + " assets)" : "").append(" |\n");
+        b.append("| Native libs | ").append(r.nativeLibCount).append(" |\n");
+        b.append("| Libraries | ").append(r.libraryCount).append(" |\n");
+        b.append("| Files | ").append(r.fileCount).append(" |\n");
+        if (r.isBundle) {
+            b.append("| Bundle | ").append(r.bundleKind).append(" (").append(r.splitCount + 1).append(" APKs merged) |\n");
+        }
+        b.append('\n');
+        if (!r.packers.isEmpty()) {
+            b.append("> ⚠️ Protector detected: **").append(String.join(", ", r.packers))
+                    .append("**. See `REPORT.md` for what was recovered.\n\n");
+        }
+        b.append("## Layout\n\n");
+        b.append("- `app/src/main/AndroidManifest.xml` — fully decoded manifest\n");
+        b.append("- `app/src/main/res/` — decoded `values*/` plus every raw resource\n");
+        b.append("- `app/src/main/assets/` — original assets\n");
+        b.append("- `app/src/main/jniLibs/<abi>/` — native libraries\n");
+        b.append("- `app/src/main/smali*/` — disassembled Dalvik bytecode\n");
+        b.append("- `app/src/main/recovered/java|kotlin/` — IDE-friendly class skeletons\n");
+        b.append("- `analysis/` — ELF reports, string tables, carved payloads, libraries\n");
+        b.append("- `REPORT.md` — complete human readable analysis\n\n");
+        b.append("## Building\n\n");
+        b.append("1. Open this folder in Android Studio (Gradle 8.7 / AGP 8.5.2).\n");
+        b.append("2. The decoded manifest and resources are already in the Gradle layout.\n");
+        b.append("3. Press Run, or run `gradle assembleDebug` from this folder.\n\n");
+        b.append("`recovered/` is intentionally outside the Gradle source set because an APK\n");
+        b.append("does not contain the dependency jars needed to compile every recovered\n");
+        b.append("class. Use it as an API map next to the full `smali*/` tree.\n\n");
+        b.append("---\n\n© 2027 Ramy El-Banna — Juzoor™\n");
+        return b.toString();
+    }
+
+    private static String meta(ConversionResult r, String pkg) {
+        return String.format(Locale.US,
+                "{\n  \"generator\": \"Juzoor\",\n  \"generatorVersion\": \"" + ConversionResult.GENERATOR_VERSION + "\",\n"
+                        + "  \"package\": \"%s\",\n  \"versionName\": \"%s\",\n  \"versionCode\": %d,\n"
+                        + "  \"classes\": %d,\n  \"resources\": %d,\n  \"files\": %d,\n  \"dexFiles\": %d,\n"
+                        + "  \"nativeLibraries\": %d,\n  \"libraries\": %d,\n  \"packers\": %d,\n"
+                        + "  \"strings\": {\"total\": %d, \"encoded\": %d, \"recovered\": %d},\n"
+                        + "  \"bundle\": %s,\n  \"bundleKind\": \"%s\",\n  \"splits\": %d,\n"
+                        + "  \"framework\": \"%s\",\n  \"frameworkAssets\": %d,\n"
+                        + "  \"durationMs\": %d\n}\n",
+                pkg, r.versionName, r.versionCode, r.classCount, r.resourceCount, r.fileCount,
+                r.dexCount, r.nativeLibCount, r.libraryCount, r.packers.size(),
+                r.stringTotal, r.stringEncrypted, r.stringRecovered,
+                r.isBundle, r.bundleKind, r.splitCount,
+                r.framework == null ? "native" : r.framework, r.frameworkAssets, r.durationMs);
+    }
+}

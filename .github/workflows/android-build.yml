@@ -34,3 +34,12 @@ jobs:
       with:
         name: Sanad-Debug-APK
         path: app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Build Juzoor Release
+      run: ./gradlew :juzoor:assembleRelease
+
+    - name: Upload Juzoor APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Juzoor-Release-APK
+        path: juzoor/build/outputs/apk/release/juzoor-release.apk

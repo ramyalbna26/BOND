@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sanad"
 include(":app")
+include(":juzoor")
