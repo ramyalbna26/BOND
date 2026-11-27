@@ -23,6 +23,7 @@ public class FileBrowserActivity extends BaseActivity {
     private static final int REQ_STORAGE = 7;
     private File current;
     private String filter;
+    private boolean allFiles;
     private LinearLayout list;
     private TextView pathLabel;
 
@@ -30,6 +31,7 @@ public class FileBrowserActivity extends BaseActivity {
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         this.filter = getIntent().getStringExtra("filter");
+        this.allFiles = getIntent().getBooleanExtra("all", false);
         this.current = Environment.getExternalStorageDirectory();
         buildUi();
         if (hasAccess()) {
@@ -204,6 +206,7 @@ public class FileBrowserActivity extends BaseActivity {
     }
 
     private boolean matches(File file) {
+        if (this.allFiles) return file.isFile();
         String lowerCase = file.getName().toLowerCase(java.util.Locale.US);
         String str = this.filter;
         if (str != null && !str.isEmpty()) {
@@ -236,7 +239,7 @@ public class FileBrowserActivity extends BaseActivity {
         column.addView(Ui.text(this, human, 11.0f, Ui.muted(), false));
         row.addView(column, lp);
         if (!z) {
-            String badge = SplitBundle.badge(file.getName());
+            String badge = allFiles ? extensionOf(file.getName()) : SplitBundle.badge(file.getName());
             if (!"APK".equals(badge)) {
                 i = Ui.GOLD_LIGHT;
             }
@@ -253,6 +256,13 @@ public class FileBrowserActivity extends BaseActivity {
             }
         });
         return row;
+    }
+
+    private static String extensionOf(String name) {
+        int dot = name == null ? -1 : name.lastIndexOf('.');
+        if (dot < 0 || dot + 1 >= name.length()) return "FILE";
+        String ext = name.substring(dot + 1).toUpperCase(java.util.Locale.US);
+        return ext.length() > 6 ? ext.substring(0, 6) : ext;
     }
 
     /* JADX INFO: Access modifiers changed from: private */

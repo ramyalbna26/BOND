@@ -51,15 +51,22 @@ public final class NativeAnalyzer {
         public String machine = "unknown";
         public final List<Section> sections = new ArrayList<>();
         public final List<String> jniExports = new ArrayList<>();
+        public final List<String> symbols = new ArrayList<>();
         public final List<String> packers = new ArrayList<>();
         public final List<String> crypto = new ArrayList<>();
         public final List<Carved> carved = new ArrayList<>();
         public int stringCount;
+        public int utf8Strings;
+        public int utf16Strings;
+        public int decodedStrings;
+        public int symbolCount;
         public int xorKey = -1;
         public int xorStrings;
         public final List<String> recovered = new ArrayList<>();
         public final List<String> warnings = new ArrayList<>();
         public File stringsFile;
+        public File symbolsFile;
+        public boolean largeFile;
         public File decryptedFile;
         public File jsonFile;
         public boolean decrypted;
@@ -77,6 +84,7 @@ public final class NativeAnalyzer {
                     + " sections=" + sections.size()
                     + " jni=" + jniExports.size()
                     + " strings=" + stringCount
+                    + (utf16Strings > 0 ? " utf16=" + utf16Strings : "")
                     + (xorKey >= 0 ? " xor=0x" + Integer.toHexString(xorKey) : "")
                     + (packers.isEmpty() ? "" : " packer=" + packers.get(0));
         }
@@ -123,20 +131,31 @@ public final class NativeAnalyzer {
         Report r = new Report();
         r.name = so.getName();
         r.fileSize = so.length();
+        // Never allocate a byte[] larger than a third of the runtime heap.  For
+        // a huge library we analyse a header prefix and stream the entire file
+        // for strings, so a 50 MB+ .so cannot trigger an OutOfMemoryError.
+        long maxFull = Math.min(96L * 1024L * 1024L, Runtime.getRuntime().maxMemory() / 3L);
+        r.largeFile = so.length() > maxFull;
         byte[] data;
         try {
-            data = ZipUtil.readFile(so);
+            data = r.largeFile ? readPrefix(so, 16 * 1024 * 1024) : ZipUtil.readFile(so);
         } catch (IOException e) {
             r.warnings.add("read failed: " + e);
             return r;
+        }
+        if (r.largeFile) {
+            r.warnings.add("Large library: header-prefix analysis + streaming string extraction (no full-file carve)");
+            if (log != null) log.log(LogManager.WARN, "Large native library " + r.name
+                    + " (" + human(so.length()) + ") — streaming mode to protect memory");
         }
         r.abi = abiOf(so);
         parseElf(data, r);
         detectPackers(data, r);
         detectCrypto(data, r);
 
-        // Static UPX unpacking — no root, no execution.
-        if (r.packers.contains("UPX packer") || UpxUnpacker.looksPacked(data)) {
+        // Static UPX unpacking — no root, no execution.  A full buffer is
+        // required by the UPX block format, so it is skipped in large mode.
+        if (!r.largeFile && (r.packers.contains("UPX packer") || UpxUnpacker.looksPacked(data))) {
             r.upxDetected = true;
             try {
                 UpxUnpacker.Result up = UpxUnpacker.unpack(data);
@@ -168,17 +187,7 @@ public final class NativeAnalyzer {
             }
         }
 
-        List<String> strings = printableStrings(data, 4);
-        // If UPX unpacked, also harvest strings from the recovered payload.
-        if (r.upxUnpacked && r.upxFile != null) {
-            try {
-                List<String> more = printableStrings(ZipUtil.readFile(r.upxFile), 4);
-                for (String s : more) if (!strings.contains(s)) strings.add(s);
-            } catch (Throwable ignored) {
-            }
-        }
-        r.stringCount = strings.size();
-        carve(data, r, analysisDir, log);
+        if (!r.largeFile) carve(data, r, analysisDir, log);
         recoverXor(data, r, log);
 
         File dir = new File(analysisDir, "native");
@@ -186,11 +195,29 @@ public final class NativeAnalyzer {
         String base = r.name.replaceAll("[^A-Za-z0-9._-]", "_");
         r.stringsFile = new File(dir, base + ".strings.txt");
         r.decryptedFile = new File(dir, base + ".decrypted.txt");
+        r.symbolsFile = new File(dir, base + ".symbols.txt");
         r.jsonFile = new File(dir, base + ".elf.json");
         try {
-            StringBuilder sb = new StringBuilder();
-            for (String s : strings) sb.append(s).append('\n');
-            ZipUtil.writeFile(r.stringsFile, sb.toString());
+            NativeStrings.Result ns = NativeStrings.scan(so, r.stringsFile, false);
+            r.stringCount = ns.total;
+            r.utf8Strings = ns.utf8;
+            r.utf16Strings = ns.utf16;
+            r.decodedStrings = ns.encoded;
+            // If UPX unpacked, harvest the recovered payload too.
+            if (r.upxUnpacked && r.upxFile != null) {
+                NativeStrings.Result up = NativeStrings.scan(r.upxFile, r.stringsFile, true);
+                r.stringCount += up.total;
+                r.utf8Strings += up.utf8;
+                r.utf16Strings += up.utf16;
+                r.decodedStrings += up.encoded;
+            }
+            if (!r.symbols.isEmpty()) {
+                StringBuilder sym = new StringBuilder();
+                sym.append("# ELF symbols — ").append(r.name).append('\n');
+                for (String s : r.symbols) sym.append(s).append('\n');
+                ZipUtil.writeFile(r.symbolsFile, sym.toString());
+                r.symbolCount = r.symbols.size();
+            }
             if (!r.recovered.isEmpty()) {
                 StringBuilder d = new StringBuilder();
                 d.append("# Recovered with single-byte XOR key 0x")
@@ -312,6 +339,7 @@ public final class NativeAnalyzer {
 
     private static void readJniExports(byte[] d, Report r, long shoff, int shentsize, int shnum, boolean be) {
         Set<String> out = new LinkedHashSet<>();
+        Set<String> allSymbols = new LinkedHashSet<>();
         for (int i = 0; i < shnum; i++) {
             long sh = shoff + (long) i * shentsize;
             if (sh + shentsize > d.length) break;
@@ -332,12 +360,14 @@ public final class NativeAnalyzer {
                 long nameIdx = u32(d, sym, be);
                 if (nameIdx == 0) continue;
                 String name = cString(d, strOff + nameIdx, 512);
+                if (!name.isEmpty() && allSymbols.size() < 200000) allSymbols.add(name);
                 if (name.startsWith("Java_") || name.equals("JNI_OnLoad") || name.equals("JNI_OnUnload")) {
                     out.add(name);
                 }
             }
         }
         r.jniExports.addAll(out);
+        r.symbols.addAll(allSymbols);
     }
 
     private static String machineName(int m) {
@@ -377,9 +407,13 @@ public final class NativeAnalyzer {
     }
 
     private static void detectCrypto(byte[] d, Report r) {
+        // Cryptographic signatures are short.  Scanning the first 4 MB keeps a
+        // 50 MB library responsive; the rest is still covered by string and
+        // payload recovery.
+        int limit = Math.min(d.length, 4 * 1024 * 1024);
         // RC4 identity S-box
         boolean rc4 = false;
-        for (int i = 0; i + 256 <= d.length && !rc4; i += 4) {
+        for (int i = 0; i + 256 <= limit && !rc4; i += 4) {
             if ((d[i] & 0xFF) != 0) continue;
             rc4 = true;
             for (int k = 0; k < 256; k++) {
@@ -390,14 +424,14 @@ public final class NativeAnalyzer {
         // AES S-box prefix
         byte[] aes = {0x63, 0x7c, 0x77, 0x7b, (byte) 0xf2, 0x6b, 0x6f, (byte) 0xc5};
         outer:
-        for (int i = 0; i + aes.length <= d.length; i++) {
+        for (int i = 0; i + aes.length <= limit; i++) {
             for (int k = 0; k < aes.length; k++) {
                 if (d[i + k] != aes[k]) continue outer;
             }
             r.crypto.add("AES (S-box present)");
             break;
         }
-        String low = new String(d, 0, Math.min(d.length, 1024 * 1024),
+        String low = new String(d, 0, Math.min(limit, 1024 * 1024),
                 java.nio.charset.StandardCharsets.ISO_8859_1);
         if (low.contains("AES_set_encrypt_key") || low.contains("EVP_EncryptInit")) r.crypto.add("OpenSSL AES API");
         if (low.contains("XXTEA") || low.contains("xxtea")) r.crypto.add("XXTEA");
@@ -703,6 +737,26 @@ public final class NativeAnalyzer {
 
     /* ------------------------------------------------------------- utilities */
 
+    private static byte[] readPrefix(File f, int max) throws IOException {
+        long n = Math.min(f.length(), max);
+        byte[] out = new byte[(int) n];
+        java.io.DataInputStream in = new java.io.DataInputStream(
+                new java.io.BufferedInputStream(new java.io.FileInputStream(f), 65536));
+        try {
+            in.readFully(out);
+        } finally {
+            in.close();
+        }
+        return out;
+    }
+
+    private static String human(long j) {
+        if (j < 1024) return j + " B";
+        double d = j / 1024.0d;
+        if (d < 1024.0d) return String.format(Locale.US, "%.1f KB", d);
+        return String.format(Locale.US, "%.1f MB", d / 1024.0d);
+    }
+
     private static String cString(byte[] d, long off, int max) {
         if (off < 0 || off >= d.length) return "";
         int end = (int) off;
@@ -748,6 +802,11 @@ public final class NativeAnalyzer {
         b.append("  \"crypto\": ").append(arr(r.crypto)).append(",\n");
         b.append("  \"jniExports\": ").append(arr(r.jniExports)).append(",\n");
         b.append("  \"strings\": ").append(r.stringCount).append(",\n");
+        b.append("  \"utf8Strings\": ").append(r.utf8Strings).append(",\n");
+        b.append("  \"utf16Strings\": ").append(r.utf16Strings).append(",\n");
+        b.append("  \"decodedStrings\": ").append(r.decodedStrings).append(",\n");
+        b.append("  \"symbols\": ").append(r.symbolCount).append(",\n");
+        b.append("  \"largeFile\": ").append(r.largeFile).append(",\n");
         b.append("  \"xorKey\": ").append(r.xorKey).append(",\n");
         b.append("  \"recoveredStrings\": ").append(r.recovered.size()).append(",\n");
         b.append("  \"upx\": {\"detected\": ").append(r.upxDetected)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Juzoor 2.2 — reproducible build script
+# Juzoor 2.3 — reproducible build script
 # Requirements: JDK 17, Android SDK build-tools 34.0.0 + platform android-34
 set -euo pipefail
 
@@ -39,7 +39,7 @@ echo "==> d8"
 
 echo "==> package"
 cp "$OUT/apk/base.apk" "$OUT/apk/unsigned.apk"
-(cd "$OUT/dex" && zip -q -X "$OUT/apk/unsigned.apk" classes.dex)
+(cd "$OUT/dex" && jar uf "$OUT/apk/unsigned.apk" classes.dex)
 "$ZIPALIGN" -f -p 4 "$OUT/apk/unsigned.apk" "$OUT/apk/aligned.apk"
 
 echo "==> sign"
@@ -50,7 +50,7 @@ if [ ! -f "$KS" ]; then
 fi
 "$APKSIGNER" sign --ks "$KS" --ks-pass pass:juzoor --key-pass pass:juzoor \
   --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
-  --out "$OUT/apk/Juzoor-v2.2.0.apk" "$OUT/apk/aligned.apk"
-"$APKSIGNER" verify "$OUT/apk/Juzoor-v2.2.0.apk"
+  --out "$OUT/apk/Juzoor-v2.3.0.apk" "$OUT/apk/aligned.apk"
+"$APKSIGNER" verify "$OUT/apk/Juzoor-v2.3.0.apk"
 
-echo "==> done: $OUT/apk/Juzoor-v2.2.0.apk"
+echo "==> done: $OUT/apk/Juzoor-v2.3.0.apk"

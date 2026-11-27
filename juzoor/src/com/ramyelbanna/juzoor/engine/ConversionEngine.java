@@ -141,6 +141,23 @@ public class ConversionEngine {
             }
             checkCancel();
 
+            /* ------------------------------------------------------- framework */
+            log.progress(32, "Detecting application framework");
+            try {
+                AppFramework.Report fw = AppFramework.detect(merged, analysis, log);
+                result.framework = fw.kind;
+                result.frameworkLabel = fw.label;
+                result.frameworkHint = fw.hint;
+                result.frameworkAssets = fw.assetFiles;
+                if (!AppFramework.NATIVE.equals(fw.kind)) {
+                    log.file(fw.label + " assets", 32);
+                }
+            } catch (Throwable t) {
+                result.warnings.add("Framework detection failed: " + t);
+                log.log(LogManager.WARN, "Framework detection failed: " + t);
+            }
+            checkCancel();
+
             /* ----------------------------------------------------------- smali */
             List<DexStrings.Report> dexReports = new ArrayList<>();
             List<File> dexFiles = new ArrayList<>();

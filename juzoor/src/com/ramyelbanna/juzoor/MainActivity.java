@@ -152,6 +152,11 @@ public class MainActivity extends BaseActivity {
         tool(getString(R.string.home_tool_source), getString(R.string.home_tool_source_d), ResultActivity.class, "TREE");
         tool(getString(R.string.home_tool_canvas), getString(R.string.home_tool_canvas_d), LiveCanvasActivity.class, "LIVE");
         tool(getString(R.string.home_tool_batch), getString(R.string.home_tool_batch_d), BatchActivity.class, "QUEUE");
+        tool(getString(R.string.home_tool_tree), getString(R.string.home_tool_tree_d), ProjectTreeActivity.class, "LAZY");
+        tool(getString(R.string.home_tool_search), getString(R.string.home_tool_search_d), GlobalSearchActivity.class, "FIND");
+        tool(getString(R.string.home_tool_assets), getString(R.string.home_tool_assets_d), AssetsViewerActivity.class, "ASSET");
+        tool(getString(R.string.home_tool_diff), getString(R.string.home_tool_diff_d), ApkDiffActivity.class, "DIFF");
+        tool(getString(R.string.home_tool_cross), getString(R.string.home_tool_cross_d), CrossPlatformActivity.class, "PE·ELF·DMG");
         section(getString(R.string.feature_apkplus_title), getString(R.string.feature_apkplus_desc));
         section(getString(R.string.feature_engine_title), getString(R.string.feature_engine_desc));
         section(getString(R.string.feature_axml_title), getString(R.string.feature_axml_desc));

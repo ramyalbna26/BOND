@@ -32,6 +32,7 @@ public class ProjectEditorActivity extends BaseActivity {
 
     public static final String EXTRA_PROJECT = "project";
     public static final String EXTRA_ZIP = "zip";
+    private static final int REQ_MAPPING = 81;
 
     private File project;
     private File zip;
@@ -117,6 +118,46 @@ public class ProjectEditorActivity extends BaseActivity {
             }
         });
         this.body.addView(this.editor, Ui.lp(-1, Ui.dp(this, 360.0f)));
+
+        TextView fullEditor = Ui.button(this, getString(R.string.editor_full), false);
+        LinearLayout.LayoutParams felp = Ui.lp(-1, -2);
+        felp.topMargin = Ui.dp(this, 8.0f);
+        fullEditor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (current == null) return;
+                Intent intent = new Intent(ProjectEditorActivity.this, CodeEditorActivity.class);
+                intent.putExtra(CodeEditorActivity.EXTRA_FILE, current.getAbsolutePath());
+                intent.putExtra(CodeEditorActivity.EXTRA_PROJECT, project.getAbsolutePath());
+                startActivity(intent);
+            }
+        });
+        this.body.addView(fullEditor, felp);
+        TextView tree = Ui.button(this, getString(R.string.result_view_tree), false);
+        LinearLayout.LayoutParams treelp = Ui.lp(-1, -2);
+        treelp.topMargin = Ui.dp(this, 8.0f);
+        tree.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ProjectEditorActivity.this, ProjectTreeActivity.class);
+                intent.putExtra(ProjectTreeActivity.EXTRA_PROJECT, project.getAbsolutePath());
+                startActivity(intent);
+            }
+        });
+        this.body.addView(tree, treelp);
+        TextView mapping = Ui.button(this, getString(R.string.code_mapping), false);
+        LinearLayout.LayoutParams mlp = Ui.lp(-1, -2);
+        mlp.topMargin = Ui.dp(this, 8.0f);
+        mapping.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ProjectEditorActivity.this, FileBrowserActivity.class);
+                intent.putExtra("pick", true);
+                intent.putExtra("all", true);
+                startActivityForResult(intent, REQ_MAPPING);
+            }
+        });
+        this.body.addView(mapping, mlp);
 
         this.savedLabel = Ui.text(this, "", 11.0f, Ui.SUCCESS, false);
         this.savedLabel.setPadding(0, Ui.dp(this, 8.0f), 0, 0);
@@ -239,5 +280,31 @@ public class ProjectEditorActivity extends BaseActivity {
         while ((n = in.read(buffer)) > 0) out.write(buffer, 0, n);
         in.close();
         out.close();
+    }
+
+    @Override
+    protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != REQ_MAPPING || result != RESULT_OK || data == null) return;
+        String path = data.getStringExtra(ConversionService.EXTRA_PATH);
+        if (path == null || project == null) return;
+        final File mapping = new File(path);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final com.ramyelbanna.juzoor.engine.Mapping.Result r =
+                        com.ramyelbanna.juzoor.engine.Mapping.apply(project, mapping, null);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        toast(r.error != null ? r.error : r.line());
+                        if (r.error == null) {
+                            LogManager.s("mapping.txt applied from project editor");
+                            rezip();
+                        }
+                    }
+                });
+            }
+        }, "juzoor-mapping").start();
     }
 }

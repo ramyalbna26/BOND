@@ -64,6 +64,10 @@ public class ResultActivity extends BaseActivity {
             if (this.r.packageName != null) {
                 addRow(card2, "Package", this.r.packageName);
             }
+            if (this.r.frameworkLabel != null && !this.r.frameworkLabel.isEmpty()) {
+                addRow(card2, getString(R.string.result_framework), this.r.frameworkLabel
+                        + (this.r.frameworkAssets > 0 ? " · " + this.r.frameworkAssets : ""));
+            }
             if (this.r.isBundle) {
                 addRow(card2, getString(R.string.result_bundle), getString(R.string.result_bundle_value, new Object[]{this.r.bundleKind, Integer.valueOf(Math.max(1, this.r.splitCount))}));
             }
@@ -120,6 +124,44 @@ public class ResultActivity extends BaseActivity {
                     }
                 });
                 this.body.addView(idx, lpi);
+            }
+            if (this.r.outputDir != null && this.r.outputDir.isDirectory()) {
+                TextView browse = Ui.button(this, getString(R.string.result_view_tree), false);
+                LinearLayout.LayoutParams lpb = Ui.lp(-1, -2);
+                lpb.topMargin = Ui.dp(this, 10.0f);
+                browse.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent tree = new Intent(ResultActivity.this, ProjectTreeActivity.class);
+                        tree.putExtra(ProjectTreeActivity.EXTRA_PROJECT, r.outputDir.getAbsolutePath());
+                        startActivity(tree);
+                    }
+                });
+                this.body.addView(browse, lpb);
+                TextView find = Ui.button(this, getString(R.string.home_tool_search), false);
+                LinearLayout.LayoutParams lpf = Ui.lp(-1, -2);
+                lpf.topMargin = Ui.dp(this, 10.0f);
+                find.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent search = new Intent(ResultActivity.this, GlobalSearchActivity.class);
+                        search.putExtra(GlobalSearchActivity.EXTRA_PROJECT, r.outputDir.getAbsolutePath());
+                        startActivity(search);
+                    }
+                });
+                this.body.addView(find, lpf);
+                TextView assets = Ui.button(this, getString(R.string.assets_title), false);
+                LinearLayout.LayoutParams lpa = Ui.lp(-1, -2);
+                lpa.topMargin = Ui.dp(this, 10.0f);
+                assets.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent asset = new Intent(ResultActivity.this, AssetsViewerActivity.class);
+                        asset.putExtra(AssetsViewerActivity.EXTRA_PROJECT, r.outputDir.getAbsolutePath());
+                        startActivity(asset);
+                    }
+                });
+                this.body.addView(assets, lpa);
             }
             if (this.r.treeFile != null && this.r.treeFile.exists()) {
                 TextView tree = Ui.button(this, getString(R.string.result_tree), false);

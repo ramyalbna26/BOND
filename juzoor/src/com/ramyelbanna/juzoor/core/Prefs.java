@@ -9,7 +9,7 @@ import java.io.File;
 /** Typed access to every user preference. */
 public final class Prefs {
     /** Product version shown by every screen and every generated report. */
-    public static final String VERSION = "2.2.0";
+    public static final String VERSION = "2.3.0";
     private static final String FILE = "juzoor";
     private static SharedPreferences sp;
 
@@ -109,7 +109,7 @@ public final class Prefs {
     public static int errors() { return sp.getInt("errors", 0); }
     public static void bumpErrors() { sp.edit().putInt("errors", errors() + 1).apply(); }
 
-    /* --- Juzoor 2.2: security, source and signing --- */
+    /* --- Juzoor 2.3: security, source and signing --- */
     public static boolean securityScan() { return b("opt_security", true); }
     public static void setSecurityScan(boolean z) { set("opt_security", z); }
 

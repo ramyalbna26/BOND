@@ -257,7 +257,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="home_tool_source_d">Java/Kotlin skeletons and PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">100% OFFLINE</string>
     <string name="home_logo_desc">Juzoor logo</string>
-    <string name="home_engine">ENGINE 2.2</string>
+    <string name="home_engine">ENGINE 2.3</string>
     <string name="security_title">Security analysis</string>
     <string name="security_sub" formatted="false">Static application security testing — 100% on this device.</string>
     <string name="security_run">Scan an APK</string>
@@ -367,7 +367,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_default_key">Use built-in signing key</string>
     <string name="settings_default_key_d">Local Juzoor key bundled with the app.</string>
     <string name="settings_offline_badge" formatted="false">100% offline</string>
-    <string name="settings_engine_version">Engine 2.2</string>
+    <string name="settings_engine_version">Engine 2.3</string>
     <string name="settings_build">Build</string>
     <string name="settings_copyright">Copyright</string>
     <string name="settings_storage">Storage</string>
@@ -439,4 +439,72 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="log_resume">Resume live</string>
     <string name="result_index">View project index</string>
     <string name="err_aab">AAB bundles cannot be expanded on-device. Build an APK set with bundletool, then open the .apks file.</string>
+
+    <!-- Juzoor 2.3: lazy tree, editor, search, diff, assets, cross-platform -->
+    <string name="common_share">Share</string>
+    <string name="tree_title">Project tree</string>
+    <string name="tree_none">No recovered project yet. Run a conversion first.</string>
+    <string name="tree_root">Project root</string>
+    <string name="tree_lazy">%1$d visible entries · folders load when opened</string>
+    <string name="code_title">Code editor</string>
+    <string name="code_binary">This file is binary. Choose a text file to edit.</string>
+    <string name="code_lines">%1$d lines</string>
+    <string name="code_mapping">Apply mapping.txt (deobfuscate)</string>
+    <string name="code_mapping_running">Applying mapping.txt…</string>
+    <string name="code_mapping_done">%1$s</string>
+    <string name="search_title">Global search</string>
+    <string name="search_hint">Word or regular expression…</string>
+    <string name="search_regex">Regex</string>
+    <string name="search_case">Case</string>
+    <string name="search_binary">Binary</string>
+    <string name="search_run">Search all files</string>
+    <string name="search_running">Searching every recovered file…</string>
+    <string name="search_summary">%1$d hit(s) · %2$d file(s) · %3$d scanned</string>
+    <string name="search_truncated">result limit reached</string>
+    <string name="search_empty">No results to share.</string>
+    <string name="search_need_query">Type a word or regular expression.</string>
+    <string name="search_no_project">No recovered project yet. Run a conversion first.</string>
+    <string name="search_file_missing">The file no longer exists.</string>
+    <string name="diff_title">APK diff</string>
+    <string name="diff_sub">Compare an old and a new APK. Added, removed and modified entries are listed with their size delta.</string>
+    <string name="diff_old">Old APK</string>
+    <string name="diff_new">New APK</string>
+    <string name="diff_pick">Choose</string>
+    <string name="diff_not_selected">No file selected</string>
+    <string name="diff_run">Compare</string>
+    <string name="diff_running">Comparing archives…</string>
+    <string name="diff_summary">+%1$d added · −%2$d removed · %3$d modified</string>
+    <string name="diff_need_files">Choose both APK files first.</string>
+    <string name="assets_title">Assets viewer</string>
+    <string name="assets_all">All</string>
+    <string name="assets_images">Images</string>
+    <string name="assets_fonts">Fonts</string>
+    <string name="assets_scanning">Scanning recovered resources…</string>
+    <string name="assets_summary">%1$d image(s) · %2$d font(s) · %3$d total</string>
+    <string name="assets_font_sample" formatted="false">أ ب ت ث ABC abc 123 — Juzoor</string>
+    <string name="assets_failed">This asset could not be previewed.</string>
+    <string name="cross_title">Cross-platform</string>
+    <string name="cross_sub">Analyse Windows PE/EXE/DLL, Linux ELF/DEB/RPM and macOS Mach-O/DMG offline — headers, sections, strings and embedded payloads.</string>
+    <string name="cross_pick">Choose file</string>
+    <string name="cross_run">Analyse</string>
+    <string name="cross_running">Analysing binary…</string>
+    <string name="cross_done">%1$s · %2$d strings · %3$d extracted</string>
+    <string name="cross_help">Choose a PE, ELF, DEB, RPM, Mach-O or DMG file, then tap Analyse. PyInstaller archives and DEB/RPM payloads are extracted under analysis/cross/.</string>
+    <string name="cross_none">No file selected</string>
+    <string name="cross_need_file">Choose a file first.</string>
+
+
+    <string name="home_tool_tree">Lazy project tree</string>
+    <string name="home_tool_tree_d">Open 18,000+ files instantly — folders load only when you tap them.</string>
+    <string name="home_tool_search">Global regex search</string>
+    <string name="home_tool_search_d">Search every Java, XML, asset and .so file in one pass.</string>
+    <string name="home_tool_assets">Assets viewer</string>
+    <string name="home_tool_assets_d">Preview recovered images and fonts offline.</string>
+    <string name="home_tool_diff">APK diff</string>
+    <string name="home_tool_diff_d">Compare old and new APKs and list every change.</string>
+    <string name="home_tool_cross">Cross-platform analyser</string>
+    <string name="home_tool_cross_d">PE/EXE/DLL, ELF/DEB/RPM, Mach-O and DMG with PyInstaller extraction.</string>
+    <string name="result_framework">Framework</string>
+
+    <string name="editor_full">Open full code editor</string>
 </resources>

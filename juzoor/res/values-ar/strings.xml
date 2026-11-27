@@ -257,7 +257,7 @@
     <string name="home_tool_source_d">هياكل Java/Kotlin وملف PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">أوفلاين 100%</string>
     <string name="home_logo_desc">شعار جذور</string>
-    <string name="home_engine">المحرّك 2.2</string>
+    <string name="home_engine">المحرّك 2.3</string>
     <string name="security_title">تحليل الأمان</string>
     <string name="security_sub" formatted="false">اختبار أمان التطبيقات الساكن — بالكامل على هذا الجهاز.</string>
     <string name="security_run">افحص تطبيقاً</string>
@@ -367,7 +367,7 @@
     <string name="settings_default_key">استخدام مفتاح التوقيع المدمج</string>
     <string name="settings_default_key_d">مفتاح جذور المحلي المرفق مع التطبيق.</string>
     <string name="settings_offline_badge" formatted="false">أوفلاين 100%</string>
-    <string name="settings_engine_version">المحرّك 2.2</string>
+    <string name="settings_engine_version">المحرّك 2.3</string>
     <string name="settings_build">الإصدار</string>
     <string name="settings_copyright">حقوق النشر</string>
     <string name="settings_storage">التخزين</string>
@@ -439,4 +439,72 @@
     <string name="log_resume">متابعة الحي</string>
     <string name="result_index">عرض فهرس المشروع</string>
     <string name="err_aab">حزم AAB لا يمكن فكّها على الجهاز. استخدم bundletool لتوليد حزمة APK ثم افتح ملف .apks.</string>
+
+    <!-- Juzoor 2.3: lazy tree, editor, search, diff, assets, cross-platform -->
+    <string name="common_share">مشاركة</string>
+    <string name="tree_title">شجرة المشروع</string>
+    <string name="tree_none">لا يوجد مشروع مستخرج بعد. ابدأ تحويلاً أولاً.</string>
+    <string name="tree_root">جذر المشروع</string>
+    <string name="tree_lazy">%1$d عنصر ظاهر · تُحمّل المجلدات عند فتحها</string>
+    <string name="code_title">محرر الأكواد</string>
+    <string name="code_binary">هذا الملف ثنائي. اختر ملفاً نصياً للتعديل.</string>
+    <string name="code_lines">%1$d سطر</string>
+    <string name="code_mapping">تطبيق mapping.txt (فك التمويه)</string>
+    <string name="code_mapping_running">جارٍ تطبيق mapping.txt…</string>
+    <string name="code_mapping_done">%1$s</string>
+    <string name="search_title">البحث الشامل</string>
+    <string name="search_hint">كلمة أو تعبير نمطي…</string>
+    <string name="search_regex">Regex</string>
+    <string name="search_case">حالة الأحرف</string>
+    <string name="search_binary">الملفات الثنائية</string>
+    <string name="search_run">ابحث في كل الملفات</string>
+    <string name="search_running">جارٍ البحث في كل الملفات المستخرجة…</string>
+    <string name="search_summary">%1$d نتيجة · %2$d ملف · %3$d تم فحصه</string>
+    <string name="search_truncated">تم بلوغ حد النتائج</string>
+    <string name="search_empty">لا توجد نتائج للمشاركة.</string>
+    <string name="search_need_query">اكتب كلمة أو تعبيراً نمطياً.</string>
+    <string name="search_no_project">لا يوجد مشروع مستخرج بعد. ابدأ تحويلاً أولاً.</string>
+    <string name="search_file_missing">الملف لم يعد موجوداً.</string>
+    <string name="diff_title">مقارنة إصدارات APK</string>
+    <string name="diff_sub">قارن بين تطبيق قديم وجديد. تُعرض الملفات المضافة والمحذوفة والمعدلة مع فرق الحجم.</string>
+    <string name="diff_old">الإصدار القديم</string>
+    <string name="diff_new">الإصدار الجديد</string>
+    <string name="diff_pick">اختيار</string>
+    <string name="diff_not_selected">لم يتم اختيار ملف</string>
+    <string name="diff_run">قارن</string>
+    <string name="diff_running">جارٍ مقارنة الأرشيفين…</string>
+    <string name="diff_summary">+%1$d مضاف · −%2$d محذوف · %3$d معدل</string>
+    <string name="diff_need_files">اختر ملفي APK أولاً.</string>
+    <string name="assets_title">معاينة الموارد</string>
+    <string name="assets_all">الكل</string>
+    <string name="assets_images">الصور</string>
+    <string name="assets_fonts">الخطوط</string>
+    <string name="assets_scanning">جارٍ فحص الموارد المستخرجة…</string>
+    <string name="assets_summary">%1$d صورة · %2$d خط · %3$d إجمالي</string>
+    <string name="assets_font_sample" formatted="false">أ ب ت ث ABC abc 123 — جذور</string>
+    <string name="assets_failed">تعذّرت معاينة هذا الملف.</string>
+    <string name="cross_title">الأنظمة الأخرى</string>
+    <string name="cross_sub">تحليل ملفات Windows PE/EXE/DLL و Linux ELF/DEB/RPM و macOS Mach-O/DMG أوفلاين — الترويسات والأقسام والنصوص والحمولات المدمجة.</string>
+    <string name="cross_pick">اختيار ملف</string>
+    <string name="cross_run">تحليل</string>
+    <string name="cross_running">جارٍ تحليل الملف…</string>
+    <string name="cross_done">%1$s · %2$d نص · %3$d مستخرج</string>
+    <string name="cross_help">اختر ملف PE أو ELF أو DEB أو RPM أو Mach-O أو DMG ثم اضغط تحليل. تُستخرج أرشيفات PyInstaller وحزم DEB/RPM في analysis/cross/.</string>
+    <string name="cross_none">لم يتم اختيار ملف</string>
+    <string name="cross_need_file">اختر ملفاً أولاً.</string>
+
+
+    <string name="home_tool_tree">شجرة المشروع الذكية</string>
+    <string name="home_tool_tree_d">افتح أكثر من 18,000 ملف فوراً — تُحمّل المجلدات عند الضغط عليها فقط.</string>
+    <string name="home_tool_search">البحث الشامل Regex</string>
+    <string name="home_tool_search_d">ابحث في كل ملفات Java و XML والموارد و .so دفعة واحدة.</string>
+    <string name="home_tool_assets">معاينة الموارد</string>
+    <string name="home_tool_assets_d">عاين الصور والخطوط المستخرجة أوفلاين.</string>
+    <string name="home_tool_diff">مقارنة إصدارات APK</string>
+    <string name="home_tool_diff_d">قارن بين تطبيقين وأظهر كل الاختلافات.</string>
+    <string name="home_tool_cross">تحليل الأنظمة الأخرى</string>
+    <string name="home_tool_cross_d">PE/EXE/DLL و ELF/DEB/RPM و Mach-O/DMG مع استخراج PyInstaller.</string>
+    <string name="result_framework">محرك التطبيق</string>
+
+    <string name="editor_full">فتح محرر الأكواد الكامل</string>
 </resources>

@@ -51,6 +51,6 @@ public class ManifestFixerTest {
 
     @Test
     public void versionIsConsistent() {
-        assertEquals("2.2.0", ConversionResult.GENERATOR_VERSION);
+        assertEquals("2.3.0", ConversionResult.GENERATOR_VERSION);
     }
 }
