@@ -54,6 +54,25 @@ public class LiveCanvasFeedTest {
     }
 
     @Test
+    public void searchFiltersPathsAndLogsCaseInsensitively() {
+        LiveCanvasFeed feed = new LiveCanvasFeed(10);
+        feed.addFile("src/main/java/MyClass.java", 10);
+        feed.addLog("ERROR", "Failed to decode resources");
+        feed.addFile("assets/flutter_assets/AssetManifest.json", 20);
+
+        List<LiveCanvasFeed.Entry> paths = feed.matching("JAVA");
+        assertEquals(1, paths.size());
+        assertEquals("src/main/java/MyClass.java", paths.get(0).text);
+
+        List<LiveCanvasFeed.Entry> logs = feed.matching("decode");
+        assertEquals(1, logs.size());
+        assertEquals(LiveCanvasFeed.Kind.LOG, logs.get(0).kind);
+
+        assertEquals(3, feed.matching("").size());
+        assertEquals(0, feed.matching("missing").size());
+    }
+
+    @Test
     public void emptyValuesAreIgnored() {
         LiveCanvasFeed feed = new LiveCanvasFeed(10);
         feed.addFile("", 1);

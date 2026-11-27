@@ -7,7 +7,7 @@ import java.util.List;
 /** Everything a finished conversion reports back to the UI. */
 public class ConversionResult {
     /** Single source of truth for every generated report and README. */
-    public static final String GENERATOR_VERSION = "4.2.0";
+    public static final String GENERATOR_VERSION = "4.3.0";
     /** Embedded Java decompiler shown in the UI and reports. */
     public static final String JAVA_ENGINE = "Jadx 1.5.1";
 
@@ -38,6 +38,8 @@ public class ConversionResult {
     public int packerCount = 0;
     public int stringTotal = 0;
     public int stringEncrypted = 0;
+    public int stringReadable = 0;
+    public int stringDecoded = 0;
     public int stringRecovered = 0;
     public int libraryCount = 0;
     public File reportFile;
@@ -65,6 +67,11 @@ public class ConversionResult {
     public String frameworkLabel = "Native Android";
     public String frameworkHint = "";
     public int frameworkAssets = 0;
+
+    /* --- Juzoor 4.3: Flutter/Dart snapshot strings --- */
+    public int dartStringCount = 0;
+    public int dartLibraryCount = 0;
+    public final List<String> dartStrings = new ArrayList<>();
 
     public String summary() {
         return "classes=" + classCount + " res=" + resourceCount + " dex=" + dexCount

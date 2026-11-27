@@ -43,14 +43,15 @@ public final class ProjectWriter {
             write(new File(pkgDir, "package-info.java"),
                     "/** Recovered by Juzoor. Add the decompiled Java sources here. */\npackage " + pkg + ";\n");
             write(new File(root, "app/src/main/recovered/README.md"),
-                    "# Recovered source (not compiled)\n\n"
+                    "# Recovered source (compiled with the project)\n\n"
                             + "`java/` contains real method bodies decompiled from DEX by "
                             + ConversionResult.JAVA_ENGINE + ".\n"
                             + "`kotlin/` contains editable Kotlin API mirrors generated from the same\n"
                             + "class table; JVM bytecode does not retain the original Kotlin source, so\n"
-                            + "the executable bodies live in the Java tree. Both folders stay outside the\n"
-                            + "Gradle source set because the original APK does not ship dependency jars.\n"
-                            + "The project itself builds cleanly with the decoded manifest and resources.\n");
+                            + "the executable bodies live in the Java tree. `recovered/java` is part of\n"
+                            + "the Gradle source set; some classes may still need extra dependency jars\n"
+                            + "that the original APK did not ship. The project builds from the decoded\n"
+                            + "manifest, resources and detected library coordinates.\n");
         }
         log.log(LogManager.DEBUG, "Gradle project written (" + name + ", " + libs.size() + " dependencies)");
     }
@@ -127,10 +128,17 @@ public final class ProjectWriter {
             if (c.startsWith("androidx.appcompat:") || c.startsWith("com.google.android.material:")) continue;
             deps.append("    implementation '").append(c).append("'\n");
         }
+        boolean firebase = false;
         for (LibrarySupport.Library l : libs) {
             if (l.note.startsWith("annotationProcessor ")) {
                 deps.append("    ").append(l.note).append('\n');
             }
+            if (l.coordinate.startsWith("com.google.firebase:firebase-bom:")) firebase = true;
+        }
+        if (firebase) {
+            // The BOM only pins versions; an actual Firebase module is needed
+            // for the recovered google-services classes to resolve.
+            deps.append("    implementation 'com.google.firebase:firebase-analytics'\n");
         }
         return "// Recovered by Juzoor " + ConversionResult.GENERATOR_VERSION + "\n"
                 + "plugins { id 'com.android.application' }\n\n"
@@ -160,7 +168,7 @@ public final class ProjectWriter {
                 + "    sourceSets {\n"
                 + "        main {\n"
                 + "            manifest.srcFile 'src/main/AndroidManifest.xml'\n"
-                + "            java.srcDirs = ['src/main/java']\n"
+                + "            java.srcDirs = ['src/main/java', 'src/main/recovered/java']\n"
                 + "            res.srcDirs = ['src/main/res']\n"
                 + "            assets.srcDirs = ['src/main/assets']\n"
                 + "            jniLibs.srcDirs = ['src/main/jniLibs']\n"
@@ -213,6 +221,9 @@ public final class ProjectWriter {
         b.append("| DEX files | ").append(r.dexCount).append(" |\n");
         b.append("| Framework | ").append(r.frameworkLabel)
                 .append(r.frameworkAssets > 0 ? " (" + r.frameworkAssets + " assets)" : "").append(" |\n");
+        if (r.dartStringCount > 0 || AppFramework.FLUTTER.equals(r.framework)) {
+            b.append("| Dart strings | ").append(r.dartStringCount).append(" |\n");
+        }
         b.append("| Native libs | ").append(r.nativeLibCount).append(" |\n");
         b.append("| Libraries | ").append(r.libraryCount).append(" |\n");
         b.append("| Java sources | ").append(r.javaFileCount)
@@ -235,16 +246,20 @@ public final class ProjectWriter {
         b.append("- `app/src/main/smali*/` — disassembled Dalvik bytecode\n");
         b.append("- `app/src/main/recovered/java/` — real decompiled Java sources\n");
         b.append("- `app/src/main/recovered/kotlin/` — Kotlin API mirrors (signatures)\n");
+        if (AppFramework.FLUTTER.equals(r.framework)) {
+            b.append("- `dart_strings/` — strings from the Dart snapshot in `libapp.so`\n");
+        }
         b.append("- `analysis/` — ELF reports, string tables, carved payloads, libraries\n");
         b.append("- `REPORT.md` — complete human readable analysis\n\n");
         b.append("## Building\n\n");
         b.append("1. Open this folder in Android Studio (Gradle 8.7 / AGP 8.5.2).\n");
         b.append("2. The decoded manifest and resources are already in the Gradle layout.\n");
         b.append("3. Press Run, or run `gradle assembleDebug` from this folder.\n\n");
-        b.append("`recovered/` is intentionally outside the Gradle source set because an APK\n");
-        b.append("does not contain the dependency jars needed to compile every recovered\n");
-        b.append("class. The Java tree contains real Jadx method bodies; use the Kotlin\n");
-        b.append("tree as an editable API mirror next to the full `smali*/` tree.\n\n");
+        b.append("`app/src/main/recovered/java` is part of the Gradle source set so the real\n");
+        b.append("Jadx method bodies are compiled with the project. Some recovered classes\n");
+        b.append("may still need extra dependency jars that an APK does not contain; the\n");
+        b.append("detected libraries are listed above and in `analysis/libraries.json`. The\n");
+        b.append("Kotlin tree is an editable API mirror next to the full `smali*/` tree.\n\n");
         b.append("---\n\n© 2027 Ramy El-Banna — Juzoor™\n");
         return b.toString();
     }
@@ -255,16 +270,18 @@ public final class ProjectWriter {
                         + "  \"package\": \"%s\",\n  \"versionName\": \"%s\",\n  \"versionCode\": %d,\n"
                         + "  \"classes\": %d,\n  \"resources\": %d,\n  \"files\": %d,\n  \"dexFiles\": %d,\n"
                         + "  \"nativeLibraries\": %d,\n  \"libraries\": %d,\n  \"packers\": %d,\n"
-                        + "  \"strings\": {\"total\": %d, \"encoded\": %d, \"recovered\": %d},\n"
+                        + "  \"strings\": {\"total\": %d, \"readable\": %d, \"encoded\": %d,"
+                        + " \"decoded\": %d, \"recovered\": %d},\n"
                         + "  \"bundle\": %s,\n  \"bundleKind\": \"%s\",\n  \"splits\": %d,\n"
                         + "  \"framework\": \"%s\",\n  \"frameworkAssets\": %d,\n"
                         + "  \"javaEngine\": \"%s\",\n  \"javaSources\": %d,\n  \"kotlinMirrors\": %d,\n"
-                        + "  \"durationMs\": %d\n}\n",
+                        + "  \"dartStrings\": %d,\n  \"durationMs\": %d\n}\n",
                 pkg, r.versionName, r.versionCode, r.classCount, r.resourceCount, r.fileCount,
                 r.dexCount, r.nativeLibCount, r.libraryCount, r.packers.size(),
-                r.stringTotal, r.stringEncrypted, r.stringRecovered,
-                r.isBundle, r.bundleKind, r.splitCount,
+                r.stringTotal, r.stringReadable, r.stringEncrypted, r.stringDecoded,
+                r.stringRecovered, r.isBundle, r.bundleKind, r.splitCount,
                 r.framework == null ? "native" : r.framework, r.frameworkAssets,
-                ConversionResult.JAVA_ENGINE, r.javaFileCount, r.kotlinFileCount, r.durationMs);
+                ConversionResult.JAVA_ENGINE, r.javaFileCount, r.kotlinFileCount,
+                r.dartStringCount, r.durationMs);
     }
 }

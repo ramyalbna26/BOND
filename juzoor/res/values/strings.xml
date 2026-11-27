@@ -235,6 +235,10 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="result_libraries">Libraries</string>
     <string name="result_strings">Strings</string>
     <string name="result_recovered">Recovered</string>
+    <string name="result_flutter_notice">Flutter app detected — the main program is written in Dart. Dart snapshot strings were extracted to dart_strings/ (%1$d string(s)).</string>
+    <string name="result_flutter_no_dart">Flutter app detected — the main program is written in Dart. No readable Dart snapshot strings were found in libapp.so.</string>
+    <string name="result_dart_strings">Dart strings</string>
+    <string name="result_decoded">Decrypted</string>
     <string name="result_report">View report</string>
     <string name="result_conversions">conversions</string>
     <string name="settings_decrypt">Decryption</string>
@@ -257,7 +261,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="home_tool_source_d">Real Jadx Java sources, Kotlin API mirrors and PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">100% OFFLINE</string>
     <string name="home_logo_desc">Juzoor logo</string>
-    <string name="home_engine">ENGINE 4.2</string>
+    <string name="home_engine">ENGINE 4.3</string>
     <string name="security_title">Security analysis</string>
     <string name="security_sub" formatted="false">Static application security testing — 100% on this device.</string>
     <string name="security_run">Scan an APK</string>
@@ -375,7 +379,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_default_key">Use built-in signing key</string>
     <string name="settings_default_key_d">Local Juzoor key bundled with the app.</string>
     <string name="settings_offline_badge" formatted="false">100% offline</string>
-    <string name="settings_engine_version">Engine 4.2 · Jadx 1.5.1</string>
+    <string name="settings_engine_version">Engine 4.3 · Jadx 1.5.1</string>
     <string name="settings_build">Build</string>
     <string name="settings_copyright">Copyright</string>
     <string name="settings_storage">Storage</string>
@@ -403,6 +407,8 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="canvas_hint">One list · auto-scroll pauses when you scroll up and resumes at the bottom.</string>
     <string name="canvas_cancelled">Conversion cancelled.</string>
     <string name="canvas_follow_on">Auto-scroll on · older log rows stay in Logcat (max 300 in memory).</string>
+    <string name="canvas_search_hint">Search files, paths or log text…</string>
+    <string name="canvas_search_matches">%1$d live match(es)</string>
     <string name="canvas_follow_paused">Auto-scroll paused · scroll to the bottom or tap here to follow.</string>
     <string name="batch_title">Batch queue</string>
     <string name="batch_sub">Convert several applications at the same time. Each row has its own progress bar and live step.</string>
@@ -453,6 +459,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
     <!-- Juzoor 4.0: Jadx Java decompiler, bounded tree pager, Kotlin API mirrors -->
     <!-- Juzoor 4.2: one bounded live RecyclerView, smart auto-scroll -->
+    <!-- Juzoor 4.3: advanced decoding, Dart snapshot strings, live search -->
     <string name="common_share">Share</string>
     <string name="tree_title">Project tree</string>
     <string name="tree_none">No recovered project yet. Run a conversion first.</string>

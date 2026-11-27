@@ -116,6 +116,24 @@ public final class LiveCanvasFeed {
         return Collections.unmodifiableList(new ArrayList<Entry>(rows));
     }
 
+    /**
+     * Returns only the rows that contain {@code query}, using the same bounded
+     * snapshot as the live list.  The search is case-insensitive and checks the
+     * visible text as well as the level/path label.
+     */
+    public synchronized List<Entry> matching(String query) {
+        if (query == null || query.trim().isEmpty()) return snapshot();
+        String needle = query.trim().toLowerCase(java.util.Locale.US);
+        List<Entry> out = new ArrayList<>();
+        for (Entry entry : rows) {
+            if (entry.text.toLowerCase(java.util.Locale.US).contains(needle)
+                    || entry.level.toLowerCase(java.util.Locale.US).contains(needle)) {
+                out.add(entry);
+            }
+        }
+        return Collections.unmodifiableList(out);
+    }
+
     public synchronized int size() {
         return rows.size();
     }

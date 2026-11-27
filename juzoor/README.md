@@ -1,4 +1,4 @@
-# جذور — Juzoor 4.2
+# جذور — Juzoor 4.3
 
 **أصل البذور — أوفلاين 100%. بلا إنترنت. بلا روت.**
 **Origin of the Seeds — 100% offline. No internet. No root.**
@@ -12,6 +12,32 @@ APK, APK+, XAPK, APKS and APKM are expanded locally. AAB is recognised and the
 app explains that it must first be turned into an APK set with `bundletool`,
 because an AAB carries a protobuf manifest/resource table that cannot be
 expanded to a buildable APK on-device.
+
+## What is new in 4.3
+
+* **Bytecode-aware string recovery** — the Smali tree is mined for
+  `const-string` values next to `Base64.decode`, `StringBuilder.reverse`,
+  `MessageDigest`, `Cipher` and `xor-int` instructions. Those hints recover
+  readable-looking ciphertext that the old printable-text shortcut kept as
+  plain text, and common XOR keys (`0x3D`, `0x55`, `0xFF`, …) are tried before
+  the exhaustive fallback. Reports now show extracted, readable, encoded,
+  decoded and recovered totals.
+* **Flutter / Dart strings** — when a Flutter app is detected, Juzoor reads
+  the `_kDartVmSnapshotData` / `_kDartIsolateSnapshotData` ELF symbols from
+  `libapp.so` (and `libflutter.so`), decodes the Dart ULEB128 length-prefixed
+  one-byte and UTF-16 strings, and writes them to a separate `dart_strings/`
+  folder plus `analysis/dart_strings/` metadata. The result screen tells the
+  user that the original program is Dart.
+* **Live search** — the one live list has a small search bar for file paths,
+  log text and levels. Filtering uses the same bounded 300-row snapshot, so
+  searching never loads extra history into memory.
+* **Build-ready Gradle** — generated projects now include
+  `app/src/main/recovered/java` in `sourceSets`, and detected Firebase,
+  Material, jsoup and other library coordinates are emitted with their
+  dependencies. Firebase also gets an analytics module next to its BOM.
+* **Everything from 4.2** — bounded RecyclerView live canvas, Jadx Java
+  recovery, DEX batching, paginated project tree, security warning and the
+  complete offline analysis pipeline.
 
 ## What is new in 4.2
 
@@ -78,7 +104,7 @@ ANDROID_SDK_ROOT=/path/to/sdk ./build.sh
 cd .. && ./gradlew :juzoor:testDebugUnitTest :juzoor:assembleRelease
 ```
 
-The release wrapper writes `../build/apk/Juzoor-v4.2.0.apk`. The Gradle release
+The release wrapper writes `../build/apk/Juzoor-v4.3.0.apk`. The Gradle release
 writes `build/outputs/apk/release/juzoor-release.apk`. The live list uses
 AndroidX RecyclerView, so the release is built through Gradle.
 
@@ -112,6 +138,9 @@ developer build can run on an emulator.
 
 * Kotlin decompilation is API-level only. Jadx outputs Java; the Kotlin tree is
   an editable signature mirror, not reconstructed Kotlin source.
+* Dart snapshot extraction is a static string recovery pass. It does not
+  rebuild the original Dart source or re-link `libapp.so`; the extracted text is
+  for analysis and asset/string recovery.
 * AAB is expanded only after conversion to an APK set with `bundletool`.
 * UPX payloads are decompressed but not relinked: the loader's relocation and
   filter metadata is required to turn the blocks back into a runnable `.so`.

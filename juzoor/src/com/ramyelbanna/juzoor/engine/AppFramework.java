@@ -75,7 +75,7 @@ public final class AppFramework {
         if (flutter) {
             r.kind = FLUTTER;
             r.label = "Flutter";
-            r.hint = "Dart AOT app. Everything under assets/flutter_assets is recovered: images, fonts, strings and the asset manifest.";
+            r.hint = "Dart AOT app. assets/flutter_assets is recovered in full, and Dart snapshot strings are extracted from libapp.so into dart_strings/.";
             addEvidence(r, "libflutter.so / libapp.so", hasLib(mergedDir, "libflutter.so", "libapp.so"));
             addEvidence(r, "assets/flutter_assets/", dirExists(mergedDir, "assets/flutter_assets"));
             r.flutterAssets = countTree(new File(mergedDir, "assets/flutter_assets"));

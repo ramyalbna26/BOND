@@ -21,30 +21,68 @@ public class DexStringsTest {
     public void extractsEveryStringAndDecodesLayers() throws Exception {
         byte[] xorAscii = xor("secret message", 0x7F);
         byte[] xorHigh = xor("raw xor payload", 0xAA);
+        byte[] xorCommon = xor("common xor key", 0x3D);
+        byte[] xorMinedOnly = xor("mined key payload", 0x2B);
         File dex = dex(new byte[][]{
                 ascii("com.example.Hello"),
                 ascii("SGVsbG8gV29ybGQh"),
                 ascii("48656c6c6f2c2068657821"),
                 xorAscii,
                 xorHigh,
+                xorCommon,
+                xorMinedOnly,
                 "مرحبا بالعالم".getBytes(StandardCharsets.UTF_8)
         });
         File out = tempDir();
         DexStrings.Report r = DexStrings.analyze(dex, out, null);
 
-        assertEquals(6, r.total);
+        assertEquals(8, r.total);
         assertEquals("every DEX string must be extracted, not only decoded ones",
-                6, DexStrings.readStrings(bytes(dex)).size());
+                8, DexStrings.readStrings(bytes(dex)).size());
         String decoded = new String(java.nio.file.Files.readAllBytes(r.decodedFile.toPath()),
                 StandardCharsets.UTF_8);
         assertTrue(decoded.contains("Hello World!"));
         assertTrue(decoded.contains("Hello, hex!"));
         assertTrue(decoded.contains("secret message"));
         assertTrue(decoded.contains("raw xor payload"));
-        assertTrue(r.recovered >= 4);
+        assertTrue(decoded.contains("common xor key"));
+        assertTrue(decoded.contains("mined key payload"));
+        assertTrue(r.recovered >= 6);
         assertTrue(r.rawStrings > 0);
         assertTrue(r.rawFile.isFile());
         assertTrue(r.stringsFile.isFile());
+    }
+
+    @Test
+    public void smaliDecryptorHintRecoversReversedReadableText() throws Exception {
+        File dex = dex(new byte[][]{ascii("!dlroW olleH")});
+        File roots = tempDir();
+        File smali = new File(roots, "com/example/Reveal.smali");
+        smali.getParentFile().mkdirs();
+        FileOutputStream out = new FileOutputStream(smali);
+        out.write((".class public Lcom/example/Reveal;\n"
+                + ".method public static reveal()Ljava/lang/String;\n"
+                + "    const-string v0, \"!dlroW olleH\"\n"
+                + "    new-instance v1, Ljava/lang/StringBuilder;\n"
+                + "    invoke-direct {v1, v0}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V\n"
+                + "    invoke-virtual {v1}, Ljava/lang/StringBuilder;->reverse()Ljava/lang/StringBuilder;\n"
+                + "    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;\n"
+                + "    move-result-object v0\n"
+                + "    return-object v0\n"
+                + ".end method\n").getBytes(StandardCharsets.UTF_8));
+        out.close();
+
+        File analysis = tempDir();
+        DexStrings.Report r = DexStrings.analyze(dex, analysis,
+                java.util.Collections.singletonList(roots), null);
+
+        assertEquals(1, r.total);
+        assertTrue("bytecode sites should be mined", r.decryptorSites > 0);
+        assertTrue("string should have a Smali hint", r.hints > 0);
+        assertEquals(1, r.recovered);
+        String decoded = new String(java.nio.file.Files.readAllBytes(r.decodedFile.toPath()),
+                StandardCharsets.UTF_8);
+        assertTrue(decoded.contains("Hello World!"));
     }
 
     @Test

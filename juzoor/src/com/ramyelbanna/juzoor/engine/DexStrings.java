@@ -40,6 +40,9 @@ public final class DexStrings {
         public int obfuscated;   // 1-2 char identifiers with no readable plaintext
         public int recovered;
         public int keysMined;
+        public int hints;        // const-string/decryptor pairs mined from Smali
+        public int decryptorSites;
+        public int resolved;     // readable + decoded entries (usable as text)
         public int rawStrings;   // extra strings found by the byte-by-byte scan
         public int rawDecoded;   // Base64/hex payloads decoded by that scan
         public final List<String> samples = new ArrayList<>();
@@ -76,16 +79,20 @@ public final class DexStrings {
         } catch (IOException e) {
             return r;
         }
-        int[] keys = mineKeys(smaliRoots, log);
+        SmaliHints hints = SmaliHints.scan(smaliRoots);
+        int[] keys = hints.keys();
         r.keysMined = keys.length;
+        r.hints = hints.hintCount();
+        r.decryptorSites = hints.siteCount();
         List<RawString> rawStrings = readRawStrings(d);
         r.total = rawStrings.size();
         Set<String> decoded = new LinkedHashSet<>();
-        long[] budget = {150_000_000L};
+        long[] budget = {180_000_000L};
         for (RawString entry : rawStrings) {
-            classify(entry, r, decoded, keys, budget);
+            classify(entry, r, decoded, keys, hints, budget);
         }
         r.recovered = decoded.size();
+        r.resolved = r.readable + r.recovered;
         File dir = new File(analysisDir, "strings");
         dir.mkdirs();
         String base = r.name.replaceAll("[^A-Za-z0-9._-]", "_");
@@ -114,8 +121,8 @@ public final class DexStrings {
         if (log != null) {
             log.log(LogManager.INFO, "DEX " + r.name + ": " + r.total + " strings extracted (100%), "
                     + r.encoded + " encoded, " + r.obfuscated + " obfuscated, "
-                    + r.recovered + " decoded (" + r.keysMined + " keys mined), "
-                    + r.rawStrings + " raw byte-run strings");
+                    + r.recovered + " decoded (" + r.keysMined + " keys mined, "
+                    + r.hints + " hints), " + r.rawStrings + " raw byte-run strings");
         }
         return r;
     }
@@ -214,125 +221,59 @@ public final class DexStrings {
     /* --------------------------------------------------------- key mining */
 
     /**
-     * Scans the smali tree for XOR constants used next to {@code xor-int}
-     * instructions, plus {@code Base64->decode} and AES markers. Returns the
-     * distinct single-byte keys ordered by frequency.
+     * Scans the Smali tree for XOR constants and decryptor call sites.
+     * Kept as a public entry point for callers that only need the key list;
+     * {@link #analyze} scans once and reuses the full hint table.
      */
     public static int[] mineKeys(List<File> roots, LogSink log) {
-        if (roots == null || roots.isEmpty()) return new int[0];
-        int[] freq = new int[256];
-        boolean[] seen = new boolean[256];
-        for (File root : roots) {
-            if (root == null || !root.isDirectory()) continue;
-            scanDir(root, freq, seen, 0);
-        }
-        // Collect keys with any occurrence, most frequent first.
-        List<int[]> list = new ArrayList<>();
-        for (int k = 1; k < 256; k++) {
-            if (freq[k] > 0) list.add(new int[]{k, freq[k]});
-        }
-        java.util.Collections.sort(list, new java.util.Comparator<int[]>() {
-            @Override
-            public int compare(int[] a, int[] b) {
-                return Integer.compare(b[1], a[1]);
-            }
-        });
-        int n = Math.min(list.size(), 32);
-        int[] keys = new int[n];
-        for (int i = 0; i < n; i++) keys[i] = list.get(i)[0];
-        return keys;
-    }
-
-    private static void scanDir(File dir, int[] freq, boolean[] seen, int depth) {
-        if (depth > 40) return;
-        File[] files = dir.listFiles();
-        if (files == null) return;
-        for (File f : files) {
-            if (f.isDirectory()) {
-                scanDir(f, freq, seen, depth + 1);
-            } else if (f.getName().endsWith(".smali")) {
-                scanFile(f, freq, seen);
-            }
-        }
-    }
-
-    private static void scanFile(File f, int[] freq, boolean[] seen) {
-        String text;
-        try {
-            text = new String(ZipUtil.readFile(f), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Throwable t) {
-            return;
-        }
-        String[] lines = text.split("\n");
-        int pendingConst = -1;
-        for (String raw : lines) {
-            String line = raw.trim();
-            if (line.startsWith("const/16") || line.startsWith("const/4")
-                    || line.startsWith("const ")) {
-                int comma = line.lastIndexOf(',');
-                if (comma > 0) {
-                    pendingConst = parseImm(line.substring(comma + 1).trim());
-                }
-            } else if (line.contains("xor-int")) {
-                if (pendingConst >= 0 && pendingConst < 256) {
-                    freq[pendingConst]++;
-                    seen[pendingConst] = true;
-                }
-                int comma = line.lastIndexOf(',');
-                if (comma > 0) {
-                    int v = parseImm(line.substring(comma + 1).trim());
-                    if (v >= 0 && v < 256) {
-                        freq[v]++;
-                        seen[v] = true;
-                    }
-                }
-                pendingConst = -1;
-            } else if (!line.isEmpty() && !line.startsWith("#")
-                    && !line.startsWith("const") && !line.startsWith("xor")) {
-                pendingConst = -1;
-            }
-        }
-    }
-
-    private static int parseImm(String s) {
-        try {
-            String v = s.trim();
-            if (v.startsWith("0x") || v.startsWith("0X")) {
-                return (int) Long.parseLong(v.substring(2), 16);
-            }
-            if (v.startsWith("-0x") || v.startsWith("-0X")) {
-                return (int) -Long.parseLong(v.substring(3), 16);
-            }
-            return Integer.parseInt(v);
-        } catch (Throwable t) {
-            return -1;
-        }
+        return SmaliHints.scan(roots).keys();
     }
 
     /* --------------------------------------------------------- classify */
 
+    /**
+     * Keys that obfuscators use most often.  Trying them first makes the live
+     * pass predictable and covers the common "weird first character" tables
+     * before the exhaustive 255-key fallback.
+     */
+    private static final int[] COMMON_KEYS = {
+            0x3D, 0x55, 0xFF, 0x33, 0x5A, 0x13, 0x42, 0x66, 0x77, 0xAA, 0xCC, 0x7F, 0x1F, 0x2A
+    };
+
     private static void classify(RawString entry, Report r, Set<String> decoded,
-                                 int[] keys, long[] budget) {
+                                 int[] keys, SmaliHints hints, long[] budget) {
         String s = entry.text;
         if (s == null || s.isEmpty()) return;
         if (s.charAt(0) == 'L' && s.endsWith(";")) {
             r.descriptors++;
             return;
         }
-        if ((isAscii(s) && isReadable(s)) || (isValidMutf8(entry.raw) && isHighText(s))) {
+        SmaliHints.Hint hint = hints == null ? null : hints.get(s);
+        boolean plain = (isAscii(s) && isReadable(s))
+                || (isValidMutf8(entry.raw) && isHighText(s));
+        if (plain) {
             // Base64 and hex payloads are printable, so the old "readable"
-            // shortcut hid them. Only the cheap literal layers are tried here;
-            // brute-force XOR remains limited to non-readable entries.
+            // shortcut hid them. Cheap literal layers are always tried; the
+            // Smali hints add reverse/XOR when a decryptor call is adjacent.
             String layered = decodePrintableLayers(s);
-            if (layered != null && !layered.equals(s)) {
+            if (accept(layered, s, null)) {
                 r.encoded++;
-                decoded.add(layered);
-                if (r.samples.size() < 40) {
-                    r.samples.add("layered: " + printableSample(s) + " -> " + printableSample(layered));
-                }
-            } else {
-                r.readable++;
+                record(r, decoded, "layered", s, layered);
+                return;
             }
+            String contextual = decodeContext(s, entry.raw, hint, budget);
+            if (accept(contextual, s, hint)) {
+                r.encoded++;
+                record(r, decoded, "context", s, contextual);
+                return;
+            }
+            String smart = smartXor(s, entry.raw, hint, keys, budget);
+            if (smart != null && textScore(smart) >= textScore(s) + 6) {
+                r.encoded++;
+                record(r, decoded, "xor", s, smart);
+                return;
+            }
+            r.readable++;
             return;
         }
         if (s.length() <= 2 && entry.raw.length <= 2) {
@@ -343,24 +284,60 @@ public final class DexStrings {
         // non-ASCII string was counted as "obfuscated" and never decoded, so
         // XOR-encrypted tables were exactly the ones that were skipped.
         r.encoded++;
-        String plain = decodeText(s, keys, budget);
+        String plainText = decodeContext(s, entry.raw, hint, budget);
+        if (plainText == null || !accept(plainText, s, hint)) {
+            plainText = decodeText(s, keys, budget);
+        }
         // MUTF-8 cannot represent arbitrary ciphertext. When the decoded text
         // contains replacement/question marks or non-ASCII code points, the
         // raw bytes are the authoritative ciphertext and must be tried too.
-        if (entry.raw.length > 0 && (plain == null || s.indexOf('?') >= 0 || !isAscii(s))) {
+        if (entry.raw.length > 0 && (plainText == null || s.indexOf('?') >= 0 || !isAscii(s))) {
             String rawPlain = decodeBytes(entry.raw, keys, budget);
-            if (rawPlain != null && (plain == null || textScore(rawPlain) > textScore(plain))) {
-                plain = rawPlain;
+            if (rawPlain != null && (plainText == null || textScore(rawPlain) > textScore(plainText))) {
+                plainText = rawPlain;
             }
         }
-        if (plain != null && !plain.equals(s) && isMeaningful(plain)) {
-            decoded.add(plain);
-            if (r.samples.size() < 40) {
-                r.samples.add("decoded: " + printableSample(s) + " -> " + printableSample(plain));
-            }
+        if (accept(plainText, s, hint)) {
+            record(r, decoded, "decoded", s, plainText);
         } else if (s.length() <= 3) {
             r.obfuscated++;
         }
+    }
+
+    /** Records one successful decode and keeps the audit sample list bounded. */
+    private static void record(Report r, Set<String> decoded, String kind,
+                               String source, String plain) {
+        decoded.add(plain);
+        if (r.samples.size() < 40) {
+            r.samples.add(kind + ": " + printableSample(source) + " -> " + printableSample(plain));
+        }
+    }
+
+    /**
+     * A decoder result is accepted when it is real text, or when bytecode
+     * context proves a decoder was used and the output is at least printable.
+     */
+    private static boolean accept(String out, String source, SmaliHints.Hint hint) {
+        if (out == null || out.length() < 3 || out.equals(source)) return false;
+        if (isMeaningful(out)) return true;
+        if (hint == null) return false;
+        return (hint.hasKeys() || hint.hasLayers()) && isUsableDecoded(out);
+    }
+
+    /** Printable, low-noise output used for context-confirmed decoders. */
+    private static boolean isUsableDecoded(String s) {
+        if (!isReadable(s)) return false;
+        int alnum = 0;
+        int question = 0;
+        int i = 0;
+        while (i < s.length()) {
+            int cp = s.codePointAt(i);
+            i += Character.charCount(cp);
+            if (Character.isLetterOrDigit(cp) || isScriptCodePoint(cp)) alnum++;
+            if (cp == '?') question++;
+        }
+        if (question > Math.max(1, s.length() / 12)) return false;
+        return alnum >= s.length() * 0.55;
     }
 
     private static String decodePrintableLayers(String s) {
@@ -372,13 +349,137 @@ public final class DexStrings {
 
     private static String decodeText(String s, int[] keys, long[] budget) {
         String layered = decodePrintableLayers(s);
-        if (layered != null) return layered;
+        if (isMeaningful(layered)) return layered;
         String rot = rot13(s);
         if (isMeaningful(rot)) return rot;
-        String x = xorWithKeys(s, keys, budget);
+        String x = xorCommonLoose(s, budget);
+        // A loose common-key candidate must not hide a stronger candidate from
+        // a Smali-mined key or the exhaustive scan. Only a fully meaningful
+        // common-key result may short-circuit those passes.
+        if (!isMeaningful(x)) x = null;
+        if (x == null) x = xorWithKeys(s, keys, budget);
         if (x == null) x = xorRecover(s, budget);
         if (x == null) x = xorRepeating(s, budget);
         return x;
+    }
+
+    /**
+     * Applies the decoders that the surrounding Smali actually calls.  This is
+     * what recovers a readable-looking ciphertext (reverse, XOR constants) that
+     * the generic "is this printable?" shortcut would otherwise keep as plain
+     * text.
+     */
+    private static String decodeContext(String s, byte[] raw, SmaliHints.Hint hint,
+                                        long[] budget) {
+        if (hint == null || (!hint.hasLayers() && !hint.hasKeys())) return null;
+        String best = null;
+        int bestScore = Integer.MIN_VALUE;
+        if (hint.reverse) {
+            String rev = reverse(s);
+            if (accept(rev, s, hint) && textScore(rev) > bestScore) {
+                best = rev;
+                bestScore = textScore(rev);
+            }
+        }
+        if (hint.base64) {
+            String b64 = tryBase64(s);
+            if (accept(b64, s, hint) && textScore(b64) > bestScore) {
+                best = b64;
+                bestScore = textScore(b64);
+            }
+        }
+        if (hint.hex) {
+            String hex = tryHex(s);
+            if (accept(hex, s, hint) && textScore(hex) > bestScore) {
+                best = hex;
+                bestScore = textScore(hex);
+            }
+        }
+        if (hint.hasKeys()) {
+            for (int key : hint.keys()) {
+                String text = xorTextLoose(s, key, budget);
+                if (accept(text, s, hint) && textScore(text) > bestScore) {
+                    best = text;
+                    bestScore = textScore(text);
+                }
+                if (raw != null) {
+                    String bytes = xorBytesLoose(raw, key, budget);
+                    if (accept(bytes, s, hint) && textScore(bytes) > bestScore) {
+                        best = bytes;
+                        bestScore = textScore(bytes);
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Applies common XOR keys to printable strings that start with an unusual
+     * symbol or that Smali tied to an XOR instruction.
+     */
+    private static String smartXor(String s, byte[] raw, SmaliHints.Hint hint,
+                                   int[] keys, long[] budget) {
+        if (!looksSuspicious(s) && (hint == null || !hint.hasKeys())) return null;
+        String best = null;
+        int bestScore = textScore(s);
+        best = better(best, bestScore, xorCommonLoose(s, budget), s, hint);
+        if (best != null) bestScore = textScore(best);
+        if (hint != null && hint.hasKeys()) {
+            for (int key : hint.keys()) {
+                String text = xorTextLoose(s, key, budget);
+                if (text != null && accept(text, s, hint) && textScore(text) > bestScore + 6) {
+                    best = text;
+                    bestScore = textScore(text);
+                }
+                if (raw != null) {
+                    String bytes = xorBytesLoose(raw, key, budget);
+                    if (bytes != null && accept(bytes, s, hint) && textScore(bytes) > bestScore + 6) {
+                        best = bytes;
+                        bestScore = textScore(bytes);
+                    }
+                }
+            }
+        }
+        if (best == null && keys != null && keys.length > 0) {
+            for (int i = 0; i < Math.min(8, keys.length); i++) {
+                String text = xorTextLoose(s, keys[i], budget);
+                if (text != null && accept(text, s, hint) && textScore(text) > bestScore + 6) {
+                    best = text;
+                    bestScore = textScore(text);
+                }
+            }
+        }
+        return best;
+    }
+
+    private static String better(String best, int bestScore, String candidate,
+                                 String source, SmaliHints.Hint hint) {
+        if (candidate == null || !accept(candidate, source, hint)) return best;
+        int score = textScore(candidate);
+        return score > bestScore + 6 ? candidate : best;
+    }
+
+    private static boolean looksSuspicious(String s) {
+        if (s == null || s.length() < 4 || !isAscii(s)) return false;
+        char first = s.charAt(0);
+        boolean weirdFirst = !(Character.isLetterOrDigit(first) || first == '/' || first == '_'
+                || first == '.' || first == '-' || first == '#' || first == '@' || first == '[');
+        if (weirdFirst) return true;
+        if (s.indexOf(' ') >= 0) return false;
+        int unusual = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '{' || c == '}' || c == '\\' || c == '^' || c == '~' || c == '|' || c == '`') {
+                unusual++;
+            }
+        }
+        return unusual >= 2;
+    }
+
+    private static boolean containsCommonKey(int key) {
+        for (int k : COMMON_KEYS) if (k == key) return true;
+        return false;
     }
 
     /** Decodes the raw MUTF-8 bytes of one string entry. */
@@ -393,9 +494,17 @@ public final class DexStrings {
         }
         String u16 = tryUtf16(raw);
         if (u16 != null) return u16;
-        String x = xorBytes(raw, keys, budget);
+        String x = xorCommonBytes(raw, budget);
+        if (x == null) x = xorBytes(raw, keys, budget);
         if (x == null) x = xorRepeatingBytes(raw, budget);
         return x;
+    }
+
+    private static String reverse(String s) {
+        if (s == null || s.length() < 2) return null;
+        StringBuilder b = new StringBuilder(s.length());
+        for (int i = s.length() - 1; i >= 0; i--) b.append(s.charAt(i));
+        return b.toString();
     }
 
     private static boolean isAscii(String s) {
@@ -727,6 +836,36 @@ public final class DexStrings {
         return sb.toString();
     }
 
+    private static String xorCommonLoose(String s, long[] budget) {
+        String best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (int key : COMMON_KEYS) {
+            String out = xorTextLoose(s, key, budget);
+            if (out == null) continue;
+            int score = textScore(out);
+            if (score > bestScore) {
+                best = out;
+                bestScore = score;
+            }
+        }
+        return best;
+    }
+
+    private static String xorCommonBytes(byte[] raw, long[] budget) {
+        String best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (int key : COMMON_KEYS) {
+            String out = xorBytes(raw, key, budget);
+            if (out == null) continue;
+            int score = textScore(out);
+            if (score > bestScore) {
+                best = out;
+                bestScore = score;
+            }
+        }
+        return best;
+    }
+
     /** Tries the keys mined from smali before falling back to brute force. */
     private static String xorWithKeys(String s, int[] keys, long[] budget) {
         if (keys == null) return null;
@@ -750,6 +889,7 @@ public final class DexStrings {
         String best = null;
         int bestScore = Integer.MIN_VALUE;
         for (int key = 1; key < 256; key++) {
+            if (containsCommonKey(key)) continue;
             String out = xorText(s, key, budget);
             if (out != null) {
                 int score = textScore(out);
@@ -768,6 +908,18 @@ public final class DexStrings {
         for (int i = 0; i < s.length(); i++) sb.append((char) (s.charAt(i) ^ key));
         String out = sb.toString();
         return out.length() >= 4 && isMeaningful(out) ? out : null;
+    }
+
+    /**
+     * Loose XOR used only when Smali or a common key gives the candidate
+     * special weight. Random brute-force keys still use the strict path.
+     */
+    private static String xorTextLoose(String s, int key, long[] budget) {
+        if (!spend(budget, s.length())) return null;
+        StringBuilder sb = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) sb.append((char) (s.charAt(i) ^ key));
+        String out = sb.toString();
+        return out.length() >= 3 && (isMeaningful(out) || isUsableDecoded(out)) ? out : null;
     }
 
     /** Repeating-key XOR for 2..4 byte keys, scored by printable ratio. */
@@ -818,6 +970,7 @@ public final class DexStrings {
         }
         for (int key = 1; key < 256; key++) {
             if (keys != null && contains(keys, key)) continue;
+            if (containsCommonKey(key)) continue;
             String out = xorBytes(raw, key, budget);
             if (out != null) {
                 int score = textScore(out);
@@ -861,6 +1014,14 @@ public final class DexStrings {
         for (byte value : raw) sb.append((char) ((value & 0xFF) ^ key));
         String out = sb.toString();
         return out.length() >= 4 && isMeaningful(out) ? out : null;
+    }
+
+    private static String xorBytesLoose(byte[] raw, int key, long[] budget) {
+        if (raw.length > 8192 || !spend(budget, raw.length)) return null;
+        StringBuilder sb = new StringBuilder(raw.length);
+        for (byte value : raw) sb.append((char) ((value & 0xFF) ^ key));
+        String out = sb.toString();
+        return out.length() >= 3 && (isMeaningful(out) || isUsableDecoded(out)) ? out : null;
     }
 
     private static String xorRepeatingBytes(byte[] raw, long[] budget) {
@@ -939,14 +1100,18 @@ public final class DexStrings {
         b.append("{\n  \"file\": \"").append(r.name).append("\",\n");
         b.append("  \"total\": ").append(r.total).append(",\n");
         b.append("  \"readable\": ").append(r.readable).append(",\n");
+        b.append("  \"resolved\": ").append(r.resolved).append(",\n");
         b.append("  \"descriptors\": ").append(r.descriptors).append(",\n");
         b.append("  \"encoded\": ").append(r.encoded).append(",\n");
         b.append("  \"obfuscated\": ").append(r.obfuscated).append(",\n");
         b.append("  \"keysMined\": ").append(r.keysMined).append(",\n");
+        b.append("  \"hints\": ").append(r.hints).append(",\n");
+        b.append("  \"decryptorSites\": ").append(r.decryptorSites).append(",\n");
         b.append("  \"rawStrings\": ").append(r.rawStrings).append(",\n");
         b.append("  \"rawDecoded\": ").append(r.rawDecoded).append(",\n");
         b.append("  \"extracted\": ").append(r.total).append(",\n");
-        b.append("  \"recovered\": ").append(r.recovered).append("\n}\n");
+        b.append("  \"decoded\": ").append(r.recovered).append(",\n");
+        b.append("  \"recovered\": ").append(r.resolved).append("\n}\n");
         return b.toString();
     }
 }

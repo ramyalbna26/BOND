@@ -7,10 +7,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -55,6 +58,9 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
     private TextView pauseButton;
     private TextView resultButton;
     private TextView followHint;
+    private EditText search;
+    private String searchQuery = "";
+    private int filteredCount;
     private RecyclerView list;
     private EventAdapter adapter;
     private final LiveCanvasFeed feed = new LiveCanvasFeed();
@@ -124,6 +130,7 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
         counters.addView(this.files);
         this.status = Ui.text(this, getString(R.string.canvas_waiting), 11.0f, Ui.muted(), false);
         this.status.setSingleLine(true);
+        this.status.setTextIsSelectable(false);
         this.status.setEllipsize(TextUtils.TruncateAt.END);
         this.status.setGravity(Gravity.END);
         LinearLayout.LayoutParams statusLp = Ui.lp(0, -2, 1.0f);
@@ -151,9 +158,41 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
         this.currentPath = Ui.text(this, "", 10.0f, Ui.GOLD, false);
         this.currentPath.setTypeface(Typeface.MONOSPACE);
         this.currentPath.setSingleLine(true);
+        this.currentPath.setTextIsSelectable(false);
         this.currentPath.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         this.currentPath.setPadding(0, Ui.dp(this, 3.0f), 0, 0);
         head.addView(this.currentPath);
+
+        this.search = new EditText(this);
+        this.search.setSingleLine(true);
+        this.search.setTextSize(12.0f);
+        this.search.setHint(getString(R.string.canvas_search_hint));
+        this.search.setTextColor(Ui.text());
+        this.search.setHintTextColor(Ui.muted());
+        this.search.setPadding(Ui.dp(this, 12.0f), Ui.dp(this, 7.0f),
+                Ui.dp(this, 12.0f), Ui.dp(this, 7.0f));
+        this.search.setBackground(Ui.stroke(Ui.surface2(), 0x44D4AF37,
+                Ui.dp(this, 12.0f), Ui.dp(this, 1.0f)));
+        this.search.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence text, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence text, int start, int before, int count) {
+                searchQuery = text == null ? "" : text.toString().trim();
+                if (!searchQuery.isEmpty()) autoFollow = false;
+                submitFeed();
+                updateFollowHint();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+        LinearLayout.LayoutParams searchLp = Ui.lp(-1, -2);
+        searchLp.topMargin = Ui.dp(this, 8.0f);
+        this.body.addView(this.search, searchLp);
 
         this.adapter = new EventAdapter();
         this.list = new RecyclerView(this);
@@ -369,13 +408,22 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
     private void submitFeed() {
         if (adapter == null) return;
-        List<LiveCanvasFeed.Entry> snapshot = feed.snapshot();
+        String query = searchQuery;
+        List<LiveCanvasFeed.Entry> snapshot = query.isEmpty()
+                ? feed.snapshot() : feed.matching(query);
+        final boolean filtering = !query.isEmpty();
+        if (filtering) filteredCount = snapshot.size();
         adapter.submitList(snapshot, new Runnable() {
             @Override
             public void run() {
-                if (autoFollow) scrollToLatest();
+                if (filtering) {
+                    if (list != null) list.scrollToPosition(0);
+                } else if (autoFollow) {
+                    scrollToLatest();
+                }
             }
         });
+        if (filtering) updateFollowHint();
     }
 
     private void scrollToLatest() {
@@ -395,6 +443,11 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
     private void updateFollowHint() {
         if (followHint == null) return;
+        if (!searchQuery.isEmpty()) {
+            followHint.setText(getString(R.string.canvas_search_matches, filteredCount));
+            followHint.setTextColor(Ui.GOLD);
+            return;
+        }
         followHint.setText(getString(autoFollow ? R.string.canvas_follow_on : R.string.canvas_follow_paused));
         followHint.setTextColor(autoFollow ? Ui.muted() : Ui.GOLD);
     }
@@ -507,6 +560,7 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
             TextView message = Ui.text(context, "", 12.5f, Ui.text(), false);
             message.setSingleLine(true);
+            message.setTextIsSelectable(false);
             message.setEllipsize(TextUtils.TruncateAt.MIDDLE);
             message.setIncludeFontPadding(false);
             message.setGravity(Gravity.CENTER_VERTICAL);
@@ -515,6 +569,7 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
             TextView meta = Ui.text(context, "", 9.5f, Ui.muted(), true);
             meta.setSingleLine(true);
+            meta.setTextIsSelectable(false);
             meta.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
             meta.setIncludeFontPadding(false);
             row.addView(meta, new LinearLayout.LayoutParams(

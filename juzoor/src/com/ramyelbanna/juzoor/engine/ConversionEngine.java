@@ -220,7 +220,9 @@ public class ConversionEngine {
                             dexReports.add(rep);
                             result.stringTotal += rep.total;
                             result.stringEncrypted += rep.encoded;
-                            result.stringRecovered += rep.recovered;
+                            result.stringReadable += rep.readable;
+                            result.stringDecoded += rep.recovered;
+                            result.stringRecovered += rep.resolved;
                         }
                     } catch (Throwable t) {
                         result.warnings.add("String analysis failed for " + dex.getName() + ": " + t);
@@ -254,6 +256,34 @@ public class ConversionEngine {
                     }
                 }
                 result.packerCount = result.packers.size();
+            }
+            checkCancel();
+
+            /* ------------------------------------------------------ dart strings */
+            List<DartStrings.Report> dartReports = new ArrayList<>();
+            if (AppFramework.FLUTTER.equals(result.framework)) {
+                log.progress(78, "Extracting Dart snapshot strings");
+                File dartDir = new File(project, "dart_strings");
+                List<File> dartLibs = new ArrayList<>(soFiles);
+                if (dartLibs.isEmpty()) collect(dartLibs, new File(merged, "lib"));
+                for (File so : dartLibs) {
+                    checkCancel();
+                    String lower = so.getName().toLowerCase(Locale.US);
+                    if (!lower.equals("libapp.so") && !lower.equals("libflutter.so")) continue;
+                    log.file(so.getParentFile().getName() + "/" + so.getName() + " → Dart strings", 78);
+                    try {
+                        DartStrings.Report dart = DartStrings.analyze(so, dartDir, analysis, log);
+                        if (dart.total > 0 || dart.markers > 0) {
+                            dartReports.add(dart);
+                            result.dartStringCount += dart.total;
+                            result.dartLibraryCount++;
+                            result.dartStrings.add(dart.name + " · " + dart.total);
+                        }
+                    } catch (Throwable t) {
+                        result.warnings.add("Dart strings failed for " + so.getName() + ": " + t);
+                        log.log(LogManager.WARN, "Dart strings failed for " + so.getName() + ": " + t);
+                    }
+                }
             }
             checkCancel();
 
@@ -351,7 +381,7 @@ public class ConversionEngine {
                 log.progress(89, "Writing analysis report");
                 log.file("REPORT.md", 89);
                 try {
-                    ReportWriter.write(project, result, nativeReports, dexReports, libs, log);
+                    ReportWriter.write(project, result, nativeReports, dexReports, dartReports, libs, log);
                 } catch (Throwable t) {
                     log.log(LogManager.WARN, "Report failed: " + t);
                 }
@@ -376,7 +406,7 @@ public class ConversionEngine {
             result.durationMs = System.currentTimeMillis() - started;
             if (options.writeReport) {
                 try {
-                    ReportWriter.write(project, result, nativeReports, dexReports, libs, log);
+                    ReportWriter.write(project, result, nativeReports, dexReports, dartReports, libs, log);
                 } catch (Throwable ignored) {
                 }
             }

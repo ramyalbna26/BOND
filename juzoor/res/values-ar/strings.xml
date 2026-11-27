@@ -235,6 +235,10 @@
     <string name="result_libraries">المكتبات</string>
     <string name="result_strings">النصوص</string>
     <string name="result_recovered">مستعادة</string>
+    <string name="result_flutter_notice">تم اكتشاف تطبيق Flutter — الكود الأساسي مكتوب بلغة Dart. تم استخراج نصوص Dart إلى مجلد dart_strings/ (%1$d نص).</string>
+    <string name="result_flutter_no_dart">تم اكتشاف تطبيق Flutter — الكود الأساسي مكتوب بلغة Dart. لم يتم العثور على نصوص Dart مقروءة داخل libapp.so.</string>
+    <string name="result_dart_strings">نصوص Dart</string>
+    <string name="result_decoded">تم فك تشفيرها</string>
     <string name="result_report">عرض التقرير</string>
     <string name="result_conversions">تحويل</string>
     <string name="settings_decrypt">فك التشفير</string>
@@ -257,7 +261,7 @@
     <string name="home_tool_source_d">كود Java حقيقي من Jadx وهياكل Kotlin وملف PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">أوفلاين 100%</string>
     <string name="home_logo_desc">شعار جذور</string>
-    <string name="home_engine">المحرّك 4.2</string>
+    <string name="home_engine">المحرّك 4.3</string>
     <string name="security_title">تحليل الأمان</string>
     <string name="security_sub" formatted="false">اختبار أمان التطبيقات الساكن — بالكامل على هذا الجهاز.</string>
     <string name="security_run">افحص تطبيقاً</string>
@@ -375,7 +379,7 @@
     <string name="settings_default_key">استخدام مفتاح التوقيع المدمج</string>
     <string name="settings_default_key_d">مفتاح جذور المحلي المرفق مع التطبيق.</string>
     <string name="settings_offline_badge" formatted="false">أوفلاين 100%</string>
-    <string name="settings_engine_version">المحرّك 4.2 · Jadx 1.5.1</string>
+    <string name="settings_engine_version">المحرّك 4.3 · Jadx 1.5.1</string>
     <string name="settings_build">الإصدار</string>
     <string name="settings_copyright">حقوق النشر</string>
     <string name="settings_storage">التخزين</string>
@@ -403,6 +407,8 @@
     <string name="canvas_hint">قائمة واحدة · التمرير التلقائي يتوقف عند الصعود ويعود في آخر القائمة.</string>
     <string name="canvas_cancelled">تم إلغاء التحويل.</string>
     <string name="canvas_follow_on">التمرير التلقائي مفعّل · السجلات الأقدم محفوظة في ملف السجلات (300 صف في الذاكرة).</string>
+    <string name="canvas_search_hint">ابحث في الملفات والمسارات والسجلات…</string>
+    <string name="canvas_search_matches">%1$d نتيجة في العرض الحي</string>
     <string name="canvas_follow_paused">التمرير التلقائي متوقف · انزل إلى آخر القائمة أو انقر هنا للمتابعة.</string>
     <string name="batch_title">قائمة المعالجة المتعددة</string>
     <string name="batch_sub">حوّل عدة تطبيقات في وقت واحد. لكل تطبيق شريط تقدم وخطوة حية خاصة به.</string>
@@ -453,6 +459,7 @@
     <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
     <!-- Juzoor 4.0: Jadx Java decompiler, bounded tree pager, Kotlin API mirrors -->
     <!-- Juzoor 4.2: one bounded live RecyclerView, smart auto-scroll -->
+    <!-- Juzoor 4.3: advanced decoding, Dart snapshot strings, live search -->
     <string name="common_share">مشاركة</string>
     <string name="tree_title">شجرة المشروع</string>
     <string name="tree_none">لا يوجد مشروع مستخرج بعد. ابدأ تحويلاً أولاً.</string>

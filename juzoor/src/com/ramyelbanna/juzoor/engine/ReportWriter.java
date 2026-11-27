@@ -16,14 +16,15 @@ public final class ReportWriter {
     public static void write(File projectRoot, ConversionResult r,
                              List<NativeAnalyzer.Report> natives,
                              List<DexStrings.Report> dexes,
+                             List<DartStrings.Report> dartStrings,
                              List<LibrarySupport.Library> libs,
                              LogSink log) throws IOException {
         File dir = new File(projectRoot, "analysis");
         dir.mkdirs();
         File md = new File(projectRoot, "REPORT.md");
         File json = new File(dir, "report.json");
-        ZipUtil.writeFile(md, markdown(r, natives, dexes, libs));
-        ZipUtil.writeFile(json, json(r, natives, dexes, libs));
+        ZipUtil.writeFile(md, markdown(r, natives, dexes, dartStrings, libs));
+        ZipUtil.writeFile(json, json(r, natives, dexes, dartStrings, libs));
         r.reportFile = md;
         r.reportJson = json;
         if (log != null) log.log(LogManager.SUCCESS, "Analysis report written: REPORT.md");
@@ -32,6 +33,7 @@ public final class ReportWriter {
     private static String markdown(ConversionResult r,
                                    List<NativeAnalyzer.Report> natives,
                                    List<DexStrings.Report> dexes,
+                                   List<DartStrings.Report> dartStrings,
                                    List<LibrarySupport.Library> libs) {
         StringBuilder b = new StringBuilder(8192);
         b.append("# ").append(r.appLabel.isEmpty() ? "Recovered application" : r.appLabel).append("\n\n");
@@ -58,10 +60,39 @@ public final class ReportWriter {
         b.append("| Libraries detected | ").append(r.libraryCount).append(" |\n");
         b.append("| Strings extracted | ").append(r.stringTotal).append(" (100% of DEX string table) |\n");
         b.append("| Strings encoded | ").append(r.stringEncrypted).append(" |\n");
-        b.append("| Strings decoded | ").append(r.stringRecovered).append(" |\n");
+        b.append("| Strings recovered | ").append(r.stringRecovered)
+                .append(r.stringTotal > 0 ? " (" + percent(r.stringRecovered, r.stringTotal) + "% of table)" : "")
+                .append(" |\n");
+        b.append("| Strings decrypted | ").append(r.stringDecoded).append(" |\n");
+        b.append("| Dart strings | ").append(r.dartStringCount).append(" |\n");
         b.append("| Java sources | ").append(r.javaFileCount)
                 .append(" (").append(ConversionResult.JAVA_ENGINE).append(") |\n");
         b.append("| Kotlin API mirrors | ").append(r.kotlinFileCount).append(" |\n\n");
+
+        if (AppFramework.FLUTTER.equals(r.framework)) {
+            b.append("## Flutter / Dart\n\n");
+            b.append("> Flutter application detected. The main program is written in Dart and\n")
+                    .append("> is compiled into `libapp.so`. Dart snapshot strings are extracted in\n")
+                    .append("> the `dart_strings/` folder; the Flutter asset tree is preserved under\n")
+                    .append("> `app/src/main/assets/flutter_assets/`.\n\n");
+            if (dartStrings.isEmpty()) {
+                b.append("_No Dart snapshot library was found in this package._\n\n");
+            } else {
+                b.append("| Library | Markers | Snapshot regions | Snapshot bytes | Dart strings | UTF-16 | Text runs |\n");
+                b.append("|---|---|---|---|---|---|---|\n");
+                for (DartStrings.Report d : dartStrings) {
+                    b.append("| `").append(esc(d.name)).append(d.abi.isEmpty() ? "" : " [" + esc(d.abi) + "]")
+                            .append("` | ").append(d.markers)
+                            .append(" | ").append(d.regions.size())
+                            .append(" | ").append(d.snapshotBytes)
+                            .append(" | ").append(d.dartStrings)
+                            .append(" | ").append(d.utf16Strings)
+                            .append(" | ").append(d.plainStrings).append(" |\n");
+                }
+                b.append("\nThe exact snapshot regions and offsets are recorded in\n")
+                        .append("`analysis/dart_strings/` next to the extracted text files.\n\n");
+            }
+        }
 
         if (!r.packers.isEmpty()) {
             b.append("## Protectors / packers\n\n");
@@ -142,13 +173,16 @@ public final class ReportWriter {
         if (dexes.isEmpty()) {
             b.append("_String analysis disabled._\n\n");
         } else {
-            b.append("| DEX | Extracted | Readable | Encoded | Decoded | Raw byte-runs |\n");
-            b.append("|---|---|---|---|---|---|\n");
+            b.append("| DEX | Extracted | Readable | Encoded | Decoded | Recovered | Hints | Raw byte-runs |\n");
+            b.append("|---|---|---|---|---|---|---|---|\n");
             for (DexStrings.Report d : dexes) {
                 b.append("| `").append(d.name).append("` | ").append(d.total)
                         .append(" / ").append(d.total).append(" (100%)")
                         .append(" | ").append(d.readable).append(" | ").append(d.encoded)
-                        .append(" | ").append(d.recovered).append(" | ").append(d.rawStrings).append(" |\n");
+                        .append(" | ").append(d.recovered)
+                        .append(" | ").append(d.resolved)
+                        .append(" | ").append(d.hints)
+                        .append(" | ").append(d.rawStrings).append(" |\n");
             }
             b.append('\n');
         }
@@ -217,6 +251,9 @@ public final class ReportWriter {
         b.append("app/src/main/recovered/kotlin/  Kotlin API mirrors (not compiled)\n");
         b.append("analysis/native/                   ELF reports, strings, carved payloads\n");
         b.append("analysis/strings/                  DEX string tables and decoded entries\n");
+        if (AppFramework.FLUTTER.equals(r.framework)) {
+            b.append("dart_strings/                      Dart snapshot strings from libapp.so\n");
+        }
         b.append("analysis/libraries.json            detected dependencies\n");
         b.append("```\n\n");
         b.append("## Building\n\n");
@@ -225,6 +262,11 @@ public final class ReportWriter {
                 .append("resources and native libraries are already in the standard Gradle layout.\n\n");
         b.append("---\n\n© 2027 Ramy El-Banna — Juzoor™\n");
         return b.toString();
+    }
+
+    private static int percent(int value, int total) {
+        if (total <= 0) return 0;
+        return (int) Math.round(value * 100.0d / total);
     }
 
     private static String esc(String s) {
@@ -241,6 +283,7 @@ public final class ReportWriter {
     private static String json(ConversionResult r,
                                List<NativeAnalyzer.Report> natives,
                                List<DexStrings.Report> dexes,
+                               List<DartStrings.Report> dartStrings,
                                List<LibrarySupport.Library> libs) {
         StringBuilder b = new StringBuilder(8192);
         b.append("{\n");
@@ -269,8 +312,12 @@ public final class ReportWriter {
         b.append("],\n");
         b.append("  \"strings\": {\"total\": ").append(r.stringTotal)
                 .append(", \"extracted\": ").append(r.stringTotal)
+                .append(", \"readable\": ").append(r.stringReadable)
                 .append(", \"encoded\": ").append(r.stringEncrypted)
+                .append(", \"decoded\": ").append(r.stringDecoded)
                 .append(", \"recovered\": ").append(r.stringRecovered).append("},\n");
+        b.append("  \"dartStrings\": {\"total\": ").append(r.dartStringCount)
+                .append(", \"libraries\": ").append(r.dartLibraryCount).append("},\n");
         b.append("  \"source\": {\"engine\": \"").append(jsonEsc(ConversionResult.JAVA_ENGINE))
                 .append("\", \"javaFiles\": ").append(r.javaFileCount)
                 .append(", \"kotlinFiles\": ").append(r.kotlinFileCount)
@@ -310,10 +357,25 @@ public final class ReportWriter {
             DexStrings.Report d = dexes.get(i);
             b.append("\n    {\"name\": \"").append(d.name).append("\", \"total\": ").append(d.total)
                     .append(", \"extracted\": ").append(d.total)
+                    .append(", \"readable\": ").append(d.readable)
                     .append(", \"encoded\": ").append(d.encoded)
                     .append(", \"obfuscated\": ").append(d.obfuscated)
                     .append(", \"rawStrings\": ").append(d.rawStrings)
-                    .append(", \"recovered\": ").append(d.recovered).append('}');
+                    .append(", \"hints\": ").append(d.hints)
+                    .append(", \"resolved\": ").append(d.resolved)
+                    .append(", \"recovered\": ").append(d.recovered)
+                    .append(", \"decryptors\": ").append(d.decryptorSites).append('}');
+        }
+        b.append("\n  ],\n  \"dart\": [");
+        for (int i = 0; i < dartStrings.size(); i++) {
+            if (i > 0) b.append(',');
+            DartStrings.Report d = dartStrings.get(i);
+            b.append("\n    {\"name\": \"").append(jsonEsc(d.name))
+                    .append("\", \"markers\": ").append(d.markers)
+                    .append(", \"regions\": ").append(d.regions.size())
+                    .append(", \"snapshotBytes\": ").append(d.snapshotBytes)
+                    .append(", \"strings\": ").append(d.total)
+                    .append(", \"utf16\": ").append(d.utf16Strings).append('}');
         }
         b.append("\n  ],\n");
         b.append("  \"durationMs\": ").append(r.durationMs).append("\n}\n");

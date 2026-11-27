@@ -64,6 +64,9 @@ public final class ProjectTree {
             b.append("| Package | `").append(nz(r.packageName)).append("` |\n");
             b.append("| Version | ").append(nz(r.versionName)).append(" (").append(r.versionCode).append(") |\n");
             b.append("| Framework | ").append(nz(r.frameworkLabel)).append(" |\n");
+            if (r.dartStringCount > 0 || AppFramework.FLUTTER.equals(r.framework)) {
+                b.append("| Dart strings | ").append(r.dartStringCount).append(" |\n");
+            }
             // The index file itself is written after the caller's last count.
             b.append("| Files | ").append(r.fileCount + 1).append(" |\n");
             b.append("| Duration | ").append(r.durationMs / 1000).append("s |\n");
@@ -80,7 +83,11 @@ public final class ProjectTree {
         b.append("5. `app/src/main/res/` — decoded resources and layouts.\n");
         b.append("6. `app/src/main/jniLibs/` — native `.so` libraries per ABI.\n");
         b.append("7. `REPORT.md` — security and recovery report.\n");
-        b.append("8. `PROJECT_TREE.txt` — complete size-annotated file tree.\n\n");
+        b.append("8. `PROJECT_TREE.txt` — complete size-annotated file tree.\n");
+        if (r != null && AppFramework.FLUTTER.equals(r.framework)) {
+            b.append("9. `dart_strings/` — strings recovered from the Dart snapshot in `libapp.so`.\n");
+        }
+        b.append('\n');
 
         /* ---- packages / classes ---- */
         b.append("## Packages\n\n");
@@ -121,12 +128,14 @@ public final class ProjectTree {
         /* ---- DEX string recovery ---- */
         if (dexes != null && !dexes.isEmpty()) {
             b.append("## DEX string recovery\n\n");
-            b.append("| DEX | Extracted | Encoded | Decoded | Raw byte-runs | Keys mined |\n|---|---|---|---|---|---|\n");
+            b.append("| DEX | Extracted | Readable | Encoded | Decoded | Recovered | Hints | Keys mined |\n");
+            b.append("|---|---|---|---|---|---|---|---|\n");
             for (DexStrings.Report d : dexes) {
                 b.append("| ").append(nz(d.name)).append(" | ").append(d.total)
                         .append(" / ").append(d.total).append(" (100%) | ")
-                        .append(d.encoded).append(" | ").append(d.recovered).append(" | ")
-                        .append(d.rawStrings).append(" | ").append(d.keysMined).append(" |\n");
+                        .append(d.readable).append(" | ").append(d.encoded).append(" | ")
+                        .append(d.recovered).append(" | ").append(d.resolved).append(" | ")
+                        .append(d.hints).append(" | ").append(d.keysMined).append(" |\n");
             }
             b.append('\n');
         }

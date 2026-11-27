@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$ROOT/.." && pwd)"
 DIST="$ROOT/dist"
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/juzoor-source.XXXXXX")"
-VERSION="4.2.0"
+VERSION="4.3.0"
 
 if [ "${SKIP_BUILD:-0}" != "1" ]; then
   (cd "$REPO" && ./gradlew :juzoor:assembleRelease)

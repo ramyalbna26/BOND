@@ -33,6 +33,7 @@ public class ConversionEngineSmokeTest {
         entry(zip, "classes.dex", resource("/sample.dex"));
         entry(zip, "assets/flutter_assets/AssetManifest.json", "{}");
         entry(zip, "lib/arm64-v8a/libflutter.so", "not-a-real-elf");
+        entry(zip, "lib/arm64-v8a/libapp.so", dartSnapshot());
         entry(zip, "res/layout/main.xml", "<layout/>");
         zip.close();
         File work = File.createTempFile("smoke-work", "");
@@ -51,6 +52,11 @@ public class ConversionEngineSmokeTest {
         assertEquals(AppFramework.FLUTTER, result.framework);
         assertEquals("Flutter", result.frameworkLabel);
         assertEquals(1, result.frameworkAssets);
+        assertTrue("Dart strings should be extracted from libapp.so", result.dartStringCount > 0);
+        assertEquals(1, result.dartLibraryCount);
+        File dart = new File(result.outputDir, "dart_strings/arm64-v8a-libapp.so.dart.txt");
+        assertTrue("Dart string file missing", dart.isFile());
+        assertTrue(read(dart).contains("Dart smoke string"));
         assertTrue(result.fileCount > 0);
         assertTrue("Smoke APK should produce real Java", result.javaFileCount > 0);
         File sample = new File(result.outputDir, "app/src/main/recovered/java/com/test/Sample.java");
@@ -71,6 +77,20 @@ public class ConversionEngineSmokeTest {
                 kt.contains("var classArray: Array<Class<*>?>? = null"));
         assertFalse("Inner nullable types must not leave the array non-nullable",
                 kt.contains("var boxedArray: Array<Int?> = null"));
+    }
+
+    private static byte[] dartSnapshot() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write("_kDartIsolateSnapshotData".getBytes("UTF-8"));
+        String text = "Dart smoke string";
+        int value = text.length();
+        while (value > 0x7F) {
+            out.write((value & 0x7F) | 0x80);
+            value >>>= 7;
+        }
+        out.write(value);
+        out.write(text.getBytes("UTF-8"));
+        return out.toByteArray();
     }
 
     private static String read(File file) throws Exception {

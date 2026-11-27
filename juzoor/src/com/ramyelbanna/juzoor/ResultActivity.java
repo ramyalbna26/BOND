@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.ramyelbanna.juzoor.core.LogManager;
 import com.ramyelbanna.juzoor.core.Prefs;
+import com.ramyelbanna.juzoor.engine.AppFramework;
 import com.ramyelbanna.juzoor.engine.ConversionEngine;
 import com.ramyelbanna.juzoor.engine.ConversionResult;
 import com.ramyelbanna.juzoor.ui.Ui;
@@ -54,6 +55,19 @@ public class ResultActivity extends BaseActivity {
         }
         this.body.addView(card);
         if (z) {
+            if (AppFramework.FLUTTER.equals(this.r.framework)) {
+                LinearLayout flutter = Ui.card(this);
+                flutter.addView(Ui.chip(this, "FLUTTER", Ui.GOLD));
+                String flutterText = this.r.dartStringCount > 0
+                        ? getString(R.string.result_flutter_notice, this.r.dartStringCount)
+                        : getString(R.string.result_flutter_no_dart);
+                TextView notice = Ui.text(this, flutterText, 12.0f, Ui.text(), false);
+                notice.setPadding(0, Ui.dp(this, 8.0f), 0, 0);
+                flutter.addView(notice);
+                LinearLayout.LayoutParams flp = Ui.lp(-1, -2);
+                flp.topMargin = Ui.dp(this, 10.0f);
+                this.body.addView(flutter, flp);
+            }
             LinearLayout card2 = Ui.card(this);
             addRow(card2, getString(R.string.result_classes), String.valueOf(this.r.classCount));
             if (this.r.javaFileCount > 0) {
@@ -74,6 +88,9 @@ public class ResultActivity extends BaseActivity {
                 addRow(card2, getString(R.string.result_framework), this.r.frameworkLabel
                         + (this.r.frameworkAssets > 0 ? " · " + this.r.frameworkAssets : ""));
             }
+            if (this.r.dartStringCount > 0) {
+                addRow(card2, getString(R.string.result_dart_strings), String.valueOf(this.r.dartStringCount));
+            }
             if (this.r.isBundle) {
                 addRow(card2, getString(R.string.result_bundle), getString(R.string.result_bundle_value, new Object[]{this.r.bundleKind, Integer.valueOf(Math.max(1, this.r.splitCount))}));
             }
@@ -88,6 +105,9 @@ public class ResultActivity extends BaseActivity {
             }
             if (this.r.stringTotal > 0) {
                 addRow(card2, getString(R.string.result_strings), this.r.stringTotal + " / " + this.r.stringRecovered + " " + getString(R.string.result_recovered));
+            }
+            if (this.r.stringDecoded > 0) {
+                addRow(card2, getString(R.string.result_decoded), String.valueOf(this.r.stringDecoded));
             }
             LinearLayout.LayoutParams lp = Ui.lp(-1, -2);
             lp.topMargin = Ui.dp(this, 12.0f);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Juzoor 4.2 — release wrapper
+# Juzoor 4.3 — release wrapper
 #
 # The live decompilation screen uses AndroidX RecyclerView, so the app is built
 # through the Gradle module.  This wrapper keeps the historical output path and
@@ -9,7 +9,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$ROOT/.." && pwd)"
-VERSION="4.2.0"
+VERSION="4.3.0"
 SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$ROOT/../tools/sdk}}"
 OUT="$ROOT/../build/apk"
 APK="$ROOT/build/outputs/apk/release/juzoor-release.apk"
