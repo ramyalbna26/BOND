@@ -215,7 +215,7 @@ public class ConversionEngine {
                             DexStrings.Report rep = DexStrings.analyze(dex, analysis, smaliRoots, log);
                             dexReports.add(rep);
                             result.stringTotal += rep.total;
-                            result.stringEncrypted += rep.encoded + rep.obfuscated;
+                            result.stringEncrypted += rep.encoded;
                             result.stringRecovered += rep.recovered;
                         }
                     } catch (Throwable t) {

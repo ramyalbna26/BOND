@@ -7,7 +7,7 @@ import java.util.List;
 /** Everything a finished conversion reports back to the UI. */
 public class ConversionResult {
     /** Single source of truth for every generated report and README. */
-    public static final String GENERATOR_VERSION = "2.3.0";
+    public static final String GENERATOR_VERSION = "3.0.0";
 
     public File apkFile;
     public long bytes;
@@ -45,7 +45,7 @@ public class ConversionResult {
     public final List<String> nativeLibs = new ArrayList<>();
     public final List<String> warnings = new ArrayList<>();
 
-    /* --- Juzoor 2.3 --- */
+    /* --- Juzoor 2.3+ --- */
     /** Full security report (null when the scan is disabled). */
     public SecurityAnalyzer.Report security;
     public int securityScore = -1;

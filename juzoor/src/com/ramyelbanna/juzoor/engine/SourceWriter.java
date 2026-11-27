@@ -146,7 +146,8 @@ public final class SourceWriter {
 
         String toJava() {
             StringBuilder b = new StringBuilder(1024);
-            b.append("// Recovered by Juzoor 2.3 — Java stub generated from the DEX class table.\n");
+            b.append("// Recovered by Juzoor ").append(ConversionResult.GENERATOR_VERSION)
+                    .append(" — Java stub generated from the DEX class table.\n");
             b.append("// Bodies are intentionally omitted; see app/src/main/smali*/ for bytecode.\n");
             if (pkg != null && !pkg.isEmpty()) b.append("package ").append(pkg).append(";\n");
             b.append("\n");
@@ -193,7 +194,8 @@ public final class SourceWriter {
 
         String toKotlin() {
             StringBuilder b = new StringBuilder(1024);
-            b.append("// Recovered by Juzoor 2.3 — Kotlin stub generated from the DEX class table.\n");
+            b.append("// Recovered by Juzoor ").append(ConversionResult.GENERATOR_VERSION)
+                    .append(" — Kotlin stub generated from the DEX class table.\n");
             if (pkg != null && !pkg.isEmpty()) b.append("package ").append(pkg).append("\n");
             b.append("\n");
             b.append("/** Recovered stub for {@code ").append(name).append("}. */\n");

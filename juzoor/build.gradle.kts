@@ -23,8 +23,8 @@ android {
         applicationId = "com.ramyelbanna.juzoor"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "2.3.0"
+        versionCode = 8
+        versionName = "3.0.0"
     }
 
     signingConfigs {

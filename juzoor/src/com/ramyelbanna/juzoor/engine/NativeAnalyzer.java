@@ -74,6 +74,7 @@ public final class NativeAnalyzer {
         public boolean upxDetected;
         public boolean upxUnpacked;
         public String upxMethod = "";
+        public String upxFilter = "";
         public int upxBlocks;
         public long upxBytes;
         public File upxFile;
@@ -123,7 +124,6 @@ public final class NativeAnalyzer {
             {"libcocos", "Cocos2d-x"},
             {"libmono", "Mono / Xamarin"},
             {"libgodot", "Godot engine"},
-            {"upx", "UPX packer"},
             {"libmsec", "Mobisec"},
     };
 
@@ -155,26 +155,33 @@ public final class NativeAnalyzer {
 
         // Static UPX unpacking — no root, no execution.  A full buffer is
         // required by the UPX block format, so it is skipped in large mode.
-        if (!r.largeFile && (r.packers.contains("UPX packer") || UpxUnpacker.looksPacked(data))) {
+        // Detection now requires a real l_info/p_info trailer or a coherent
+        // b_info chain: a random "UPX!" string in a PDF library is no longer
+        // reported as a packed binary.
+        if (!r.largeFile && UpxUnpacker.looksPacked(data)) {
             r.upxDetected = true;
+            if (!r.packers.contains("UPX packer")) r.packers.add("UPX packer");
             try {
                 UpxUnpacker.Result up = UpxUnpacker.unpack(data);
                 r.upxMethod = up.method;
                 r.upxBlocks = up.blocks;
+                r.upxFilter = up.filters.isEmpty() ? "" : join(up.filters, ", ");
                 if (up.unpacked && up.data != null && up.data.length > 0) {
                     File dir = new File(analysisDir, "native/unpacked");
                     dir.mkdirs();
                     String base = r.name.replaceAll("[^A-Za-z0-9._-]", "_");
-                    boolean elfOut = up.data.length > 4 && (up.data[0] & 0xFF) == 0x7F
-                            && up.data[1] == 'E' && up.data[2] == 'L' && up.data[3] == 'F';
-                    r.upxFile = new File(dir, base + (elfOut ? ".unpacked.so" : ".unpacked.bin"));
+                    // The payload is the concatenation of the original
+                    // compressed blocks. It is not a relinked executable, so it
+                    // is deliberately not named ".so".
+                    r.upxFile = new File(dir, base + ".payload.bin");
                     ZipUtil.writeFile(r.upxFile, up.data);
                     r.upxUnpacked = true;
                     r.upxBytes = up.data.length;
                     if (log != null) {
                         log.log(LogManager.SUCCESS, "Static UPX unpack: " + r.name + " -> "
                                 + r.upxFile.getName() + " (" + up.data.length + " bytes, "
-                                + up.blocks + " block(s), " + up.method + ")");
+                                + up.blocks + " block(s), " + up.method
+                                + (r.upxFilter.isEmpty() ? "" : ", filter " + r.upxFilter) + ")");
                     }
                 } else {
                     r.upxError = up.error == null ? "no payload recovered" : up.error;
@@ -391,10 +398,8 @@ public final class NativeAnalyzer {
         for (String[] p : PACKERS) {
             if (low.contains(p[0])) found.add(p[1]);
         }
-        // UPX magic
-        if (low.contains("upx!") || low.contains("$info: this file is packed with the upx")) {
-            found.add("UPX packer");
-        }
+        // UPX is decided by its trailer, never by a bare "UPX!" string.
+        if (UpxUnpacker.looksPacked(d)) found.add("UPX packer");
         // Section-name heuristics
         for (Section s : r.sections) {
             String n = s.name.toLowerCase(Locale.US);
@@ -779,6 +784,15 @@ public final class NativeAnalyzer {
         return e;
     }
 
+    private static String join(List<String> values, String separator) {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) b.append(separator);
+            b.append(values.get(i));
+        }
+        return b.toString();
+    }
+
     private static String esc(String s) {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
@@ -812,6 +826,7 @@ public final class NativeAnalyzer {
         b.append("  \"upx\": {\"detected\": ").append(r.upxDetected)
                 .append(", \"unpacked\": ").append(r.upxUnpacked)
                 .append(", \"method\": \"").append(esc(r.upxMethod == null ? "" : r.upxMethod))
+                .append("\", \"filter\": \"").append(esc(r.upxFilter == null ? "" : r.upxFilter))
                 .append("\", \"blocks\": ").append(r.upxBlocks)
                 .append(", \"bytes\": ").append(r.upxBytes)
                 .append(", \"error\": \"").append(esc(r.upxError == null ? "" : r.upxError)).append("\"},\n");

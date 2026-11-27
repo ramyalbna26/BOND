@@ -54,6 +54,11 @@ public final class NativeStrings {
      * When {@code append} is false the file is truncated first.
      */
     public static Result scan(File in, File out, boolean append) throws IOException {
+        return scan(in, out, append, "native");
+    }
+
+    /** Same scanner, with a caller-supplied label used in the file header. */
+    public static Result scan(File in, File out, boolean append, String kind) throws IOException {
         Result r = new Result();
         r.file = out;
         File parent = out.getParentFile();
@@ -63,7 +68,7 @@ public final class NativeStrings {
                 new FileOutputStream(out, append), StandardCharsets.UTF_8), 65536);
         try {
             if (!append) {
-                writer.write("# Juzoor native strings — " + in.getName() + "\n");
+                writer.write("# Juzoor " + kind + " strings — " + in.getName() + "\n");
                 writer.write("# ASCII · UTF-8 · UTF-16 LE/BE · decoded Base64/Hex\n\n");
             } else {
                 writer.write("\n# Appended: " + in.getName() + "\n\n");

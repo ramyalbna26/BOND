@@ -38,7 +38,8 @@ public class ProjectTreeActivity extends BaseActivity {
 
     public static final String EXTRA_PROJECT = "project";
     public static final String EXTRA_FILE = "file";
-    private static final int MAX_CHILDREN = 20000;
+    /** One folder page. Keeping this small bounds the rows held in memory. */
+    private static final int PAGE_SIZE = 100;
 
     private File project;
     private File root;
@@ -171,8 +172,7 @@ public class ProjectTreeActivity extends BaseActivity {
 
     private void loadRoot() {
         if (root == null || !root.isDirectory()) return;
-        List<Node> nodes = new ArrayList<>();
-        addChildren(nodes, root, 0);
+        List<Node> nodes = page(root, 0, null, 0);
         adapter.setNodes(nodes);
         pathLabel.setText(root.getAbsolutePath());
         status.setText(getString(R.string.tree_lazy, nodes.size()));
@@ -180,7 +180,12 @@ public class ProjectTreeActivity extends BaseActivity {
     }
 
     private void toggle(Node node) {
-        if (node == null || !node.dir) {
+        if (node == null) return;
+        if (node.more) {
+            loadMore(node);
+            return;
+        }
+        if (!node.dir) {
             openFile(node);
             return;
         }
@@ -192,39 +197,83 @@ public class ProjectTreeActivity extends BaseActivity {
             for (int i = end - 1; i > index; i--) adapter.nodes.remove(i);
             node.expanded = false;
             node.loaded = false;
+            node.offset = 0;
             adapter.notifyDataSetChanged();
             return;
         }
-        List<Node> children = new ArrayList<>();
-        addChildren(children, node.file, node.depth + 1);
+        List<Node> children = page(node.file, node.depth + 1, node, 0);
         adapter.nodes.addAll(index + 1, children);
+        node.offset = loadedChildren(children);
         node.expanded = true;
         node.loaded = true;
         adapter.notifyDataSetChanged();
         status.setText(getString(R.string.tree_lazy, adapter.nodes.size()));
     }
 
-    private void addChildren(List<Node> out, File dir, int depth) {
+    /** Appends the next page of a folder without dropping the previous rows. */
+    private void loadMore(Node more) {
+        int index = adapter.nodes.indexOf(more);
+        if (index < 0) return;
+        adapter.nodes.remove(index);
+        List<Node> children;
+        if (more.parent == null) {
+            children = page(root, 0, null, more.offset);
+        } else {
+            children = page(more.parent.file, more.parent.depth + 1, more.parent, more.offset);
+            more.parent.offset = more.offset + loadedChildren(children);
+        }
+        adapter.nodes.addAll(index, children);
+        adapter.notifyDataSetChanged();
+        status.setText(getString(R.string.tree_lazy, adapter.nodes.size()));
+    }
+
+    private static int loadedChildren(List<Node> nodes) {
+        int n = 0;
+        for (Node node : nodes) if (!node.more) n++;
+        return n;
+    }
+
+    /**
+     * Lists one page of a directory. A synthetic "more" row carries the parent
+     * and the next offset so the next 100 entries can be fetched on demand.
+     */
+    private List<Node> page(File dir, int depth, Node parent, int offset) {
+        List<Node> out = new ArrayList<>();
+        if (dir == null || !dir.isDirectory()) return out;
         File[] files = dir.listFiles();
-        if (files == null) return;
-        List<File> list = new ArrayList<>(Arrays.asList(files));
-        list.sort(new Comparator<File>() {
+        if (files == null) return out;
+        List<File> dirList = new ArrayList<>(Arrays.asList(files));
+        dirList.sort(new Comparator<File>() {
             @Override
             public int compare(File a, File b) {
                 if (a.isDirectory() != b.isDirectory()) return a.isDirectory() ? -1 : 1;
                 return a.getName().compareToIgnoreCase(b.getName());
             }
         });
-        int count = 0;
-        for (File f : list) {
-            if (count++ >= MAX_CHILDREN) break;
+        int from = Math.max(0, offset);
+        int to = Math.min(dirList.size(), from + PAGE_SIZE);
+        for (int i = from; i < to; i++) {
+            File f = dirList.get(i);
             Node n = new Node();
             n.file = f;
             n.name = f.getName();
             n.dir = f.isDirectory();
             n.depth = depth;
+            n.parent = parent;
             out.add(n);
         }
+        if (to < dirList.size()) {
+            Node more = new Node();
+            more.file = dir;
+            more.dir = false;
+            more.more = true;
+            more.parent = parent;
+            more.offset = to;
+            more.depth = depth;
+            more.name = getString(R.string.tree_more, dirList.size() - to);
+            out.add(more);
+        }
+        return out;
     }
 
     private void openFile(Node node) {
@@ -248,7 +297,10 @@ public class ProjectTreeActivity extends BaseActivity {
         boolean dir;
         boolean expanded;
         boolean loaded;
+        boolean more;
         int depth;
+        int offset;
+        Node parent;
     }
 
     private final class TreeAdapter extends BaseAdapter {
@@ -305,14 +357,15 @@ public class ProjectTreeActivity extends BaseActivity {
             holder.name.setText(n.name);
             holder.name.setTextSize(13.0f * zoom);
             holder.meta.setTextSize(9.0f * zoom);
-            holder.arrow.setText(n.dir ? (n.expanded ? "▾" : "▸") : "·");
+            holder.arrow.setText(n.more ? "+" : n.dir ? (n.expanded ? "▾" : "▸") : "·");
             holder.arrow.setTextSize(14.0f * zoom);
-            holder.meta.setText(n.dir ? getString(R.string.fm_folder) : ConversionEngine.human(n.file.length()));
+            holder.meta.setText(n.more ? "" : n.dir ? getString(R.string.fm_folder) : ConversionEngine.human(n.file.length()));
             int left = Ui.dp(ProjectTreeActivity.this, 8.0f) + Ui.dp(ProjectTreeActivity.this, 14.0f) * Math.min(16, n.depth);
             convertView.setPadding(left, Ui.dp(ProjectTreeActivity.this, 7.0f),
                     Ui.dp(ProjectTreeActivity.this, 8.0f), Ui.dp(ProjectTreeActivity.this, 7.0f));
-            convertView.setBackground(Ui.round(n.dir ? Ui.surface2() : Ui.surface(),
+            convertView.setBackground(Ui.round(n.dir || n.more ? Ui.surface2() : Ui.surface(),
                     Ui.dp(ProjectTreeActivity.this, 8.0f)));
+            holder.name.setTextColor(n.more ? Ui.GOLD : Ui.text());
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
