@@ -257,7 +257,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="home_tool_source_d">Java/Kotlin skeletons and PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">100% OFFLINE</string>
     <string name="home_logo_desc">Juzoor logo</string>
-    <string name="home_engine">ENGINE 2.3</string>
+    <string name="home_engine">ENGINE 3.0</string>
     <string name="security_title">Security analysis</string>
     <string name="security_sub" formatted="false">Static application security testing — 100% on this device.</string>
     <string name="security_run">Scan an APK</string>
@@ -360,6 +360,14 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_scan_d">Run SAST on every conversion.</string>
     <string name="settings_kotlin">Kotlin stubs</string>
     <string name="settings_kotlin_d">Generate Kotlin skeletons with the Java tree.</string>
+    <string name="settings_cross">Cross-platform (preview)</string>
+    <string name="settings_cross_windows">Windows</string>
+    <string name="settings_cross_windows_d">PE, EXE and DLL headers, sections, .NET detection and PyInstaller carving — ready for the next Windows release.</string>
+    <string name="settings_cross_linux">Linux</string>
+    <string name="settings_cross_linux_d">ELF, DEB and RPM metadata and payload extraction — available now in the offline analyser.</string>
+    <string name="settings_cross_macos">macOS</string>
+    <string name="settings_cross_macos_d">Mach-O thin/fat headers and DMG koly metadata — available now in the offline analyser.</string>
+    <string name="settings_cross_open">Open cross-platform analyser</string>
     <string name="settings_signing">Signing</string>
     <string name="settings_v1">Signature v1</string>
     <string name="settings_v2">Signature v2</string>
@@ -367,7 +375,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_default_key">Use built-in signing key</string>
     <string name="settings_default_key_d">Local Juzoor key bundled with the app.</string>
     <string name="settings_offline_badge" formatted="false">100% offline</string>
-    <string name="settings_engine_version">Engine 2.3</string>
+    <string name="settings_engine_version">Engine 3.0</string>
     <string name="settings_build">Build</string>
     <string name="settings_copyright">Copyright</string>
     <string name="settings_storage">Storage</string>
@@ -440,12 +448,13 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="result_index">View project index</string>
     <string name="err_aab">AAB bundles cannot be expanded on-device. Build an APK set with bundletool, then open the .apks file.</string>
 
-    <!-- Juzoor 2.3: lazy tree, editor, search, diff, assets, cross-platform -->
+    <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
     <string name="common_share">Share</string>
     <string name="tree_title">Project tree</string>
     <string name="tree_none">No recovered project yet. Run a conversion first.</string>
     <string name="tree_root">Project root</string>
     <string name="tree_lazy">%1$d visible entries · folders load when opened</string>
+    <string name="tree_more">Show next 100… (%1$d remaining)</string>
     <string name="code_title">Code editor</string>
     <string name="code_binary">This file is binary. Choose a text file to edit.</string>
     <string name="code_lines">%1$d lines</string>

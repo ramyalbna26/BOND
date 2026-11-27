@@ -257,7 +257,7 @@
     <string name="home_tool_source_d">هياكل Java/Kotlin وملف PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">أوفلاين 100%</string>
     <string name="home_logo_desc">شعار جذور</string>
-    <string name="home_engine">المحرّك 2.3</string>
+    <string name="home_engine">المحرّك 3.0</string>
     <string name="security_title">تحليل الأمان</string>
     <string name="security_sub" formatted="false">اختبار أمان التطبيقات الساكن — بالكامل على هذا الجهاز.</string>
     <string name="security_run">افحص تطبيقاً</string>
@@ -360,6 +360,14 @@
     <string name="settings_scan_d">تشغيل SAST مع كل تحويل.</string>
     <string name="settings_kotlin">هياكل Kotlin</string>
     <string name="settings_kotlin_d">توليد هياكل Kotlin مع شجرة Java.</string>
+    <string name="settings_cross">الأنظمة الأخرى (معاينة)</string>
+    <string name="settings_cross_windows">Windows</string>
+    <string name="settings_cross_windows_d">ترويسات PE و EXE و DLL والأقسام وكشف .NET واستخراج PyInstaller — جاهزة لإصدار Windows القادم.</string>
+    <string name="settings_cross_linux">Linux</string>
+    <string name="settings_cross_linux_d">بيانات ELF و DEB و RPM واستخراج الحمولات — متاحة الآن في المحلل الأوفلاين.</string>
+    <string name="settings_cross_macos">macOS</string>
+    <string name="settings_cross_macos_d">ترويسات Mach-O المفردة والدهنية وبيانات DMG — متاحة الآن في المحلل الأوفلاين.</string>
+    <string name="settings_cross_open">فتح محلل الأنظمة الأخرى</string>
     <string name="settings_signing">التوقيع</string>
     <string name="settings_v1">التوقيع v1</string>
     <string name="settings_v2">التوقيع v2</string>
@@ -367,7 +375,7 @@
     <string name="settings_default_key">استخدام مفتاح التوقيع المدمج</string>
     <string name="settings_default_key_d">مفتاح جذور المحلي المرفق مع التطبيق.</string>
     <string name="settings_offline_badge" formatted="false">أوفلاين 100%</string>
-    <string name="settings_engine_version">المحرّك 2.3</string>
+    <string name="settings_engine_version">المحرّك 3.0</string>
     <string name="settings_build">الإصدار</string>
     <string name="settings_copyright">حقوق النشر</string>
     <string name="settings_storage">التخزين</string>
@@ -440,12 +448,13 @@
     <string name="result_index">عرض فهرس المشروع</string>
     <string name="err_aab">حزم AAB لا يمكن فكّها على الجهاز. استخدم bundletool لتوليد حزمة APK ثم افتح ملف .apks.</string>
 
-    <!-- Juzoor 2.3: lazy tree, editor, search, diff, assets, cross-platform -->
+    <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
     <string name="common_share">مشاركة</string>
     <string name="tree_title">شجرة المشروع</string>
     <string name="tree_none">لا يوجد مشروع مستخرج بعد. ابدأ تحويلاً أولاً.</string>
     <string name="tree_root">جذر المشروع</string>
     <string name="tree_lazy">%1$d عنصر ظاهر · تُحمّل المجلدات عند فتحها</string>
+    <string name="tree_more">عرض 100 عنصر تالية… (متبقٍ %1$d)</string>
     <string name="code_title">محرر الأكواد</string>
     <string name="code_binary">هذا الملف ثنائي. اختر ملفاً نصياً للتعديل.</string>
     <string name="code_lines">%1$d سطر</string>

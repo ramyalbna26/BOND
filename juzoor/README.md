@@ -1,4 +1,4 @@
-# جذور — Juzoor 2.3
+# جذور — Juzoor 3.0
 
 **أصل البذور — أوفلاين 100%. بلا إنترنت. بلا روت.**
 **Origin of the Seeds — 100% offline. No internet. No root.**
@@ -13,26 +13,28 @@ app explains that it must first be turned into an APK set with `bundletool`,
 because an AAB carries a protobuf manifest/resource table that cannot be
 expanded to a buildable APK on-device.
 
-## What is new in 2.3
+## What is new in 3.0
 
-* **Lazy project tree** — folders are listed only when opened; a project with
-  18,000+ files opens immediately. Pinch to zoom, drag to pan, tap to edit.
-* **Framework detection** — Flutter, Unity, React Native, Xamarin, Cocos,
-  Godot and Cordova are identified from their engine libraries and asset
-  folders. `assets/flutter_assets`, `assets/bin/Data` and JS bundles are kept
-  in full and the result screen names the runtime.
-* **Deep `.so` analysis** — streaming ASCII / UTF-8 / UTF-16 / Base64 / Hex
-  extraction with no whole-file allocation, ELF symbols, embedded DEX/ZIP
-  carving, XOR recovery, UPX unpacking and packer fingerprints.
-* **Global regex search** — one pass over Java, Kotlin, XML, assets and native
-  libraries with path, line and byte-offset results.
-* **APK diff** — compare two APKs by CRC/size and list added, removed and
-  modified entries.
-* **Code editor + mapping** — syntax-highlighted Java/Kotlin/XML editor and
-  offline `mapping.txt` class/method deobfuscation.
-* **Assets viewer** — preview recovered images and fonts.
-* **Cross-platform analyser** — PE/EXE/DLL (with PyInstaller carving and .NET
-  detection), ELF/DEB/RPM, Mach-O and DMG.
+* **Every DEX string, every byte** — the complete string table is extracted
+  (the report shows 100%, not only the decoded subset) and a second
+  `BufferedInputStream` pass recovers printable runs outside `string_ids`.
+* **Raw-byte string decoding** — Base64, hex, ROT13, single-byte and
+  repeating-key XOR are applied to the exact MUTF-8 bytes of each entry, not
+  only to already-decoded Unicode. This is what makes non-ASCII XOR tables
+  recoverable.
+* **Real UPX block decoding** — the UPX `l_info`/`p_info` trailer is parsed
+  instead of blindly scanning for `UPX!`, and NRV2B/NRV2D/NRV2E blocks are
+  decompressed with ports of the reference UCL decoders. The recovered payload
+  is written as `.payload.bin` and scanned for strings and embedded files.
+* **Fewer false positives** — a random `UPX!` string inside a PDF library is no
+  longer reported as a packed binary.
+* **Paged project tree** — folders list 100 entries at a time with a "show
+  more" row, keeping memory bounded on 18,000+ file projects.
+* **Everything from 2.3** — lazy tree with zoom/pan, framework detection
+  (Flutter/Unity/React Native/Xamarin/Cocos/Godot/Cordova), global regex
+  search, APK diff, syntax-highlighted editor with `mapping.txt`, assets
+  viewer, offline cross-platform analyser, gold UI, dark mode, font scaling
+  100–150%, live canvas, coloured logcat and the legal security warning.
 
 ## Build
 
@@ -46,7 +48,7 @@ ANDROID_SDK_ROOT=/path/to/sdk ./build.sh
 cd .. && ./gradlew :juzoor:testDebugUnitTest :juzoor:assembleRelease
 ```
 
-The raw build writes `../build/apk/Juzoor-v2.3.0.apk`. The Gradle release writes
+The raw build writes `../build/apk/Juzoor-v3.0.0.apk`. The Gradle release writes
 `build/outputs/apk/release/juzoor-release.apk`.
 
 `package.sh` copies the Gradle APK to `dist/` and creates a clean source ZIP.
@@ -76,6 +78,11 @@ developer build can run on an emulator.
 ## Limitations
 
 * AAB is expanded only after conversion to an APK set with `bundletool`.
+* UPX payloads are decompressed but not relinked: the loader's relocation and
+  filter metadata is required to turn the blocks back into a runnable `.so`.
+  Juzoor reports the filter and uses the payload for string/asset recovery.
+* LZMA-compressed UPX blocks are recognised and reported, but not decompressed
+  on-device.
 * RPM payloads compressed with xz/zstd and DMG HFS/APFS volumes are inspected
   but not decompressed on-device; gzip payloads and DMG metadata are extracted.
 * PyInstaller scripts are saved as `.pyc` (ready for a Python decompiler);

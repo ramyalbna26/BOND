@@ -111,6 +111,20 @@ public class SettingsActivity extends BaseActivity {
             }
         });
         info(getString(R.string.settings_kotlin), getString(R.string.settings_kotlin_d));
+        header(getString(R.string.settings_cross));
+        info(getString(R.string.settings_cross_windows), getString(R.string.settings_cross_windows_d));
+        info(getString(R.string.settings_cross_linux), getString(R.string.settings_cross_linux_d));
+        info(getString(R.string.settings_cross_macos), getString(R.string.settings_cross_macos_d));
+        TextView cross = Ui.button(this, getString(R.string.settings_cross_open), false);
+        LinearLayout.LayoutParams crossLp = Ui.lp(-1, -2);
+        crossLp.topMargin = Ui.dp(this, 10.0f);
+        cross.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                open(CrossPlatformActivity.class);
+            }
+        });
+        this.body.addView(cross, crossLp);
         header(getString(R.string.settings_signing));
         toggle(getString(R.string.settings_v1), Prefs.signV1(), new Cb() {
             @Override
