@@ -46,14 +46,27 @@ public abstract class BaseActivity extends Activity {
         } else {
             window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
-        ScrollView scrollView = new ScrollView(this);
-        scrollView.setFillViewport(true);
-        scrollView.setBackgroundColor(Ui.bg());
         this.body = Ui.column(this);
         int dp = Ui.dp(this, 18.0f);
         this.body.setPadding(dp, Ui.dp(this, 14.0f), dp, Ui.dp(this, 32.0f));
-        scrollView.addView(this.body, new FrameLayout.LayoutParams(-1, -2));
-        setContentView(scrollView);
+        if (scrollBody()) {
+            ScrollView scrollView = new ScrollView(this);
+            scrollView.setFillViewport(true);
+            scrollView.setBackgroundColor(Ui.bg());
+            scrollView.addView(this.body, new FrameLayout.LayoutParams(-1, -2));
+            setContentView(scrollView);
+        } else {
+            // Screens with a weighted, self-scrolling list must fill the
+            // viewport; nesting that list in a ScrollView would measure every
+            // row and defeat recycling.
+            this.body.setBackgroundColor(Ui.bg());
+            setContentView(this.body, new FrameLayout.LayoutParams(-1, -1));
+        }
+    }
+
+    /** Override to build a viewport-filling body instead of a scrolling page. */
+    protected boolean scrollBody() {
+        return true;
     }
 
     @Override

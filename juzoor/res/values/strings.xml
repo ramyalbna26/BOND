@@ -257,7 +257,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="home_tool_source_d">Real Jadx Java sources, Kotlin API mirrors and PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">100% OFFLINE</string>
     <string name="home_logo_desc">Juzoor logo</string>
-    <string name="home_engine">ENGINE 4.0</string>
+    <string name="home_engine">ENGINE 4.2</string>
     <string name="security_title">Security analysis</string>
     <string name="security_sub" formatted="false">Static application security testing — 100% on this device.</string>
     <string name="security_run">Scan an APK</string>
@@ -375,7 +375,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_default_key">Use built-in signing key</string>
     <string name="settings_default_key_d">Local Juzoor key bundled with the app.</string>
     <string name="settings_offline_badge" formatted="false">100% offline</string>
-    <string name="settings_engine_version">Engine 4.0 · Jadx 1.5.1</string>
+    <string name="settings_engine_version">Engine 4.2 · Jadx 1.5.1</string>
     <string name="settings_build">Build</string>
     <string name="settings_copyright">Copyright</string>
     <string name="settings_storage">Storage</string>
@@ -383,13 +383,13 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_font_scale">Font size</string>
     <string name="settings_font_scale_d" formatted="false">Scale every screen from 100 to 150 percent instantly.</string>
     <string name="home_tool_canvas">Live decompilation canvas</string>
-    <string name="home_tool_canvas_d">Watch every file being extracted, with zoom, pan and pause.</string>
+    <string name="home_tool_canvas_d">Follow every extracted file in one scroll list with smart auto-scroll and pause.</string>
     <string name="home_tool_batch">Batch queue</string>
     <string name="home_tool_batch_d">Queue several APKs and follow a progress bar for each one.</string>
     <string name="home_tool_editor">Edit recovered project</string>
     <string name="home_tool_editor_d">Change build.gradle and AndroidManifest.xml, then re-export the ZIP.</string>
     <string name="canvas_title">Live decompilation</string>
-    <string name="canvas_sub">Every file appears here the moment it is extracted. Pinch to zoom, drag to pan.</string>
+    <string name="canvas_sub">Logs, file names and paths share one lightweight scroll list.</string>
     <string name="canvas_waiting">Waiting for the first file…</string>
     <string name="canvas_pause">Pause</string>
     <string name="canvas_resume">Resume</string>
@@ -400,8 +400,10 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="canvas_reset_view">Reset view</string>
     <string name="canvas_finished">Conversion finished.</string>
     <string name="canvas_open_result">Open result</string>
-    <string name="canvas_hint">Pinch with two fingers to zoom · drag with one finger to pan · double-tap to reset.</string>
+    <string name="canvas_hint">One list · auto-scroll pauses when you scroll up and resumes at the bottom.</string>
     <string name="canvas_cancelled">Conversion cancelled.</string>
+    <string name="canvas_follow_on">Auto-scroll on · older log rows stay in Logcat (max 300 in memory).</string>
+    <string name="canvas_follow_paused">Auto-scroll paused · scroll to the bottom or tap here to follow.</string>
     <string name="batch_title">Batch queue</string>
     <string name="batch_sub">Convert several applications at the same time. Each row has its own progress bar and live step.</string>
     <string name="batch_add">Add applications</string>
@@ -450,6 +452,7 @@ Copying, redistributing or modifying this application, or any part of its conten
 
     <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
     <!-- Juzoor 4.0: Jadx Java decompiler, bounded tree pager, Kotlin API mirrors -->
+    <!-- Juzoor 4.2: one bounded live RecyclerView, smart auto-scroll -->
     <string name="common_share">Share</string>
     <string name="tree_title">Project tree</string>
     <string name="tree_none">No recovered project yet. Run a conversion first.</string>

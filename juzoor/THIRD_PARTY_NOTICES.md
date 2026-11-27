@@ -13,6 +13,7 @@ decompiler and signer work fully offline. The full Apache 2.0 text is in
 | SLF4J API | 2.0.16 | MIT | https://www.slf4j.org/ |
 | JSR-305 | 3.0.2 | BSD 3-Clause | https://github.com/google/jsr305 |
 | apksig-lite | bundled | Apache 2.0 | https://android.googlesource.com/platform/tools/apksig |
+| AndroidX RecyclerView | 1.3.2 | Apache 2.0 | https://developer.android.com/jetpack/androidx/releases/recyclerview |
 
 The Jadx and smali jars are unmodified upstream artifacts. Juzoor only calls
 their public APIs from `SourceDecompiler`.

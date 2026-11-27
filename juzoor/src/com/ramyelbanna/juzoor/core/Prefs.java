@@ -9,7 +9,7 @@ import java.io.File;
 /** Typed access to every user preference. */
 public final class Prefs {
     /** Product version shown by every screen and every generated report. */
-    public static final String VERSION = "4.0.0";
+    public static final String VERSION = "4.2.0";
     private static final String FILE = "juzoor";
     private static SharedPreferences sp;
 

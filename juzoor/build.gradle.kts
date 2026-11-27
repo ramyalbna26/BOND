@@ -23,8 +23,8 @@ android {
         applicationId = "com.ramyelbanna.juzoor"
         minSdk = 26
         targetSdk = 34
-        versionCode = 9
-        versionName = "4.0.0"
+        versionCode = 10
+        versionName = "4.2.0"
     }
 
     signingConfigs {
@@ -80,7 +80,17 @@ android {
     }
 }
 
+configurations.all {
+    // AndroidX core brings the standalone listenablefuture artifact, while
+    // libs/guava-31.1-android.jar already contains the same class.
+    exclude(group = "com.google.guava", module = "listenablefuture")
+}
+
 dependencies {
+    // The live decompilation feed uses one bounded RecyclerView so thousands
+    // of file/log events never become thousands of live views.
+    implementation(libs.androidx.recyclerview)
+
     // Bundled jars: the lite Android apksig signer, the offline Jadx
     // decompiler and its DEX/smali runtime dependencies.  Keeping them in
     // libs/ also lets the standalone build.sh use the exact same versions.

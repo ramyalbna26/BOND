@@ -1,4 +1,4 @@
-# جذور — Juzoor 4.0
+# جذور — Juzoor 4.2
 
 **أصل البذور — أوفلاين 100%. بلا إنترنت. بلا روت.**
 **Origin of the Seeds — 100% offline. No internet. No root.**
@@ -12,6 +12,28 @@ APK, APK+, XAPK, APKS and APKM are expanded locally. AAB is recognised and the
 app explains that it must first be turned into an APK set with `bundletool`,
 because an AAB carries a protobuf manifest/resource table that cannot be
 expanded to a buildable APK on-device.
+
+## What is new in 4.2
+
+* **One live list, one scroll bar** — the live decompilation screen now uses a
+  single `RecyclerView` with a `ListAdapter`/`DiffUtil` adapter for logs, file
+  names and paths. Only changed rows are rebound, and the list
+  recycles its row views instead of drawing thousands of canvas nodes.
+* **300 rows in memory** — `LiveCanvasFeed` keeps the newest 300 rows and
+  coalesces repeated updates for the same file. Older log rows stay in the
+  persistent Logcat, and extracted files remain in the project output. Pending
+  UI events are bounded too, so a callback burst cannot grow the heap.
+* **Stable rows** — file paths use a monospace face with middle ellipsis and a
+  single line; log text uses sans-serif with end ellipsis. Every row has a
+  fixed height, so long paths can never resize or reflow the page.
+* **Smart auto-scroll** — scrolling up pauses following immediately; reaching
+  the bottom (or tapping the hint) resumes it. The progress header and bar sit
+  outside the list and never scroll away.
+* **Gold list styling** — status icons (✓ success, ✗ error, ⚠ warning), level
+  colours and the gold surface are applied to the unified list.
+* **Everything from 4.0** — Jadx Java recovery, bounded DEX batching,
+  process-isolated conversion, paginated project tree, generated Gradle
+  project, full DEX strings and UPX NRV2B/D/E support.
 
 ## What is new in 4.0
 
@@ -29,7 +51,7 @@ expanded to a buildable APK on-device.
   not take the whole conversion down with it.
 * **No source cache in RAM** — Jadx normally keeps every generated class in
   memory. Juzoor streams each `.java` file straight to disk, keeps only the
-  newest live-canvas row, and releases string/resource analysis data before
+  newest 300-row live feed, and releases string/resource analysis data before
   decompilation starts.
 * **Safe fallback** — if one class cannot be decompiled even alone, only that
   DEX falls back to the previous stubs; the rest of the Java tree stays real.
@@ -49,15 +71,16 @@ expanded to a buildable APK on-device.
 Requirements: JDK 17, Android SDK build-tools 35.0.0, platform android-35.
 
 ```bash
-# Reproducible raw build (aapt2 + javac + d8 + apksigner)
+# Release wrapper: Gradle R8 build + signature verification
 ANDROID_SDK_ROOT=/path/to/sdk ./build.sh
 
 # Gradle module (R8 release, v1/v2/v3 flags, lint, unit tests)
 cd .. && ./gradlew :juzoor:testDebugUnitTest :juzoor:assembleRelease
 ```
 
-The raw build writes `../build/apk/Juzoor-v4.0.0.apk`. The Gradle release writes
-`build/outputs/apk/release/juzoor-release.apk`.
+The release wrapper writes `../build/apk/Juzoor-v4.2.0.apk`. The Gradle release
+writes `build/outputs/apk/release/juzoor-release.apk`. The live list uses
+AndroidX RecyclerView, so the release is built through Gradle.
 
 `package.sh` copies the Gradle APK to `dist/` and creates a clean source ZIP.
 

@@ -257,7 +257,7 @@
     <string name="home_tool_source_d">كود Java حقيقي من Jadx وهياكل Kotlin وملف PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">أوفلاين 100%</string>
     <string name="home_logo_desc">شعار جذور</string>
-    <string name="home_engine">المحرّك 4.0</string>
+    <string name="home_engine">المحرّك 4.2</string>
     <string name="security_title">تحليل الأمان</string>
     <string name="security_sub" formatted="false">اختبار أمان التطبيقات الساكن — بالكامل على هذا الجهاز.</string>
     <string name="security_run">افحص تطبيقاً</string>
@@ -375,7 +375,7 @@
     <string name="settings_default_key">استخدام مفتاح التوقيع المدمج</string>
     <string name="settings_default_key_d">مفتاح جذور المحلي المرفق مع التطبيق.</string>
     <string name="settings_offline_badge" formatted="false">أوفلاين 100%</string>
-    <string name="settings_engine_version">المحرّك 4.0 · Jadx 1.5.1</string>
+    <string name="settings_engine_version">المحرّك 4.2 · Jadx 1.5.1</string>
     <string name="settings_build">الإصدار</string>
     <string name="settings_copyright">حقوق النشر</string>
     <string name="settings_storage">التخزين</string>
@@ -383,13 +383,13 @@
     <string name="settings_font_scale">حجم الخط</string>
     <string name="settings_font_scale_d" formatted="false">تكبير كل الشاشات من 100 إلى 150 بالمئة فوراً.</string>
     <string name="home_tool_canvas">شاشة العرض الحية للتفكيك</string>
-    <string name="home_tool_canvas_d">شاهد كل ملف لحظة استخراجه مع التكبير والسحب والإيقاف المؤقت.</string>
+    <string name="home_tool_canvas_d">تابع كل ملف لحظة استخراجه في قائمة واحدة مع تمرير تلقائي ذكي وإيقاف مؤقت.</string>
     <string name="home_tool_batch">قائمة المعالجة المتعددة</string>
     <string name="home_tool_batch_d">ضع عدة تطبيقات في القائمة وتابع شريط تقدم لكل تطبيق.</string>
     <string name="home_tool_editor">تعديل المشروع المستخرج</string>
     <string name="home_tool_editor_d">عدّل build.gradle وAndroidManifest.xml ثم أعد تصدير ZIP.</string>
     <string name="canvas_title">العرض الحي للتفكيك</string>
-    <string name="canvas_sub">كل ملف يظهر هنا لحظة استخراجه. كبّر بإصبعين واسحب بإصبع واحد.</string>
+    <string name="canvas_sub">السجلات وأسماء الملفات والمسارات في قائمة واحدة خفيفة.</string>
     <string name="canvas_waiting">في انتظار أول ملف…</string>
     <string name="canvas_pause">إيقاف مؤقت</string>
     <string name="canvas_resume">متابعة</string>
@@ -400,8 +400,10 @@
     <string name="canvas_reset_view">إعادة ضبط العرض</string>
     <string name="canvas_finished">اكتمل التحويل.</string>
     <string name="canvas_open_result">فتح النتيجة</string>
-    <string name="canvas_hint">كبّر بإصبعين · اسحب بإصبع واحد · انقر مرتين لإعادة الضبط.</string>
+    <string name="canvas_hint">قائمة واحدة · التمرير التلقائي يتوقف عند الصعود ويعود في آخر القائمة.</string>
     <string name="canvas_cancelled">تم إلغاء التحويل.</string>
+    <string name="canvas_follow_on">التمرير التلقائي مفعّل · السجلات الأقدم محفوظة في ملف السجلات (300 صف في الذاكرة).</string>
+    <string name="canvas_follow_paused">التمرير التلقائي متوقف · انزل إلى آخر القائمة أو انقر هنا للمتابعة.</string>
     <string name="batch_title">قائمة المعالجة المتعددة</string>
     <string name="batch_sub">حوّل عدة تطبيقات في وقت واحد. لكل تطبيق شريط تقدم وخطوة حية خاصة به.</string>
     <string name="batch_add">إضافة تطبيقات</string>
@@ -450,6 +452,7 @@
 
     <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
     <!-- Juzoor 4.0: Jadx Java decompiler, bounded tree pager, Kotlin API mirrors -->
+    <!-- Juzoor 4.2: one bounded live RecyclerView, smart auto-scroll -->
     <string name="common_share">مشاركة</string>
     <string name="tree_title">شجرة المشروع</string>
     <string name="tree_none">لا يوجد مشروع مستخرج بعد. ابدأ تحويلاً أولاً.</string>

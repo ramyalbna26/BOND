@@ -1,4 +1,4 @@
-# Juzoor 4.0 — Phase 1-3 status
+# Juzoor 4.2 — Phase 1-3 status
 
 ## Phase 1 — Android priority
 - [x] Lazy project tree with a bounded 100-row page, recycling rows, pinch zoom and pan
@@ -32,6 +32,15 @@
 - [x] DMG koly trailer and partition plist
 - [x] Settings preview section for Windows / Linux / macOS
 - [ ] LZMA-compressed UPX blocks and RPM xz/zstd payloads (documented limitation)
+
+## Update 4.2 — live feed and layout stability
+- [x] One RecyclerView + ListAdapter/DiffUtil for logs, files and paths
+- [x] `LiveCanvasFeed` keeps only the newest 300 rows and coalesces file updates
+- [x] Bounded pending queue so conversion callbacks cannot flood the heap
+- [x] Monospace middle-ellipsized paths and fixed row heights (no layout shift)
+- [x] Smart auto-scroll: pauses when the user scrolls up, resumes at the bottom
+- [x] Fixed progress header outside the list, gold status icons and level colours
+- [x] Older log rows remain in Logcat when evicted from memory
 
 ## Build & deliver
 - [x] Unit + integration tests, including a real DEX decompilation fixture

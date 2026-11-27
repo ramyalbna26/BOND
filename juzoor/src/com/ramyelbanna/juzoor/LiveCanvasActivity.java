@@ -2,44 +2,48 @@ package com.ramyelbanna.juzoor;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
+import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.ramyelbanna.juzoor.core.LogManager;
 import com.ramyelbanna.juzoor.engine.ConversionResult;
+import com.ramyelbanna.juzoor.engine.LiveCanvasFeed;
 import com.ramyelbanna.juzoor.ui.Ui;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Live decompilation canvas.
+ * Live decompilation screen.
  *
- * <p>Every file reported by the engine is streamed into a zoomable, pannable
- * canvas with its own progress bar.  The screen listens to the same
- * {@link ConversionService} that powers the notification and the log, so it can
- * pause, resume or cancel without stopping the foreground service.</p>
+ * <p>All live events — log lines and extracted file names — share one
+ * {@link RecyclerView}.  A {@link ListAdapter} with {@link DiffUtil} updates
+ * only the rows whose content changed, and the feed keeps at most
+ * {@link LiveCanvasFeed#MAX_ROWS} rows in memory.  The progress header lives
+ * outside the list, so scrolling never moves it.  Auto-scroll pauses as soon
+ * as the user scrolls away from the end and resumes at the bottom.</p>
  */
 public class LiveCanvasActivity extends BaseActivity implements ConversionService.Listener {
 
     private static final int REQ_PICK = 51;
+    private static final long FLUSH_MS = 80L;
+    private static final int MAX_PENDING = 96;
 
     private String path;
     private ProgressBar bar;
@@ -47,25 +51,35 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
     private TextView step;
     private TextView files;
     private TextView status;
+    private TextView currentPath;
     private TextView pauseButton;
     private TextView resultButton;
-    private LiveCanvasView canvas;
+    private TextView followHint;
+    private RecyclerView list;
+    private EventAdapter adapter;
+    private final LiveCanvasFeed feed = new LiveCanvasFeed();
+    private final ArrayDeque<Pending> pending = new ArrayDeque<Pending>();
+    private boolean autoFollow = true;
     private boolean finished;
+    private boolean destroyed;
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private final AtomicReference<PendingFile> queuedFile = new AtomicReference<PendingFile>();
-    private final Runnable fileTick = new Runnable() {
+    private final Runnable flushTick = new Runnable() {
         @Override
         public void run() {
-            renderQueuedFile();
+            flushPending();
         }
     };
 
-    private static final class PendingFile {
-        final String path;
+    private static final class Pending {
+        final boolean file;
+        final String level;
+        final String text;
         final int percent;
 
-        PendingFile(String path, int percent) {
-            this.path = path;
+        Pending(boolean file, String level, String text, int percent) {
+            this.file = file;
+            this.level = level;
+            this.text = text;
             this.percent = percent;
         }
     }
@@ -76,31 +90,128 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
         this.path = getIntent() == null ? null : getIntent().getStringExtra(ConversionService.EXTRA_PATH);
         buildUi();
         ConversionService.addListener(this);
+        feed.addLog(LogManager.INFO, getString(R.string.canvas_waiting));
+        submitFeed();
         if (ConversionService.isRunning()) {
             onProgress(ConversionService.getProgress(), ConversionService.getStep());
+            String current = ConversionService.getCurrentFile();
+            if (current != null) showFile(current);
             this.files.setText(getString(R.string.canvas_files) + ": " + ConversionService.getFileCount());
         } else if (this.path != null) {
             startConversion(this.path);
         }
     }
 
+    @Override
+    protected boolean scrollBody() {
+        // The live list owns the scroll gesture.  Wrapping it in the base
+        // ScrollView would measure every row and remove its recycling win.
+        return false;
+    }
+
     private void buildUi() {
+        this.body.setPadding(Ui.dp(this, 14.0f), Ui.dp(this, 8.0f),
+                Ui.dp(this, 14.0f), Ui.dp(this, 10.0f));
         topBar(getString(R.string.canvas_title), true);
 
-        LinearLayout intro = Ui.card(this);
-        intro.addView(Ui.text(this, getString(R.string.canvas_sub), 13.0f, Ui.muted(), false));
-        LinearLayout badges = Ui.row(this);
-        badges.setPadding(0, Ui.dp(this, 10.0f), 0, 0);
-        badges.addView(Ui.chip(this, getString(R.string.home_badge_offline), Ui.SUCCESS));
-        badges.addView(Ui.spacer(this, 8));
-        badges.addView(Ui.chip(this, getString(R.string.home_engine), Ui.GOLD));
-        intro.addView(badges);
-        this.body.addView(intro);
+        LinearLayout head = Ui.card(this);
+        head.setPadding(Ui.dp(this, 12.0f), Ui.dp(this, 10.0f),
+                Ui.dp(this, 12.0f), Ui.dp(this, 10.0f));
+        this.body.addView(head, Ui.lp(-1, -2));
+
+        LinearLayout counters = Ui.row(this);
+        this.files = Ui.text(this, getString(R.string.canvas_files) + ": 0", 13.0f, Ui.GOLD, true);
+        counters.addView(this.files);
+        this.status = Ui.text(this, getString(R.string.canvas_waiting), 11.0f, Ui.muted(), false);
+        this.status.setSingleLine(true);
+        this.status.setEllipsize(TextUtils.TruncateAt.END);
+        this.status.setGravity(Gravity.END);
+        LinearLayout.LayoutParams statusLp = Ui.lp(0, -2, 1.0f);
+        statusLp.leftMargin = Ui.dp(this, 8.0f);
+        counters.addView(this.status, statusLp);
+        head.addView(counters);
+
+        LinearLayout progress = Ui.row(this);
+        progress.setPadding(0, Ui.dp(this, 8.0f), 0, 0);
+        this.bar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        this.bar.setMax(100);
+        this.bar.setProgress(0);
+        progress.addView(this.bar, Ui.lp(0, Ui.dp(this, 8.0f), 1.0f));
+        this.pct = Ui.text(this, "0%", 14.0f, Ui.GOLD, true);
+        this.pct.setPadding(Ui.dp(this, 12.0f), 0, 0, 0);
+        progress.addView(this.pct);
+        head.addView(progress);
+
+        this.step = Ui.text(this, "…", 11.0f, Ui.muted(), false);
+        this.step.setSingleLine(true);
+        this.step.setEllipsize(TextUtils.TruncateAt.END);
+        this.step.setPadding(0, Ui.dp(this, 4.0f), 0, 0);
+        head.addView(this.step);
+
+        this.currentPath = Ui.text(this, "", 10.0f, Ui.GOLD, false);
+        this.currentPath.setTypeface(Typeface.MONOSPACE);
+        this.currentPath.setSingleLine(true);
+        this.currentPath.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+        this.currentPath.setPadding(0, Ui.dp(this, 3.0f), 0, 0);
+        head.addView(this.currentPath);
+
+        this.adapter = new EventAdapter();
+        this.list = new RecyclerView(this);
+        this.list.setLayoutManager(new LinearLayoutManager(this));
+        this.list.setAdapter(this.adapter);
+        this.list.setHasFixedSize(true);
+        this.list.setItemAnimator(null);
+        this.list.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+        this.list.setBackground(Ui.stroke(Ui.surface2(), 0x33D4AF37,
+                Ui.dp(this, 16.0f), Ui.dp(this, 1.0f)));
+        int listPad = Ui.dp(this, 6.0f);
+        this.list.setPadding(listPad, listPad, listPad, listPad);
+        this.list.setClipToPadding(false);
+        this.list.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    autoFollow = false;
+                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    autoFollow = atBottom();
+                }
+                updateFollowHint();
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy == 0) return;
+                if (atBottom()) {
+                    autoFollow = true;
+                } else if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    autoFollow = false;
+                }
+                updateFollowHint();
+            }
+        });
+        LinearLayout.LayoutParams listLp = Ui.lp(-1, 0, 1.0f);
+        listLp.topMargin = Ui.dp(this, 8.0f);
+        this.body.addView(this.list, listLp);
+
+        this.followHint = Ui.text(this, getString(R.string.canvas_follow_on),
+                10.0f, Ui.muted(), false);
+        this.followHint.setSingleLine(true);
+        this.followHint.setEllipsize(TextUtils.TruncateAt.END);
+        this.followHint.setPadding(0, Ui.dp(this, 4.0f), 0, 0);
+        this.followHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                autoFollow = true;
+                scrollToLatest();
+                updateFollowHint();
+            }
+        });
+        this.body.addView(this.followHint);
 
         if (this.path == null && !ConversionService.isRunning()) {
             TextView pick = Ui.button(this, getString(R.string.home_open_file), true);
             LinearLayout.LayoutParams plp = Ui.lp(-1, -2);
-            plp.topMargin = Ui.dp(this, 12.0f);
+            plp.topMargin = Ui.dp(this, 8.0f);
             pick.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -112,46 +223,9 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
             this.body.addView(pick, plp);
         }
 
-        LinearLayout card = Ui.card(this);
-        LinearLayout.LayoutParams lp = Ui.lp(-1, -2);
-        lp.topMargin = Ui.dp(this, 12.0f);
-        this.body.addView(card, lp);
-
-        LinearLayout head = Ui.row(this);
-        this.files = Ui.text(this, getString(R.string.canvas_files) + ": 0", 12.0f, Ui.GOLD, true);
-        head.addView(this.files, Ui.lp(0, -2, 1.0f));
-        this.status = Ui.text(this, getString(R.string.canvas_waiting), 11.0f, Ui.muted(), false);
-        head.addView(this.status);
-        card.addView(head);
-
-        LinearLayout row = Ui.row(this);
-        row.setPadding(0, Ui.dp(this, 10.0f), 0, 0);
-        this.bar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        this.bar.setMax(100);
-        this.bar.setProgress(0);
-        row.addView(this.bar, Ui.lp(0, Ui.dp(this, 8.0f), 1.0f));
-        this.pct = Ui.text(this, "0%", 14.0f, Ui.GOLD, true);
-        this.pct.setPadding(Ui.dp(this, 12.0f), 0, 0, 0);
-        row.addView(this.pct);
-        card.addView(row);
-
-        this.step = Ui.text(this, "…", 12.0f, Ui.muted(), false);
-        this.step.setPadding(0, Ui.dp(this, 8.0f), 0, 0);
-        card.addView(this.step);
-
-        this.canvas = new LiveCanvasView(this);
-        LinearLayout.LayoutParams clp = Ui.lp(-1, Ui.dp(this, 430.0f));
-        clp.topMargin = Ui.dp(this, 12.0f);
-        this.canvas.setBackground(Ui.stroke(Ui.surface2(), 0x33D4AF37, Ui.dp(this, 16.0f), Ui.dp(this, 1.0f)));
-        this.body.addView(this.canvas, clp);
-
-        TextView hint = Ui.text(this, getString(R.string.canvas_hint), 11.0f, Ui.muted(), false);
-        hint.setPadding(0, Ui.dp(this, 8.0f), 0, 0);
-        this.body.addView(hint);
-
         LinearLayout controls = Ui.row(this);
         LinearLayout.LayoutParams ctr = Ui.lp(-1, -2);
-        ctr.topMargin = Ui.dp(this, 12.0f);
+        ctr.topMargin = Ui.dp(this, 8.0f);
         this.body.addView(controls, ctr);
         this.pauseButton = Ui.button(this, getString(R.string.canvas_pause), false);
         this.pauseButton.setOnClickListener(new View.OnClickListener() {
@@ -169,7 +243,6 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
             public void onClick(View view) {
                 ConversionService.cancel();
                 status.setText(getString(R.string.progress_cancelling));
-                canvas.setRunning(false);
             }
         });
         controls.addView(cancel, cl);
@@ -199,7 +272,7 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
         this.resultButton = Ui.button(this, getString(R.string.canvas_open_result), true);
         LinearLayout.LayoutParams rlp = Ui.lp(-1, -2);
-        rlp.topMargin = Ui.dp(this, 12.0f);
+        rlp.topMargin = Ui.dp(this, 8.0f);
         this.resultButton.setVisibility(View.GONE);
         this.resultButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -233,7 +306,6 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
             status.setText(getString(R.string.canvas_paused));
         }
         pauseButton.setText(getString(now ? R.string.canvas_resume : R.string.canvas_pause));
-        canvas.setPaused(now);
     }
 
     @Override
@@ -241,51 +313,100 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
         ui.post(new Runnable() {
             @Override
             public void run() {
+                if (bar == null || destroyed) return;
                 bar.setProgress(percent);
                 pct.setText(percent + "%");
-                step.setText(stage);
-                canvas.setStage(stage);
+                step.setText(stage == null ? "" : stage);
             }
         });
     }
 
     @Override
     public void onLog(final String level, final String message) {
-        ui.post(new Runnable() {
-            @Override
-            public void run() {
-                canvas.addLog(level, message);
-            }
-        });
+        enqueue(new Pending(false, level, message, -1));
     }
 
     @Override
     public void onFile(String file, int percent) {
-        // A large APK can report thousands of files.  Keep only the newest
-        // pending row instead of queueing one Runnable per file, which would
-        // itself grow the heap while Jadx is already under memory pressure.
-        queuedFile.set(new PendingFile(file, percent));
-        ui.removeCallbacks(fileTick);
-        ui.postDelayed(fileTick, 50L);
+        enqueue(new Pending(true, "", file, percent));
     }
 
-    private void renderQueuedFile() {
-        PendingFile pending = queuedFile.getAndSet(null);
-        if (pending == null || canvas == null) return;
-        canvas.addFile(pending.path, pending.percent);
+    private void enqueue(Pending item) {
+        if (destroyed || item.text == null || item.text.isEmpty()) return;
+        synchronized (pending) {
+            // A burst larger than this is already in the Logcat file.  Keeping
+            // a hard bound here stops callback floods from growing the heap.
+            if (pending.size() >= MAX_PENDING) pending.removeFirst();
+            pending.addLast(item);
+        }
+        ui.removeCallbacks(flushTick);
+        ui.postDelayed(flushTick, FLUSH_MS);
+    }
+
+    private void flushPending() {
+        if (adapter == null) return;
+        boolean changed = false;
+        synchronized (pending) {
+            while (!pending.isEmpty()) {
+                Pending item = pending.removeFirst();
+                if (item.file) {
+                    feed.addFile(item.text, item.percent);
+                    showFile(item.text);
+                } else {
+                    feed.addLog(item.level, item.text);
+                }
+                changed = true;
+            }
+        }
+        if (changed) submitFeed();
+    }
+
+    private void showFile(String file) {
+        if (currentPath == null) return;
+        currentPath.setText(file);
         files.setText(getString(R.string.canvas_files) + ": " + ConversionService.getFileCount());
-        status.setText(pending.path);
+    }
+
+    private void submitFeed() {
+        if (adapter == null) return;
+        List<LiveCanvasFeed.Entry> snapshot = feed.snapshot();
+        adapter.submitList(snapshot, new Runnable() {
+            @Override
+            public void run() {
+                if (autoFollow) scrollToLatest();
+            }
+        });
+    }
+
+    private void scrollToLatest() {
+        if (list == null || adapter == null) return;
+        int count = adapter.getItemCount();
+        if (count > 0) list.scrollToPosition(count - 1);
+    }
+
+    private boolean atBottom() {
+        if (list == null || adapter == null) return true;
+        RecyclerView.LayoutManager manager = list.getLayoutManager();
+        if (!(manager instanceof LinearLayoutManager)) return true;
+        LinearLayoutManager linear = (LinearLayoutManager) manager;
+        int last = linear.findLastVisibleItemPosition();
+        return last >= adapter.getItemCount() - 1;
+    }
+
+    private void updateFollowHint() {
+        if (followHint == null) return;
+        followHint.setText(getString(autoFollow ? R.string.canvas_follow_on : R.string.canvas_follow_paused));
+        followHint.setTextColor(autoFollow ? Ui.muted() : Ui.GOLD);
     }
 
     @Override
     public void onFinished(final ConversionResult result) {
-        if (finished) return;
+        if (finished || destroyed) return;
         finished = true;
         ui.post(new Runnable() {
             @Override
             public void run() {
-                renderQueuedFile();
-                canvas.setRunning(false);
+                flushPending();
                 bar.setProgress(100);
                 pct.setText("100%");
                 if (result != null && result.success) {
@@ -316,319 +437,145 @@ public class LiveCanvasActivity extends BaseActivity implements ConversionServic
 
     @Override
     protected void onDestroy() {
-        ui.removeCallbacks(fileTick);
+        destroyed = true;
+        ui.removeCallbacks(flushTick);
         ConversionService.removeListener(this);
         super.onDestroy();
     }
 
-    /* ------------------------------------------------------------ canvas view */
+    /* ------------------------------------------------------------- list rows */
 
-    private static final class LiveCanvasView extends View {
-        private static final int ROW = 54;
-        private static final int MAX_NODES = 700;
-        private final List<Node> nodes = new ArrayList<Node>();
-        private final List<Line> logs = new ArrayList<Line>();
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint monoPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final RectF rect = new RectF();
-        private final GestureDetector gestures;
-        private final ScaleGestureDetector scaleDetector;
-        private float scale = 1.0f;
-        private float panX;
-        private float panY;
-        private boolean autoFollow = true;
-        private boolean running = true;
-        private boolean paused;
-        private String stage = "";
-        private long started = System.currentTimeMillis();
-
-        private static final class Node {
-            final String path;
-            final String name;
-            final int depth;
-            final String kind;
-            int percent;
-            long time;
-
-            Node(String path, String name, int depth, int percent, long time, String kind) {
-                this.path = path;
-                this.name = name;
-                this.depth = depth;
-                this.percent = percent;
-                this.time = time;
-                this.kind = kind;
-            }
-        }
-
-        private static final class Line {
-            final String level;
-            final String text;
-            final long time;
-
-            Line(String level, String text, long time) {
-                this.level = level;
-                this.text = text;
-                this.time = time;
-            }
-        }
-
-        LiveCanvasView(Context context) {
-            super(context);
-            setFocusable(true);
-            setClickable(true);
-            paint.setStrokeWidth(1.0f);
-            textPaint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL));
-            monoPaint.setTypeface(Typeface.MONOSPACE);
-            gestures = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+    private static final DiffUtil.ItemCallback<LiveCanvasFeed.Entry> DIFF =
+            new DiffUtil.ItemCallback<LiveCanvasFeed.Entry>() {
                 @Override
-                public boolean onDown(MotionEvent e) {
-                    ViewGroup parent = (ViewGroup) getParent();
-                    if (parent != null) parent.requestDisallowInterceptTouchEvent(true);
-                    return true;
+                public boolean areItemsTheSame(LiveCanvasFeed.Entry oldItem,
+                                               LiveCanvasFeed.Entry newItem) {
+                    return oldItem.id == newItem.id;
                 }
 
                 @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2, float dx, float dy) {
-                    if (e1 != null && e1.getPointerCount() > 1) return false;
-                    panX -= dx;
-                    panY -= dy;
-                    autoFollow = false;
-                    invalidate();
-                    return true;
+                public boolean areContentsTheSame(LiveCanvasFeed.Entry oldItem,
+                                                  LiveCanvasFeed.Entry newItem) {
+                    return oldItem.equals(newItem);
                 }
+            };
 
-                @Override
-                public boolean onDoubleTap(MotionEvent e) {
-                    scale = 1.0f;
-                    panX = 0;
-                    panY = 0;
-                    autoFollow = true;
-                    invalidate();
-                    return true;
-                }
-            });
-            scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                @Override
-                public boolean onScale(ScaleGestureDetector detector) {
-                    float before = scale;
-                    scale = Math.max(0.5f, Math.min(3.0f, scale * detector.getScaleFactor()));
-                    float ratio = scale / before;
-                    // Keep the pinch focus stable while scaling.
-                    panX = (panX + detector.getFocusX()) * ratio - detector.getFocusX();
-                    panY = (panY + detector.getFocusY()) * ratio - detector.getFocusY();
-                    autoFollow = false;
-                    invalidate();
-                    return true;
-                }
-            });
+    private static final class EventHolder extends RecyclerView.ViewHolder {
+        final TextView icon;
+        final TextView message;
+        final TextView meta;
+
+        EventHolder(LinearLayout row, TextView icon, TextView message, TextView meta) {
+            super(row);
+            this.icon = icon;
+            this.message = message;
+            this.meta = meta;
         }
+    }
 
-        void addFile(String path, int percent) {
-            if (path == null || path.isEmpty()) return;
-            synchronized (nodes) {
-                if (!nodes.isEmpty()) {
-                    Node last = nodes.get(nodes.size() - 1);
-                    if (last.path.equals(path)) {
-                        last.percent = percent;
-                        last.time = System.currentTimeMillis();
-                        invalidate();
-                        return;
-                    }
-                }
-                Node n = new Node(path, shortName(path), depthOf(path), percent, System.currentTimeMillis(), kindOf(path));
-                nodes.add(n);
-                while (nodes.size() > MAX_NODES) nodes.remove(0);
-            }
-            if (autoFollow) invalidate();
-        }
+    /**
+     * One lightweight holder for both row kinds.  File and log rows share the
+     * same fixed height, so switching typeface or ellipsis never changes the
+     * page layout.  File paths are monospace and middle-ellipsized; log text
+     * uses the normal sans-serif face and end-ellipsis.
+     */
+    private final class EventAdapter extends ListAdapter<LiveCanvasFeed.Entry, EventHolder> {
 
-        void addLog(String level, String message) {
-            synchronized (logs) {
-                logs.add(new Line(level, message, System.currentTimeMillis()));
-                while (logs.size() > 7) logs.remove(0);
-            }
-            invalidate();
-        }
-
-        void setStage(String stage) {
-            this.stage = stage == null ? "" : stage;
-            invalidate();
-        }
-
-        void setRunning(boolean running) {
-            this.running = running;
-            invalidate();
-        }
-
-        void setPaused(boolean paused) {
-            this.paused = paused;
-            invalidate();
+        EventAdapter() {
+            super(DIFF);
+            setHasStableIds(true);
         }
 
         @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            scaleDetector.onTouchEvent(event);
-            gestures.onTouchEvent(event);
-            if (event.getActionMasked() == MotionEvent.ACTION_UP
-                    || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
-                ViewGroup parent = (ViewGroup) getParent();
-                if (parent != null) parent.requestDisallowInterceptTouchEvent(false);
-                if (event.getActionMasked() == MotionEvent.ACTION_UP) performClick();
-            }
-            return true;
+        public long getItemId(int position) {
+            return getItem(position).id;
         }
 
         @Override
-        public boolean performClick() {
-            super.performClick();
-            return true;
+        public EventHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            Context context = parent.getContext();
+            LinearLayout row = Ui.row(context);
+            row.setLayoutParams(new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(context, 38.0f)));
+            row.setPadding(Ui.dp(context, 10.0f), 0, Ui.dp(context, 8.0f), 0);
+
+            TextView icon = Ui.text(context, "", 14.5f, Ui.GOLD, true);
+            icon.setGravity(Gravity.CENTER);
+            icon.setIncludeFontPadding(false);
+            row.addView(icon, new LinearLayout.LayoutParams(
+                    Ui.dp(context, 24.0f), ViewGroup.LayoutParams.MATCH_PARENT));
+
+            TextView message = Ui.text(context, "", 12.5f, Ui.text(), false);
+            message.setSingleLine(true);
+            message.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+            message.setIncludeFontPadding(false);
+            message.setGravity(Gravity.CENTER_VERTICAL);
+            row.addView(message, new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f));
+
+            TextView meta = Ui.text(context, "", 9.5f, Ui.muted(), true);
+            meta.setSingleLine(true);
+            meta.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+            meta.setIncludeFontPadding(false);
+            row.addView(meta, new LinearLayout.LayoutParams(
+                    Ui.dp(context, 42.0f), ViewGroup.LayoutParams.MATCH_PARENT));
+
+            return new EventHolder(row, icon, message, meta);
         }
 
         @Override
-        protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas);
-            int w = getWidth();
-            int h = getHeight();
-            canvas.drawColor(Ui.dark() ? 0xFF0C0C10 : 0xFFF6F2E8);
-            drawGrid(canvas, w, h);
-
-            synchronized (nodes) {
-                int content = nodes.size() * ROW + 70;
-                float base = autoFollow && content > h ? h - content - 12 : 18;
-                float ty = base + panY;
-                canvas.save();
-                canvas.scale(scale, scale, w / 2.0f, h / 2.0f);
-                canvas.translate(panX, ty);
-                for (int i = 0; i < nodes.size(); i++) {
-                    drawNode(canvas, nodes.get(i), i, w);
-                }
-                canvas.restore();
-            }
-
-            drawFooter(canvas, w, h);
-            if (running) postInvalidateOnAnimation();
-        }
-
-        private void drawGrid(Canvas canvas, int w, int h) {
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Ui.dark() ? 0x14D4AF37 : 0x0AD4AF37);
-            for (int x = 0; x < w; x += 32) {
-                for (int y = 0; y < h; y += 32) canvas.drawCircle(x, y, 0.9f, paint);
-            }
-        }
-
-        private void drawNode(Canvas canvas, Node n, int index, int w) {
-            float y = index * ROW;
-            float x = 14 + Math.min(14, n.depth) * 15;
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(1.0f);
-            paint.setColor(Ui.dark() ? 0x33D4AF37 : 0x33A07C18);
-            if (index > 0) {
-                canvas.drawLine(x - 8, y - ROW / 2.0f, x - 8, y + ROW / 2.0f, paint);
-                canvas.drawLine(x - 8, y, x + 2, y, paint);
-            }
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(colorFor(n.kind));
-            rect.set(x + 2, y - 11, x + 14, y + 1);
-            canvas.drawRoundRect(rect, 2.4f, 2.4f, paint);
-
-            textPaint.setTextSize(sp(11.5f));
-            textPaint.setColor(Ui.text());
-            textPaint.setFakeBoldText(false);
-            canvas.drawText(n.name, x + 22, y - 2, textPaint);
-
-            float barX = x + 22;
-            float barY = y + 6;
-            float barW = Math.min(210, Math.max(90, w - barX - 70));
-            paint.setColor(Ui.dark() ? 0x33FFFFFF : 0x20000000);
-            rect.set(barX, barY, barX + barW, barY + 4.5f);
-            canvas.drawRoundRect(rect, 2.5f, 2.5f, paint);
-            float fraction;
-            if (n.percent >= 0) {
-                fraction = Math.max(0.02f, Math.min(1f, n.percent / 100.0f));
+        public void onBindViewHolder(EventHolder holder, int position) {
+            LiveCanvasFeed.Entry entry = getItem(position);
+            holder.itemView.setBackgroundColor(position % 2 == 0
+                    ? (Ui.dark() ? 0x08FFFFFF : 0x08000000)
+                    : 0x00000000);
+            if (entry.kind == LiveCanvasFeed.Kind.FILE) {
+                holder.icon.setText("✓");
+                holder.icon.setTextColor(fileColor(entry.text));
+                holder.message.setText(entry.text);
+                holder.message.setTypeface(Typeface.MONOSPACE);
+                holder.message.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+                holder.message.setTextColor(Ui.text());
+                holder.meta.setText(entry.percent >= 0
+                        ? String.format(Locale.US, "%d%%", entry.percent) : "");
+                holder.meta.setTextColor(Ui.GOLD);
             } else {
-                fraction = 0.18f + 0.30f * (float) Math.abs(Math.sin((System.currentTimeMillis() - n.time) / 700.0 + index));
-            }
-            paint.setColor(colorFor(n.kind));
-            rect.set(barX, barY, barX + barW * fraction, barY + 4.5f);
-            canvas.drawRoundRect(rect, 2.5f, 2.5f, paint);
-
-            monoPaint.setTextSize(sp(8.5f));
-            monoPaint.setColor(n.percent >= 0 ? Ui.GOLD : Ui.muted());
-            String label = n.percent >= 0 ? n.percent + "%" : "…";
-            canvas.drawText(label, barX + barW + 8, barY + 4, monoPaint);
-        }
-
-        private void drawFooter(Canvas canvas, int w, int h) {
-            float panelH = 78;
-            paint.setColor(Ui.dark() ? 0xE608080B : 0xE6FAF7EF);
-            rect.set(0, h - panelH, w, h);
-            canvas.drawRect(rect, paint);
-            paint.setColor(Ui.dark() ? 0x33D4AF37 : 0x33A07C18);
-            canvas.drawLine(0, h - panelH, w, h - panelH, paint);
-
-            monoPaint.setTextSize(sp(9.5f));
-            monoPaint.setColor(Ui.muted());
-            String head = (paused ? "❚❚ " : "▶ ") + stage + "   ·   zoom "
-                    + String.format(Locale.US, "%.2f", scale) + "×";
-            canvas.drawText(trim(head, 84), 10, h - panelH + 15, monoPaint);
-
-            synchronized (logs) {
-                int start = Math.max(0, logs.size() - 3);
-                for (int i = start; i < logs.size(); i++) {
-                    Line l = logs.get(i);
-                    monoPaint.setColor(levelColor(l.level));
-                    canvas.drawText(trim(l.text, 92), 10, h - panelH + 30 + (i - start) * 15, monoPaint);
-                }
+                holder.icon.setText(symbolFor(entry.level));
+                holder.icon.setTextColor(Ui.levelColor(entry.level));
+                holder.message.setText(entry.text);
+                holder.message.setTypeface(Typeface.SANS_SERIF);
+                holder.message.setEllipsize(TextUtils.TruncateAt.END);
+                holder.message.setTextColor(LogManager.ERROR.equals(entry.level)
+                        ? Ui.ERROR : Ui.text());
+                holder.meta.setText(levelLabel(entry.level));
+                holder.meta.setTextColor(Ui.levelColor(entry.level));
             }
         }
+    }
 
-        private int levelColor(String level) {
-            if (LogManager.ERROR.equals(level)) return 0xFFFF5A5A;
-            if (LogManager.WARN.equals(level)) return 0xFFFFB74D;
-            if (LogManager.SUCCESS.equals(level)) return 0xFF3DDC84;
-            if (LogManager.DEBUG.equals(level)) return 0xFF64B5F6;
-            return Ui.GOLD;
-        }
+    private static String symbolFor(String level) {
+        if (LogManager.ERROR.equals(level)) return "✗";
+        if (LogManager.WARN.equals(level)) return "⚠";
+        if (LogManager.SUCCESS.equals(level)) return "✓";
+        if (LogManager.DEBUG.equals(level)) return "·";
+        return "•";
+    }
 
-        private int colorFor(String kind) {
-            if ("dex".equals(kind)) return Ui.GOLD;
-            if ("java".equals(kind)) return Ui.INFO;
-            if ("native".equals(kind)) return Ui.WARNING;
-            if ("asset".equals(kind)) return Ui.SUCCESS;
-            if ("res".equals(kind)) return 0xFFB58CFF;
-            return Ui.muted();
-        }
+    private static String levelLabel(String level) {
+        if (LogManager.ERROR.equals(level)) return "ERR";
+        if (LogManager.WARN.equals(level)) return "WARN";
+        if (LogManager.SUCCESS.equals(level)) return "OK";
+        if (LogManager.DEBUG.equals(level)) return "DBG";
+        return "INFO";
+    }
 
-        private float sp(float value) {
-            return value * getResources().getDisplayMetrics().scaledDensity;
-        }
-
-        private static String shortName(String path) {
-            int slash = path.lastIndexOf('/');
-            return slash >= 0 ? path.substring(slash + 1) : path;
-        }
-
-        private static int depthOf(String path) {
-            int depth = 0;
-            for (int i = 0; i < path.length(); i++) if (path.charAt(i) == '/') depth++;
-            return depth;
-        }
-
-        private static String kindOf(String path) {
-            String n = path.toLowerCase(Locale.US);
-            if (n.endsWith(".dex") || n.contains("smali")) return "dex";
-            if (n.endsWith(".java") || n.endsWith(".kt")) return "java";
-            if (n.endsWith(".so")) return "native";
-            if (n.startsWith("assets/") || n.contains("/assets/")) return "asset";
-            if (n.startsWith("res/") || n.contains("/res/")) return "res";
-            return "other";
-        }
-
-        private static String trim(String s, int max) {
-            if (s == null) return "";
-            return s.length() <= max ? s : "…" + s.substring(s.length() - max + 1);
-        }
+    private static int fileColor(String path) {
+        String name = path == null ? "" : path.toLowerCase(Locale.US);
+        if (name.endsWith(".dex") || name.contains("smali")) return Ui.GOLD;
+        if (name.endsWith(".java") || name.endsWith(".kt")) return Ui.INFO;
+        if (name.endsWith(".so")) return Ui.WARNING;
+        if (name.startsWith("assets/") || name.contains("/assets/")) return Ui.SUCCESS;
+        if (name.startsWith("res/") || name.contains("/res/")) return 0xFFB58CFF;
+        return Ui.GOLD;
     }
 }
