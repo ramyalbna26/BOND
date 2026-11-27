@@ -81,3 +81,7 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+# Juzoor deliverables (APK is requested by the release task)
+!juzoor/dist/
+!juzoor/dist/*.apk
