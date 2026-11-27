@@ -16,12 +16,11 @@ import android.widget.TextView;
 import com.ramyelbanna.juzoor.core.LogManager;
 import com.ramyelbanna.juzoor.engine.ConversionEngine;
 import com.ramyelbanna.juzoor.engine.ConversionResult;
+import com.ramyelbanna.juzoor.engine.ProjectTreePager;
 import com.ramyelbanna.juzoor.ui.Ui;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -39,8 +38,9 @@ public class ProjectTreeActivity extends BaseActivity {
     public static final String EXTRA_PROJECT = "project";
     public static final String EXTRA_FILE = "file";
     /** One folder page. Keeping this small bounds the rows held in memory. */
-    private static final int PAGE_SIZE = 100;
+    private static final int PAGE_SIZE = ProjectTreePager.DEFAULT_PAGE_SIZE;
 
+    private final ProjectTreePager pager = new ProjectTreePager(PAGE_SIZE);
     private File project;
     private File root;
     private TreeList list;
@@ -172,10 +172,10 @@ public class ProjectTreeActivity extends BaseActivity {
 
     private void loadRoot() {
         if (root == null || !root.isDirectory()) return;
-        List<Node> nodes = page(root, 0, null, 0);
-        adapter.setNodes(nodes);
+        ProjectTreePager.Page page = pager.page(root, 0);
+        adapter.setNodes(nodes(page, 0, null));
         pathLabel.setText(root.getAbsolutePath());
-        status.setText(getString(R.string.tree_lazy, nodes.size()));
+        status.setText(getString(R.string.tree_lazy, adapter.getCount()));
         list.setSelection(0);
     }
 
@@ -196,16 +196,15 @@ public class ProjectTreeActivity extends BaseActivity {
             while (end < adapter.nodes.size() && adapter.nodes.get(end).depth > node.depth) end++;
             for (int i = end - 1; i > index; i--) adapter.nodes.remove(i);
             node.expanded = false;
-            node.loaded = false;
             node.offset = 0;
             adapter.notifyDataSetChanged();
+            status.setText(getString(R.string.tree_lazy, adapter.nodes.size()));
             return;
         }
-        List<Node> children = page(node.file, node.depth + 1, node, 0);
-        adapter.nodes.addAll(index + 1, children);
-        node.offset = loadedChildren(children);
+        ProjectTreePager.Page page = pager.page(node.file, 0);
+        adapter.nodes.addAll(index + 1, nodes(page, node.depth + 1, node));
+        node.offset = page.nextOffset;
         node.expanded = true;
-        node.loaded = true;
         adapter.notifyDataSetChanged();
         status.setText(getString(R.string.tree_lazy, adapter.nodes.size()));
     }
@@ -215,62 +214,45 @@ public class ProjectTreeActivity extends BaseActivity {
         int index = adapter.nodes.indexOf(more);
         if (index < 0) return;
         adapter.nodes.remove(index);
-        List<Node> children;
+        ProjectTreePager.Page page;
+        int depth;
         if (more.parent == null) {
-            children = page(root, 0, null, more.offset);
+            page = pager.page(root, more.offset);
+            depth = 0;
         } else {
-            children = page(more.parent.file, more.parent.depth + 1, more.parent, more.offset);
-            more.parent.offset = more.offset + loadedChildren(children);
+            page = pager.page(more.parent.file, more.offset);
+            depth = more.parent.depth + 1;
+            more.parent.offset = page.nextOffset;
         }
-        adapter.nodes.addAll(index, children);
+        adapter.nodes.addAll(index, nodes(page, depth, more.parent));
         adapter.notifyDataSetChanged();
         status.setText(getString(R.string.tree_lazy, adapter.nodes.size()));
     }
 
-    private static int loadedChildren(List<Node> nodes) {
-        int n = 0;
-        for (Node node : nodes) if (!node.more) n++;
-        return n;
-    }
-
     /**
-     * Lists one page of a directory. A synthetic "more" row carries the parent
-     * and the next offset so the next 100 entries can be fetched on demand.
+     * Converts one pager result into UI rows and adds a synthetic "show more"
+     * row when the folder still has entries beyond this page.
      */
-    private List<Node> page(File dir, int depth, Node parent, int offset) {
-        List<Node> out = new ArrayList<>();
-        if (dir == null || !dir.isDirectory()) return out;
-        File[] files = dir.listFiles();
-        if (files == null) return out;
-        List<File> dirList = new ArrayList<>(Arrays.asList(files));
-        dirList.sort(new Comparator<File>() {
-            @Override
-            public int compare(File a, File b) {
-                if (a.isDirectory() != b.isDirectory()) return a.isDirectory() ? -1 : 1;
-                return a.getName().compareToIgnoreCase(b.getName());
-            }
-        });
-        int from = Math.max(0, offset);
-        int to = Math.min(dirList.size(), from + PAGE_SIZE);
-        for (int i = from; i < to; i++) {
-            File f = dirList.get(i);
+    private List<Node> nodes(ProjectTreePager.Page page, int depth, Node parent) {
+        List<Node> out = new ArrayList<>(page.entries.size() + 1);
+        for (ProjectTreePager.Entry entry : page.entries) {
             Node n = new Node();
-            n.file = f;
-            n.name = f.getName();
-            n.dir = f.isDirectory();
+            n.file = entry.file;
+            n.name = entry.name;
+            n.dir = entry.directory;
             n.depth = depth;
             n.parent = parent;
             out.add(n);
         }
-        if (to < dirList.size()) {
+        if (page.hasMore) {
             Node more = new Node();
-            more.file = dir;
+            more.file = parent == null ? root : parent.file;
             more.dir = false;
             more.more = true;
             more.parent = parent;
-            more.offset = to;
+            more.offset = page.nextOffset;
             more.depth = depth;
-            more.name = getString(R.string.tree_more, dirList.size() - to);
+            more.name = getString(R.string.tree_more, page.total - page.nextOffset);
             out.add(more);
         }
         return out;
@@ -296,7 +278,6 @@ public class ProjectTreeActivity extends BaseActivity {
         String name;
         boolean dir;
         boolean expanded;
-        boolean loaded;
         boolean more;
         int depth;
         int offset;

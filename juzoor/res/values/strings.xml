@@ -220,7 +220,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="confirm_opt_report">Write analysis report</string>
     <string name="confirm_opt_report_d">Generate REPORT.md and analysis/report.json next to the project.</string>
     <string name="confirm_opt_java">Reconstruct Java tree</string>
-    <string name="confirm_opt_java_d">Rebuild a readable Java source tree from the disassembled classes.</string>
+    <string name="confirm_opt_java_d">Decompile DEX classes to real, editable Java with Jadx; stubs are only a fallback.</string>
     <string name="feature_native_title">Native .so Decryptor</string>
     <string name="feature_native_desc">ELF section parsing, packer fingerprints, embedded payload carving and XOR string recovery.</string>
     <string name="feature_strings_title">String Decryptor</string>
@@ -254,10 +254,10 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="home_tool_repackage">Rebuild &amp; sign</string>
     <string name="home_tool_repackage_d">Patch, rebuild and sign APKs locally.</string>
     <string name="home_tool_source">Source &amp; tree</string>
-    <string name="home_tool_source_d">Java/Kotlin skeletons and PROJECT_TREE.</string>
+    <string name="home_tool_source_d">Real Jadx Java sources, Kotlin API mirrors and PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">100% OFFLINE</string>
     <string name="home_logo_desc">Juzoor logo</string>
-    <string name="home_engine">ENGINE 3.0</string>
+    <string name="home_engine">ENGINE 4.0</string>
     <string name="security_title">Security analysis</string>
     <string name="security_sub" formatted="false">Static application security testing — 100% on this device.</string>
     <string name="security_run">Scan an APK</string>
@@ -351,15 +351,15 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="result_clean">Clean</string>
     <string name="confirm_opt_security">Run security analysis (SAST)</string>
     <string name="confirm_opt_security_d">Trackers, hardcoded secrets, manifest hardening and weak crypto.</string>
-    <string name="confirm_opt_kotlin">Generate Kotlin stubs</string>
-    <string name="confirm_opt_kotlin_d">Emit a Kotlin skeleton next to the Java tree.</string>
-    <string name="confirm_opt_source">Generate Java source tree</string>
-    <string name="confirm_opt_source_d">Rebuild readable Java classes, fields and method signatures from DEX.</string>
+    <string name="confirm_opt_kotlin">Generate Kotlin API mirrors</string>
+    <string name="confirm_opt_kotlin_d">Emit editable Kotlin signatures next to the real Java tree (bodies stay Java because DEX loses Kotlin source).</string>
+    <string name="confirm_opt_source">Generate real Java source</string>
+    <string name="confirm_opt_source_d">Decompile DEX into editable .java files with real method bodies using the bundled Jadx engine.</string>
     <string name="settings_security">Security</string>
     <string name="settings_scan">Security analysis</string>
     <string name="settings_scan_d">Run SAST on every conversion.</string>
-    <string name="settings_kotlin">Kotlin stubs</string>
-    <string name="settings_kotlin_d">Generate Kotlin skeletons with the Java tree.</string>
+    <string name="settings_kotlin">Kotlin API mirrors</string>
+    <string name="settings_kotlin_d">Generate editable Kotlin signatures next to the real Java tree.</string>
     <string name="settings_cross">Cross-platform (preview)</string>
     <string name="settings_cross_windows">Windows</string>
     <string name="settings_cross_windows_d">PE, EXE and DLL headers, sections, .NET detection and PyInstaller carving — ready for the next Windows release.</string>
@@ -375,7 +375,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="settings_default_key">Use built-in signing key</string>
     <string name="settings_default_key_d">Local Juzoor key bundled with the app.</string>
     <string name="settings_offline_badge" formatted="false">100% offline</string>
-    <string name="settings_engine_version">Engine 3.0</string>
+    <string name="settings_engine_version">Engine 4.0 · Jadx 1.5.1</string>
     <string name="settings_build">Build</string>
     <string name="settings_copyright">Copyright</string>
     <string name="settings_storage">Storage</string>
@@ -449,6 +449,7 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="err_aab">AAB bundles cannot be expanded on-device. Build an APK set with bundletool, then open the .apks file.</string>
 
     <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
+    <!-- Juzoor 4.0: Jadx Java decompiler, bounded tree pager, Kotlin API mirrors -->
     <string name="common_share">Share</string>
     <string name="tree_title">Project tree</string>
     <string name="tree_none">No recovered project yet. Run a conversion first.</string>
@@ -516,4 +517,6 @@ Copying, redistributing or modifying this application, or any part of its conten
     <string name="result_framework">Framework</string>
 
     <string name="editor_full">Open full code editor</string>
+    <string name="settings_source_engine">Java decompiler</string>
+    <string name="settings_source_engine_d">Bundled Jadx 1.5.1 decompiles DEX to real .java files offline. Kotlin API mirrors are generated from the same class tables.</string>
 </resources>

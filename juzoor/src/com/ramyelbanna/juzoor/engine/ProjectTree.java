@@ -75,7 +75,8 @@ public final class ProjectTree {
         b.append("1. `README.md` — what was recovered and how to open it.\n");
         b.append("2. `app/src/main/AndroidManifest.xml` — decoded manifest (entry activity, permissions).\n");
         b.append("3. `app/src/main/smali*/` — full Smali disassembly, one file per class.\n");
-        b.append("4. `app/src/main/recovered/java|kotlin/` — reconstructed Java/Kotlin skeletons.\n");
+        b.append("4. `app/src/main/recovered/java/` — real Java from ").append(ConversionResult.JAVA_ENGINE)
+                .append("; `recovered/kotlin/` holds editable Kotlin API mirrors.\n");
         b.append("5. `app/src/main/res/` — decoded resources and layouts.\n");
         b.append("6. `app/src/main/jniLibs/` — native `.so` libraries per ABI.\n");
         b.append("7. `REPORT.md` — security and recovery report.\n");

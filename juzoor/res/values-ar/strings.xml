@@ -220,7 +220,7 @@
     <string name="confirm_opt_report">كتابة تقرير التحليل</string>
     <string name="confirm_opt_report_d">توليد REPORT.md وanalysis/report.json بجوار المشروع.</string>
     <string name="confirm_opt_java">إعادة بناء شجرة Java</string>
-    <string name="confirm_opt_java_d">إعادة بناء شجرة كود Java مقروءة من الأصناف المفكّكة.</string>
+    <string name="confirm_opt_java_d">فك ملفات DEX إلى كود Java حقيقي قابل للتعديل بمحرك Jadx، والهياكل احتياطية فقط.</string>
     <string name="feature_native_title">مفكّك المكتبات الأصلية .so</string>
     <string name="feature_native_desc">تحليل أقسام ELF وبصمات الحزم واستخراج الحمولات المضمّنة واستعادة نصوص XOR.</string>
     <string name="feature_strings_title">مفكّك النصوص</string>
@@ -254,10 +254,10 @@
     <string name="home_tool_repackage">إعادة البناء والتوقيع</string>
     <string name="home_tool_repackage_d">تعديل، إعادة بناء، وتوقيع APK محلياً.</string>
     <string name="home_tool_source">المصدر والشجرة</string>
-    <string name="home_tool_source_d">هياكل Java/Kotlin وملف PROJECT_TREE.</string>
+    <string name="home_tool_source_d">كود Java حقيقي من Jadx وهياكل Kotlin وملف PROJECT_TREE.</string>
     <string name="home_badge_offline" formatted="false">أوفلاين 100%</string>
     <string name="home_logo_desc">شعار جذور</string>
-    <string name="home_engine">المحرّك 3.0</string>
+    <string name="home_engine">المحرّك 4.0</string>
     <string name="security_title">تحليل الأمان</string>
     <string name="security_sub" formatted="false">اختبار أمان التطبيقات الساكن — بالكامل على هذا الجهاز.</string>
     <string name="security_run">افحص تطبيقاً</string>
@@ -351,15 +351,15 @@
     <string name="result_clean">نظيف</string>
     <string name="confirm_opt_security">تشغيل تحليل الأمان (SAST)</string>
     <string name="confirm_opt_security_d">التتبع، الأسرار المضمّنة، تحصين البيان، والتشفير الضعيف.</string>
-    <string name="confirm_opt_kotlin">توليد هياكل Kotlin</string>
-    <string name="confirm_opt_kotlin_d">إنتاج هيكل Kotlin بجوار شجرة Java.</string>
-    <string name="confirm_opt_source">توليد شجرة مصدر Java</string>
-    <string name="confirm_opt_source_d">إعادة بناء أصناف Java وحقولها وتوقيعات دوالها من DEX.</string>
+    <string name="confirm_opt_kotlin">توليد واجهات Kotlin</string>
+    <string name="confirm_opt_kotlin_d">إنتاج توقيعات Kotlin قابلة للتعديل بجوار شجرة Java الحقيقية (الأجسام تبقى Java لأن DEX يفقد مصدر Kotlin).</string>
+    <string name="confirm_opt_source">توليد كود Java حقيقي</string>
+    <string name="confirm_opt_source_d">فك DEX إلى ملفات .java قابلة للتعديل بأجسام دوال حقيقية عبر محرك Jadx المدمج.</string>
     <string name="settings_security">الأمان</string>
     <string name="settings_scan">تحليل الأمان</string>
     <string name="settings_scan_d">تشغيل SAST مع كل تحويل.</string>
-    <string name="settings_kotlin">هياكل Kotlin</string>
-    <string name="settings_kotlin_d">توليد هياكل Kotlin مع شجرة Java.</string>
+    <string name="settings_kotlin">واجهات Kotlin</string>
+    <string name="settings_kotlin_d">توليد توقيعات Kotlin قابلة للتعديل بجوار شجرة Java الحقيقية.</string>
     <string name="settings_cross">الأنظمة الأخرى (معاينة)</string>
     <string name="settings_cross_windows">Windows</string>
     <string name="settings_cross_windows_d">ترويسات PE و EXE و DLL والأقسام وكشف .NET واستخراج PyInstaller — جاهزة لإصدار Windows القادم.</string>
@@ -375,7 +375,7 @@
     <string name="settings_default_key">استخدام مفتاح التوقيع المدمج</string>
     <string name="settings_default_key_d">مفتاح جذور المحلي المرفق مع التطبيق.</string>
     <string name="settings_offline_badge" formatted="false">أوفلاين 100%</string>
-    <string name="settings_engine_version">المحرّك 3.0</string>
+    <string name="settings_engine_version">المحرّك 4.0 · Jadx 1.5.1</string>
     <string name="settings_build">الإصدار</string>
     <string name="settings_copyright">حقوق النشر</string>
     <string name="settings_storage">التخزين</string>
@@ -449,6 +449,7 @@
     <string name="err_aab">حزم AAB لا يمكن فكّها على الجهاز. استخدم bundletool لتوليد حزمة APK ثم افتح ملف .apks.</string>
 
     <!-- Juzoor 3.0: lazy tree, editor, search, diff, assets, cross-platform -->
+    <!-- Juzoor 4.0: Jadx Java decompiler, bounded tree pager, Kotlin API mirrors -->
     <string name="common_share">مشاركة</string>
     <string name="tree_title">شجرة المشروع</string>
     <string name="tree_none">لا يوجد مشروع مستخرج بعد. ابدأ تحويلاً أولاً.</string>
@@ -516,4 +517,6 @@
     <string name="result_framework">محرك التطبيق</string>
 
     <string name="editor_full">فتح محرر الأكواد الكامل</string>
+    <string name="settings_source_engine">مفكّك Java</string>
+    <string name="settings_source_engine_d">محرك Jadx 1.5.1 المدمج يفك DEX إلى ملفات .java حقيقية أوفلاين. وتُولّد واجهات Kotlin من نفس جداول الأصناف.</string>
 </resources>

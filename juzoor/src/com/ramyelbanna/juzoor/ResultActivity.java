@@ -56,6 +56,12 @@ public class ResultActivity extends BaseActivity {
         if (z) {
             LinearLayout card2 = Ui.card(this);
             addRow(card2, getString(R.string.result_classes), String.valueOf(this.r.classCount));
+            if (this.r.javaFileCount > 0) {
+                addRow(card2, getString(R.string.result_java), this.r.javaFileCount + " · " + ConversionResult.JAVA_ENGINE);
+            }
+            if (this.r.kotlinFileCount > 0) {
+                addRow(card2, getString(R.string.result_kotlin), String.valueOf(this.r.kotlinFileCount));
+            }
             addRow(card2, getString(R.string.result_files), String.valueOf(this.r.fileCount));
             addRow(card2, getString(R.string.result_resources), String.valueOf(this.r.resourceCount));
             addRow(card2, getString(R.string.result_dex), String.valueOf(this.r.dexCount));

@@ -23,8 +23,8 @@ android {
         applicationId = "com.ramyelbanna.juzoor"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "3.0.0"
+        versionCode = 9
+        versionName = "4.0.0"
     }
 
     signingConfigs {
@@ -66,7 +66,10 @@ android {
             res.srcDirs("res")
             assets.srcDirs("assets")
         }
-        getByName("test").java.srcDirs("test")
+        getByName("test") {
+            java.srcDirs("test")
+            resources.srcDirs("test/resources")
+        }
     }
 
     lint {
@@ -78,8 +81,10 @@ android {
 }
 
 dependencies {
-    // Bundled lite build of the Android apksig library used by Rebuild & Sign.
-    implementation(files("libs/apksig-lite.jar"))
+    // Bundled jars: the lite Android apksig signer, the offline Jadx
+    // decompiler and its DEX/smali runtime dependencies.  Keeping them in
+    // libs/ also lets the standalone build.sh use the exact same versions.
+    implementation(fileTree("libs") { include("*.jar") })
 
     testImplementation(libs.junit)
 }

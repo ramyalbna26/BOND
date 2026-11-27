@@ -11,14 +11,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Recovers a navigable Java / Kotlin source tree straight from the DEX class
+ * Recovers the Java fallback tree and the Kotlin API mirrors from the DEX class
  * tables.
  *
- * <p>For every class definition Juzoor emits a compilable stub that preserves
- * the real package, class name, superclass, interfaces, field types and method
- * signatures. Method bodies are intentionally replaced with a {@code TODO}
- * marker: the executable logic lives in the disassembled {@code smali} tree,
- * while these stubs give an IDE-friendly skeleton and an API map of the app.</p>
+ * <p>The primary Java tree is produced by {@link SourceDecompiler} (Jadx) with
+ * real method bodies.  This writer is the safety net: if Jadx cannot load a DEX
+ * on a low-memory device, it emits compilable Java stubs for that DEX.  Kotlin
+ * files are API mirrors with real package, class, field and method signatures;
+ * they keep the Kotlin tree editable without pretending that JVM bytecode
+ * retains the original Kotlin source.</p>
  */
 public final class SourceWriter {
 
@@ -43,6 +44,22 @@ public final class SourceWriter {
 
     public static Stats write(List<File> dexFiles, File javaRoot, File kotlinRoot,
                               boolean kotlin, LogSink log) {
+        return write(dexFiles, javaRoot, kotlinRoot, kotlin, log, true, true, true);
+    }
+
+    /** Writes Java stubs only for classes Jadx did not already recover. */
+    public static Stats writeJavaFallback(List<File> dexFiles, File javaRoot, LogSink log) {
+        return write(dexFiles, javaRoot, null, false, log, false, true, false);
+    }
+
+    /** Writes the Kotlin API mirror tree without touching the Java tree. */
+    public static Stats writeKotlin(List<File> dexFiles, File kotlinRoot, LogSink log) {
+        return write(dexFiles, null, kotlinRoot, true, log, false, false, true);
+    }
+
+    private static Stats write(List<File> dexFiles, File javaRoot, File kotlinRoot,
+                               boolean kotlin, LogSink log, boolean overwriteJava,
+                               boolean emitJava, boolean emitKotlin) {
         Stats stats = new Stats();
         Map<String, ClassInfo> classes = new LinkedHashMap<>();
         for (File dex : dexFiles) {
@@ -83,31 +100,44 @@ public final class SourceWriter {
                     stats.skipped++;
                     continue;
                 }
-                String rel = c.name.replace('.', '/') + ".java";
-                File out = new File(javaRoot, rel);
-                File parent = out.getParentFile();
-                if (parent != null && !parent.exists()) parent.mkdirs();
-                ZipUtil.writeFile(out, c.toJava());
-                if (log != null && (index == 1 || index % 25 == 0 || index == total)) {
-                    log.file(rel, 87 + (int) (index * 1.0 / Math.max(1, total)));
+                if (emitJava && javaRoot != null) {
+                    String rel = c.name.replace('.', '/') + ".java";
+                    File out = new File(javaRoot, rel);
+                    if (overwriteJava || !out.isFile() || out.length() == 0) {
+                        File parent = out.getParentFile();
+                        if (parent != null && !parent.exists()) parent.mkdirs();
+                        ZipUtil.writeFile(out, c.toJava());
+                        if (log != null && (index == 1 || index % 25 == 0 || index == total)) {
+                            log.file(rel, 87 + (int) (index * 1.0 / Math.max(1, total)));
+                        }
+                        stats.javaFiles++;
+                    }
+                    stats.classes++;
+                    stats.methods += c.methods.size();
+                    stats.fields += c.fields.size();
                 }
-                stats.javaFiles++;
-                stats.classes++;
-                stats.methods += c.methods.size();
-                stats.fields += c.fields.size();
-                if (kotlin && kotlinRoot != null) {
+                if (emitKotlin && kotlin && kotlinRoot != null) {
                     String kname = c.name.replace('$', '_');
                     File kout = new File(kotlinRoot, kname.replace('.', '/') + ".kt");
                     File kparent = kout.getParentFile();
                     if (kparent != null && !kparent.exists()) kparent.mkdirs();
                     ZipUtil.writeFile(kout, c.toKotlin());
                     stats.kotlinFiles++;
+                    if (!emitJava) stats.classes++;
                 }
             } catch (Throwable e) {
                 stats.skipped++;
+                if (log != null) {
+                    log.log(LogManager.DEBUG, "Source skip "
+                            + (c == null ? "?" : c.name) + ": " + e);
+                }
             }
         }
-        if (log != null) log.log(LogManager.INFO, "Source stubs recovered: " + stats.line());
+        if (log != null) {
+            String what = emitJava && emitKotlin ? "Source stubs recovered"
+                    : emitKotlin ? "Kotlin API mirrors recovered" : "Fallback Java stubs recovered";
+            log.log(LogManager.INFO, what + ": " + stats.line());
+        }
         return stats;
     }
 
@@ -171,6 +201,7 @@ public final class SourceWriter {
 
             if (!isInterface() && !isAnnotation()) {
                 for (FieldInfo f : fields) {
+                    if (f.name == null || f.type == null) continue;
                     b.append("    ").append(javaMemberAccess(f.access)).append(f.type)
                             .append(' ').append(f.name).append(";\n");
                 }
@@ -178,6 +209,7 @@ public final class SourceWriter {
             }
 
             for (MethodInfo m : methods) {
+                if (m.name == null || m.ret == null) continue;
                 b.append("    ").append(javaMemberAccess(m.access));
                 boolean body = !isInterface() && !isAnnotation();
                 b.append(m.ret).append(' ').append(m.name).append('(');
@@ -195,19 +227,30 @@ public final class SourceWriter {
         String toKotlin() {
             StringBuilder b = new StringBuilder(1024);
             b.append("// Recovered by Juzoor ").append(ConversionResult.GENERATOR_VERSION)
-                    .append(" — Kotlin stub generated from the DEX class table.\n");
+                    .append(" — Kotlin API mirror generated from the DEX class table.\n");
             if (pkg != null && !pkg.isEmpty()) b.append("package ").append(pkg).append("\n");
             b.append("\n");
-            b.append("/** Recovered stub for {@code ").append(name).append("}. */\n");
+            b.append("/** Recovered API mirror for {@code ").append(name).append("}. */\n");
             b.append(isInterface() ? "interface " : "open class ");
             b.append(simple.replace('$', '_')).append(" {\n");
             for (FieldInfo f : fields) {
+                if (f.name == null) continue;
                 String kt = kotlinType(f.type);
-                b.append("    var ").append(f.name).append(": ").append(kt)
-                        .append(kt.endsWith("?") ? " = null" : " = " + kotlinDefault(f.type)).append('\n');
+                String dflt = kotlinDefault(f.type);
+                b.append("    var ").append(f.name).append(": ").append(kt);
+                if (dflt.equals("null")) {
+                    // Reference, array and boxed fields need a top-level
+                    // nullable marker; inner nullable types such as
+                    // Array<Int?> do not make the array itself nullable.
+                    if (!kt.endsWith("?")) b.append('?');
+                    b.append(" = null\n");
+                } else {
+                    b.append(" = ").append(dflt).append('\n');
+                }
             }
             if (!fields.isEmpty()) b.append('\n');
             for (MethodInfo m : methods) {
+                if (m.name == null) continue;
                 b.append("    fun ").append(m.name.replace('<', '_').replace('>', '_')).append('(');
                 for (int i = 0; i < m.params.size(); i++) {
                     if (i > 0) b.append(", ");
@@ -245,14 +288,22 @@ public final class SourceWriter {
 
     private static String kotlinDefault(String desc) {
         switch (desc) {
-            case "Z": return "false";
+            case "Z":
+            case "boolean": return "false";
             case "B":
             case "S":
-            case "I": return "0";
-            case "J": return "0L";
-            case "F": return "0f";
-            case "D": return "0.0";
-            case "C": return "'\\u0000'";
+            case "I":
+            case "byte":
+            case "short":
+            case "int": return "0";
+            case "J":
+            case "long": return "0L";
+            case "F":
+            case "float": return "0f";
+            case "D":
+            case "double": return "0.0";
+            case "C":
+            case "char": return "'\\u0000'";
             default: return "null";
         }
     }
@@ -260,21 +311,79 @@ public final class SourceWriter {
     private static String kotlinType(String desc) {
         if (desc == null) return "Any?";
         switch (desc) {
-            case "V": return "Unit";
-            case "Z": return "Boolean";
-            case "B": return "Byte";
-            case "S": return "Short";
-            case "C": return "Char";
-            case "I": return "Int";
-            case "J": return "Long";
-            case "F": return "Float";
-            case "D": return "Double";
+            case "V":
+            case "void": return "Unit";
+            case "Z":
+            case "boolean": return "Boolean";
+            case "B":
+            case "byte": return "Byte";
+            case "S":
+            case "short": return "Short";
+            case "C":
+            case "char": return "Char";
+            case "I":
+            case "int": return "Int";
+            case "J":
+            case "long": return "Long";
+            case "F":
+            case "float": return "Float";
+            case "D":
+            case "double": return "Double";
             default: break;
         }
-        if (desc.startsWith("[")) return "Array<" + kotlinType(desc.substring(1)) + ">";
+        if (desc.startsWith("[")) {
+            String inner = desc.substring(1);
+            if (inner.length() == 1) {
+                switch (inner) {
+                    case "Z": return "BooleanArray";
+                    case "B": return "ByteArray";
+                    case "S": return "ShortArray";
+                    case "C": return "CharArray";
+                    case "I": return "IntArray";
+                    case "J": return "LongArray";
+                    case "F": return "FloatArray";
+                    case "D": return "DoubleArray";
+                    default: break;
+                }
+            }
+            return "Array<" + kotlinType(inner) + ">";
+        }
+        if (desc.endsWith("[]")) {
+            String inner = desc.substring(0, desc.length() - 2);
+            switch (inner) {
+                case "boolean": return "BooleanArray";
+                case "byte": return "ByteArray";
+                case "short": return "ShortArray";
+                case "char": return "CharArray";
+                case "int": return "IntArray";
+                case "long": return "LongArray";
+                case "float": return "FloatArray";
+                case "double": return "DoubleArray";
+                default: return "Array<" + kotlinType(inner) + ">";
+            }
+        }
         String n = desc;
         if (n.startsWith("L") && n.endsWith(";")) n = n.substring(1, n.length() - 1).replace('/', '.').replace('$', '_');
         if (n.startsWith("java.lang.") && n.indexOf('.', 10) < 0) n = n.substring(10);
+        if (n.startsWith("java.util.")) n = n.substring(10);
+        if (n.equals("Object")) return "Any";
+        if (n.equals("String")) return "String";
+        if (n.equals("Class")) return "Class<*>?";
+        if (n.equals("Integer")) return "Int?";
+        if (n.equals("Boolean")) return "Boolean?";
+        if (n.equals("Byte")) return "Byte?";
+        if (n.equals("Short")) return "Short?";
+        if (n.equals("Character")) return "Char?";
+        if (n.equals("Long")) return "Long?";
+        if (n.equals("Float")) return "Float?";
+        if (n.equals("Double")) return "Double?";
+        if (n.equals("Number")) return "Number?";
+        if (n.equals("List") || n.equals("Set") || n.equals("Map") || n.equals("Collection")
+                || n.equals("Iterable") || n.equals("Iterator") || n.equals("ArrayList")
+                || n.equals("HashMap") || n.equals("HashSet") || n.equals("LinkedList")
+                || n.equals("TreeMap") || n.equals("TreeSet")) {
+            return n + "<*>";
+        }
         return n;
     }
 
@@ -390,53 +499,67 @@ public final class SourceWriter {
             int instanceFields = uleb(p);
             int directMethods = uleb(p);
             int virtualMethods = uleb(p);
+
+            // field_idx_diff and method_idx_diff are relative to the previous
+            // entry in the same list.  Static and instance fields (and direct
+            // and virtual methods) each restart from zero.
             int fieldIdx = 0;
-            for (int i = 0; i < staticFields + instanceFields; i++) {
-                fieldIdx += uleb(p);
-                int access = uleb(p);
-                if (fieldIdx >= 0 && fieldIdx < fieldIdsSize) {
-                    int base = fieldIdsOff + fieldIdx * 8;
-                    int typeIdx = u16(base + 2);
-                    int nameIdx = i32(base + 4);
-                    FieldInfo f = new FieldInfo();
-                    f.name = safeName(string(nameIdx));
-                    f.type = javaType(typeIdx >= 0 && typeIdx < types.length ? types[typeIdx] : "Ljava/lang/Object;");
-                    f.access = access;
-                    if (f.name != null) c.fields.add(f);
-                }
-            }
+            for (int i = 0; i < staticFields; i++) fieldIdx = readField(c, p, fieldIdx);
+            fieldIdx = 0;
+            for (int i = 0; i < instanceFields; i++) fieldIdx = readField(c, p, fieldIdx);
+
             int methodIdx = 0;
-            for (int i = 0; i < directMethods + virtualMethods; i++) {
-                methodIdx += uleb(p);
-                int access = uleb(p);
-                uleb(p); // code_off — bodies live in the smali tree
-                if (methodIdx < 0 || methodIdx >= methodIdsSize) continue;
-                int base = methodIdsOff + methodIdx * 8;
-                int protoIdx = u16(base + 2);
+            for (int i = 0; i < directMethods; i++) methodIdx = readMethod(c, p, methodIdx);
+            methodIdx = 0;
+            for (int i = 0; i < virtualMethods; i++) methodIdx = readMethod(c, p, methodIdx);
+        }
+
+        int readField(ClassInfo c, int[] p, int fieldIdx) {
+            fieldIdx += uleb(p);
+            int access = uleb(p);
+            if (fieldIdx >= 0 && fieldIdx < fieldIdsSize) {
+                int base = fieldIdsOff + fieldIdx * 8;
+                int typeIdx = u16(base + 2);
                 int nameIdx = i32(base + 4);
-                String name = safeName(string(nameIdx));
-                if (name == null) continue;
-                if (name.equals("<clinit>")) continue;
-                MethodInfo m = new MethodInfo();
-                m.access = access;
-                m.name = name.equals("<init>") ? c.simple : name;
-                if (protoIdx >= 0 && protoIdx < protoIdsSize) {
-                    int pb = protoIdsOff + protoIdx * 12;
-                    int retType = i32(pb + 4);
-                    int paramsOff = i32(pb + 8);
-                    m.ret = javaType(retType >= 0 && retType < types.length ? types[retType] : "V");
-                    if (paramsOff > 0) {
-                        int n = i32(paramsOff);
-                        for (int k = 0; k < n; k++) {
-                            int t = u16(paramsOff + 4 + k * 2);
-                            m.params.add(javaType(t >= 0 && t < types.length ? types[t] : "Ljava/lang/Object;"));
-                        }
-                    }
-                } else {
-                    m.ret = "void";
-                }
-                c.methods.add(m);
+                FieldInfo f = new FieldInfo();
+                f.name = safeName(string(nameIdx));
+                f.type = javaType(typeIdx >= 0 && typeIdx < types.length ? types[typeIdx] : "Ljava/lang/Object;");
+                f.access = access;
+                if (f.name != null) c.fields.add(f);
             }
+            return fieldIdx;
+        }
+
+        int readMethod(ClassInfo c, int[] p, int methodIdx) {
+            methodIdx += uleb(p);
+            int access = uleb(p);
+            uleb(p); // code_off — bodies live in the smali tree
+            if (methodIdx < 0 || methodIdx >= methodIdsSize) return methodIdx;
+            int base = methodIdsOff + methodIdx * 8;
+            int protoIdx = u16(base + 2);
+            int nameIdx = i32(base + 4);
+            String name = safeName(string(nameIdx));
+            if (name == null || name.equals("<clinit>")) return methodIdx;
+            MethodInfo m = new MethodInfo();
+            m.access = access;
+            m.name = name.equals("<init>") ? c.simple : name;
+            if (protoIdx >= 0 && protoIdx < protoIdsSize) {
+                int pb = protoIdsOff + protoIdx * 12;
+                int retType = i32(pb + 4);
+                int paramsOff = i32(pb + 8);
+                m.ret = javaType(retType >= 0 && retType < types.length ? types[retType] : "V");
+                if (paramsOff > 0) {
+                    int n = i32(paramsOff);
+                    for (int k = 0; k < n; k++) {
+                        int t = u16(paramsOff + 4 + k * 2);
+                        m.params.add(javaType(t >= 0 && t < types.length ? types[t] : "Ljava/lang/Object;"));
+                    }
+                }
+            } else {
+                m.ret = "void";
+            }
+            c.methods.add(m);
+            return methodIdx;
         }
 
         /** Converts a DEX type descriptor (Lcom/foo/Bar;) to a dotted, sanitized class name. */

@@ -1,44 +1,43 @@
-# جذور — Juzoor 3.0
+# جذور — Juzoor 4.0
 
 **أصل البذور — أوفلاين 100%. بلا إنترنت. بلا روت.**
 **Origin of the Seeds — 100% offline. No internet. No root.**
 
 Juzoor turns an Android package into a navigable project: decoded manifest,
-decoded resources, Smali, Java/Kotlin skeletons, native-library analysis,
-recovered strings, security findings and a buildable Gradle project — all on
-the device.
+decoded resources, Smali, **real Java source**, Kotlin API mirrors, native
+analysis, recovered strings, security findings and a buildable Gradle project —
+all on the device.
 
 APK, APK+, XAPK, APKS and APKM are expanded locally. AAB is recognised and the
 app explains that it must first be turned into an APK set with `bundletool`,
 because an AAB carries a protobuf manifest/resource table that cannot be
 expanded to a buildable APK on-device.
 
-## What is new in 3.0
+## What is new in 4.0
 
-* **Every DEX string, every byte** — the complete string table is extracted
-  (the report shows 100%, not only the decoded subset) and a second
-  `BufferedInputStream` pass recovers printable runs outside `string_ids`.
-* **Raw-byte string decoding** — Base64, hex, ROT13, single-byte and
-  repeating-key XOR are applied to the exact MUTF-8 bytes of each entry, not
-  only to already-decoded Unicode. This is what makes non-ASCII XOR tables
-  recoverable.
-* **Real UPX block decoding** — the UPX `l_info`/`p_info` trailer is parsed
-  instead of blindly scanning for `UPX!`, and NRV2B/NRV2D/NRV2E blocks are
-  decompressed with ports of the reference UCL decoders. The recovered payload
-  is written as `.payload.bin` and scanned for strings and embedded files.
-* **Fewer false positives** — a random `UPX!` string inside a PDF library is no
-  longer reported as a packed binary.
-* **Paged project tree** — folders list 100 entries at a time with a "show
-  more" row, keeping memory bounded on 18,000+ file projects.
-* **Everything from 2.3** — lazy tree with zoom/pan, framework detection
-  (Flutter/Unity/React Native/Xamarin/Cocos/Godot/Cordova), global regex
-  search, APK diff, syntax-highlighted editor with `mapping.txt`, assets
-  viewer, offline cross-platform analyser, gold UI, dark mode, font scaling
+* **Real Java decompilation** — the bundled open-source **Jadx 1.5.1** engine
+  turns every DEX class into editable `.java` files with real method bodies,
+  not throwing skeletons. The DEX input plugin is registered explicitly, so it
+  works from an APK without desktop service-loader files.
+* **Memory-bounded tree** — `ProjectTreePager` reads folder names, keeps only
+  one 100-row page and lists the next page on demand. Opening a folder with
+  18,000+ entries no longer creates 18,000 rows.
+* **Safe fallback** — if Jadx cannot load a DEX on a low-memory phone, only
+  that DEX falls back to the previous stubs; the rest of the Java tree stays
+  real. A corrupt DEX never crashes the conversion.
+* **Kotlin API mirrors** — Kotlin files keep real package, class, field and
+  method signatures next to the Java tree. JVM bytecode does not retain the
+  original Kotlin source, so executable bodies live in `.java`; this is stated
+  in the generated `recovered/README.md`.
+* **Everything from 3.0** — full DEX string table with raw-byte Base64/hex/
+  ROT13/XOR decoding, UPX NRV2B/NRV2D/NRV2E block decoding, Flutter/Unity
+  framework alerts, global regex search, APK diff, syntax-highlighted editor,
+  assets viewer, cross-platform preview, gold UI, dark mode, font scaling
   100–150%, live canvas, coloured logcat and the legal security warning.
 
 ## Build
 
-Requirements: JDK 17, Android SDK build-tools 34.0.0, platform android-34.
+Requirements: JDK 17, Android SDK build-tools 35.0.0, platform android-35.
 
 ```bash
 # Reproducible raw build (aapt2 + javac + d8 + apksigner)
@@ -48,7 +47,7 @@ ANDROID_SDK_ROOT=/path/to/sdk ./build.sh
 cd .. && ./gradlew :juzoor:testDebugUnitTest :juzoor:assembleRelease
 ```
 
-The raw build writes `../build/apk/Juzoor-v3.0.0.apk`. The Gradle release writes
+The raw build writes `../build/apk/Juzoor-v4.0.0.apk`. The Gradle release writes
 `build/outputs/apk/release/juzoor-release.apk`.
 
 `package.sh` copies the Gradle APK to `dist/` and creates a clean source ZIP.
@@ -57,10 +56,11 @@ The raw build writes `../build/apk/Juzoor-v3.0.0.apk`. The Gradle release writes
 
 ```
 src/com/ramyelbanna/juzoor/        activities, service, queue, guard, editor
-src/com/ramyelbanna/juzoor/engine/ DEX, AXML, ARSC, ELF, SAST, project writer
+src/com/ramyelbanna/juzoor/engine/ Jadx, DEX, AXML, ARSC, ELF, SAST, project writer
 src/com/ramyelbanna/juzoor/core/   preferences, logging, signing key
 res/                               gold premium UI, English + Arabic copies
-libs/apksig-lite.jar               local APK signer used by Rebuild & Sign
+libs/                              apksig-lite + bundled Jadx runtime jars
+test/resources/sample.dex          decompiler regression fixture
 ```
 
 ## Security
@@ -70,13 +70,16 @@ libs/apksig-lite.jar               local APK signer used by Rebuild & Sign
 * `SecurityGuard` detects a connected debugger, Frida/Xposed/Riru/Zygisk
   mappings and emulator fingerprints. A red/black legal warning is shown,
   the incident is written to the log directory, and the process is closed.
-* Release builds are processed by R8 with a narrow keep list.
+* Release builds are processed by R8 with a narrow keep list (the embedded
+  Jadx API is kept so the decompiler keeps working after shrinking).
 
 Debug builds (`applicationId` ending in `.debug`) skip the guard so the
 developer build can run on an emulator.
 
 ## Limitations
 
+* Kotlin decompilation is API-level only. Jadx outputs Java; the Kotlin tree is
+  an editable signature mirror, not reconstructed Kotlin source.
 * AAB is expanded only after conversion to an APK set with `bundletool`.
 * UPX payloads are decompressed but not relinked: the loader's relocation and
   filter metadata is required to turn the blocks back into a runnable `.so`.
@@ -87,6 +90,8 @@ developer build can run on an emulator.
   but not decompressed on-device; gzip payloads and DMG metadata are extracted.
 * PyInstaller scripts are saved as `.pyc` (ready for a Python decompiler);
   Juzoor does not embed a Python bytecode decompiler.
+
+Third-party components and licences are listed in `THIRD_PARTY_NOTICES.md`.
 
 ## Copyright
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Juzoor 3.0 — reproducible build script
-# Requirements: JDK 17, Android SDK build-tools 34.0.0 + platform android-34
+# Juzoor 4.0 — reproducible build script
+# Requirements: JDK 17, Android SDK build-tools 35.0.0 + platform android-35
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 SDK="${ANDROID_SDK_ROOT:-$ROOT/../tools/sdk}"
-BT="$SDK/build-tools/34.0.0"
-JAR="$SDK/platforms/android-34/android.jar"
+BT="$SDK/build-tools/35.0.0"
+JAR="$SDK/platforms/android-35/android.jar"
 OUT="$ROOT/../build"
 KS="${KEYSTORE:-$OUT/juzoor.jks}"
 
@@ -39,7 +39,9 @@ echo "==> d8"
 
 echo "==> package"
 cp "$OUT/apk/base.apk" "$OUT/apk/unsigned.apk"
-(cd "$OUT/dex" && jar uf "$OUT/apk/unsigned.apk" classes.dex)
+# Jadx + its DEX parser can push the app past one dex's method limit, so d8 may
+# emit classes.dex, classes2.dex, ...  Native multidex (minSdk 26) loads them.
+(cd "$OUT/dex" && jar uf "$OUT/apk/unsigned.apk" classes*.dex)
 "$ZIPALIGN" -f -p 4 "$OUT/apk/unsigned.apk" "$OUT/apk/aligned.apk"
 
 echo "==> sign"
@@ -50,7 +52,7 @@ if [ ! -f "$KS" ]; then
 fi
 "$APKSIGNER" sign --ks "$KS" --ks-pass pass:juzoor --key-pass pass:juzoor \
   --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
-  --out "$OUT/apk/Juzoor-v3.0.0.apk" "$OUT/apk/aligned.apk"
-"$APKSIGNER" verify "$OUT/apk/Juzoor-v3.0.0.apk"
+  --out "$OUT/apk/Juzoor-v4.0.0.apk" "$OUT/apk/aligned.apk"
+"$APKSIGNER" verify "$OUT/apk/Juzoor-v4.0.0.apk"
 
-echo "==> done: $OUT/apk/Juzoor-v3.0.0.apk"
+echo "==> done: $OUT/apk/Juzoor-v4.0.0.apk"

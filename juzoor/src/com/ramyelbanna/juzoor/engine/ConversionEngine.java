@@ -295,17 +295,43 @@ public class ConversionEngine {
                 ProjectWriter.write(project, result, options, libs, decodedManifest, log);
             }
 
-            /* -------------------------------------------------- source stubs */
+            /* ------------------------------------------------ real Java source */
             if (options.sourceStubs && options.generateProject) {
-                log.progress(87, "Recovering Java / Kotlin source stubs");
+                File javaRoot = new File(main, "recovered/java");
+                File kotlinRoot = new File(main, "recovered/kotlin");
+                log.progress(87, "Decompiling Java sources with Jadx");
                 try {
-                    SourceWriter.Stats st = SourceWriter.write(dexFiles, new File(main, "recovered/java"),
-                            new File(main, "recovered/kotlin"), options.kotlinStubs, log);
-                    result.javaFileCount = st.javaFiles;
-                    result.kotlinFileCount = st.kotlinFiles;
+                    SourceDecompiler.Stats src = SourceDecompiler.decompile(dexFiles, javaRoot, workDir, log);
+                    int javaFiles = src.javaFiles;
+                    if (!src.failedDexes.isEmpty()) {
+                        log.log(LogManager.WARN, "Jadx fell back to stubs for "
+                                + src.failedDexes.size() + " DEX file(s)");
+                        SourceWriter.Stats fallback = SourceWriter.writeJavaFallback(src.failedDexes, javaRoot, log);
+                        javaFiles += fallback.javaFiles;
+                    }
+                    result.javaFileCount = javaFiles;
+                    result.javaSkippedCount = src.skipped;
+                    log.log(LogManager.INFO, "Java sources: " + javaFiles + " files ("
+                            + SourceDecompiler.ENGINE + ")" + (src.skipped > 0 ? ", " + src.skipped + " skipped" : ""));
                 } catch (Throwable t) {
-                    result.warnings.add("Source stubs failed: " + t);
-                    log.log(LogManager.WARN, "Source stubs failed: " + t);
+                    result.warnings.add("Java decompilation failed: " + t);
+                    log.log(LogManager.WARN, "Java decompilation failed: " + t);
+                    try {
+                        SourceWriter.Stats fallback = SourceWriter.writeJavaFallback(dexFiles, javaRoot, log);
+                        result.javaFileCount = fallback.javaFiles;
+                    } catch (Throwable ignored) {
+                    }
+                }
+
+                if (options.kotlinStubs) {
+                    log.progress(90, "Writing Kotlin API mirrors");
+                    try {
+                        SourceWriter.Stats st = SourceWriter.writeKotlin(dexFiles, kotlinRoot, log);
+                        result.kotlinFileCount = st.kotlinFiles;
+                    } catch (Throwable t) {
+                        result.warnings.add("Kotlin sources failed: " + t);
+                        log.log(LogManager.WARN, "Kotlin sources failed: " + t);
+                    }
                 }
             }
             checkCancel();

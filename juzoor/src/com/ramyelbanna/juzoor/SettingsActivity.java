@@ -103,6 +103,7 @@ public class SettingsActivity extends BaseActivity {
         });
         info(getString(R.string.settings_scan), getString(R.string.settings_scan_d));
         header(getString(R.string.source_title));
+        info(getString(R.string.settings_source_engine), getString(R.string.settings_source_engine_d));
         toggle(getString(R.string.settings_kotlin), Prefs.kotlinStubs(), new Cb() {
             @Override
             public void on(boolean z) {

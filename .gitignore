@@ -7,6 +7,9 @@
 # Files for the ART/Dalvik VM
 *.dex
 
+# ...except the small decompiler regression fixture committed with the tests.
+!juzoor/test/resources/*.dex
+
 # Java class files
 *.class
 

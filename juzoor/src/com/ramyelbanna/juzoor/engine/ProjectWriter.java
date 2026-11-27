@@ -44,11 +44,13 @@ public final class ProjectWriter {
                     "/** Recovered by Juzoor. Add the decompiled Java sources here. */\npackage " + pkg + ";\n");
             write(new File(root, "app/src/main/recovered/README.md"),
                     "# Recovered source (not compiled)\n\n"
-                            + "`java/` and `kotlin/` contain the IDE-friendly class skeletons generated\n"
-                            + "from the DEX class table. They are intentionally kept outside the Gradle\n"
-                            + "source set: the original APK does not ship dependency jars, so compiling\n"
-                            + "recovered stubs without those jars would produce errors. The project\n"
-                            + "itself builds cleanly with the decoded manifest and resources.\n");
+                            + "`java/` contains real method bodies decompiled from DEX by "
+                            + ConversionResult.JAVA_ENGINE + ".\n"
+                            + "`kotlin/` contains editable Kotlin API mirrors generated from the same\n"
+                            + "class table; JVM bytecode does not retain the original Kotlin source, so\n"
+                            + "the executable bodies live in the Java tree. Both folders stay outside the\n"
+                            + "Gradle source set because the original APK does not ship dependency jars.\n"
+                            + "The project itself builds cleanly with the decoded manifest and resources.\n");
         }
         log.log(LogManager.DEBUG, "Gradle project written (" + name + ", " + libs.size() + " dependencies)");
     }
@@ -213,6 +215,9 @@ public final class ProjectWriter {
                 .append(r.frameworkAssets > 0 ? " (" + r.frameworkAssets + " assets)" : "").append(" |\n");
         b.append("| Native libs | ").append(r.nativeLibCount).append(" |\n");
         b.append("| Libraries | ").append(r.libraryCount).append(" |\n");
+        b.append("| Java sources | ").append(r.javaFileCount)
+                .append(" (").append(ConversionResult.JAVA_ENGINE).append(") |\n");
+        b.append("| Kotlin mirrors | ").append(r.kotlinFileCount).append(" |\n");
         b.append("| Files | ").append(r.fileCount).append(" |\n");
         if (r.isBundle) {
             b.append("| Bundle | ").append(r.bundleKind).append(" (").append(r.splitCount + 1).append(" APKs merged) |\n");
@@ -228,7 +233,8 @@ public final class ProjectWriter {
         b.append("- `app/src/main/assets/` — original assets\n");
         b.append("- `app/src/main/jniLibs/<abi>/` — native libraries\n");
         b.append("- `app/src/main/smali*/` — disassembled Dalvik bytecode\n");
-        b.append("- `app/src/main/recovered/java|kotlin/` — IDE-friendly class skeletons\n");
+        b.append("- `app/src/main/recovered/java/` — real decompiled Java sources\n");
+        b.append("- `app/src/main/recovered/kotlin/` — Kotlin API mirrors (signatures)\n");
         b.append("- `analysis/` — ELF reports, string tables, carved payloads, libraries\n");
         b.append("- `REPORT.md` — complete human readable analysis\n\n");
         b.append("## Building\n\n");
@@ -237,7 +243,8 @@ public final class ProjectWriter {
         b.append("3. Press Run, or run `gradle assembleDebug` from this folder.\n\n");
         b.append("`recovered/` is intentionally outside the Gradle source set because an APK\n");
         b.append("does not contain the dependency jars needed to compile every recovered\n");
-        b.append("class. Use it as an API map next to the full `smali*/` tree.\n\n");
+        b.append("class. The Java tree contains real Jadx method bodies; use the Kotlin\n");
+        b.append("tree as an editable API mirror next to the full `smali*/` tree.\n\n");
         b.append("---\n\n© 2027 Ramy El-Banna — Juzoor™\n");
         return b.toString();
     }
@@ -251,11 +258,13 @@ public final class ProjectWriter {
                         + "  \"strings\": {\"total\": %d, \"encoded\": %d, \"recovered\": %d},\n"
                         + "  \"bundle\": %s,\n  \"bundleKind\": \"%s\",\n  \"splits\": %d,\n"
                         + "  \"framework\": \"%s\",\n  \"frameworkAssets\": %d,\n"
+                        + "  \"javaEngine\": \"%s\",\n  \"javaSources\": %d,\n  \"kotlinMirrors\": %d,\n"
                         + "  \"durationMs\": %d\n}\n",
                 pkg, r.versionName, r.versionCode, r.classCount, r.resourceCount, r.fileCount,
                 r.dexCount, r.nativeLibCount, r.libraryCount, r.packers.size(),
                 r.stringTotal, r.stringEncrypted, r.stringRecovered,
                 r.isBundle, r.bundleKind, r.splitCount,
-                r.framework == null ? "native" : r.framework, r.frameworkAssets, r.durationMs);
+                r.framework == null ? "native" : r.framework, r.frameworkAssets,
+                ConversionResult.JAVA_ENGINE, r.javaFileCount, r.kotlinFileCount, r.durationMs);
     }
 }

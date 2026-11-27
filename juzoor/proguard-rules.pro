@@ -46,3 +46,28 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+
+# ---------------------------------------------------------------------------
+# Embedded Jadx 1.5.1 decompiler
+# ---------------------------------------------------------------------------
+# Jadx is called through its public API and internally resolves passes and the
+# DEX input plugin. Keep the engine intact rather than relying on R8's guesses.
+-keep class jadx.** { *; }
+-keep class org.slf4j.** { *; }
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
+
+# Desktop-only branches of Jadx reference AWT/XML classes that Android does not
+# ship. They are never reached because Juzoor skips resources and configures an
+# offline security provider, but R8 still needs to know the gap is intentional.
+-dontwarn java.awt.**
+-dontwarn java.beans.**
+-dontwarn javax.swing.**
+-dontwarn javax.xml.**
+-dontwarn org.checkerframework.**
+-dontwarn com.google.errorprone.**
+-dontwarn com.google.j2objc.**
+-dontwarn com.google.common.**
+-dontwarn org.jspecify.**
+-dontwarn com.beust.jcommander.**
+-dontwarn javax.imageio.**
+-dontwarn org.jetbrains.annotations.**

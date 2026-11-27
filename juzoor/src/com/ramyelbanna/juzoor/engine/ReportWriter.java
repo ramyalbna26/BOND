@@ -58,7 +58,10 @@ public final class ReportWriter {
         b.append("| Libraries detected | ").append(r.libraryCount).append(" |\n");
         b.append("| Strings extracted | ").append(r.stringTotal).append(" (100% of DEX string table) |\n");
         b.append("| Strings encoded | ").append(r.stringEncrypted).append(" |\n");
-        b.append("| Strings decoded | ").append(r.stringRecovered).append(" |\n\n");
+        b.append("| Strings decoded | ").append(r.stringRecovered).append(" |\n");
+        b.append("| Java sources | ").append(r.javaFileCount)
+                .append(" (").append(ConversionResult.JAVA_ENGINE).append(") |\n");
+        b.append("| Kotlin API mirrors | ").append(r.kotlinFileCount).append(" |\n\n");
 
         if (!r.packers.isEmpty()) {
             b.append("## Protectors / packers\n\n");
@@ -210,7 +213,8 @@ public final class ReportWriter {
         b.append("app/src/main/assets/               original assets\n");
         b.append("app/src/main/jniLibs/<abi>/        native libraries\n");
         b.append("app/src/main/smali*/               disassembled Dalvik bytecode\n");
-        b.append("app/src/main/recovered/java|kotlin/ recovered class skeletons (not compiled)\n");
+        b.append("app/src/main/recovered/java/    real decompiled Java (Jadx)\n");
+        b.append("app/src/main/recovered/kotlin/  Kotlin API mirrors (not compiled)\n");
         b.append("analysis/native/                   ELF reports, strings, carved payloads\n");
         b.append("analysis/strings/                  DEX string tables and decoded entries\n");
         b.append("analysis/libraries.json            detected dependencies\n");
@@ -267,6 +271,10 @@ public final class ReportWriter {
                 .append(", \"extracted\": ").append(r.stringTotal)
                 .append(", \"encoded\": ").append(r.stringEncrypted)
                 .append(", \"recovered\": ").append(r.stringRecovered).append("},\n");
+        b.append("  \"source\": {\"engine\": \"").append(jsonEsc(ConversionResult.JAVA_ENGINE))
+                .append("\", \"javaFiles\": ").append(r.javaFileCount)
+                .append(", \"kotlinFiles\": ").append(r.kotlinFileCount)
+                .append(", \"skipped\": ").append(r.javaSkippedCount).append("},\n");
         b.append("  \"libraries\": ").append(LibrarySupport.toJson(libs)).append(",\n");
         if (r.security != null) {
             b.append("  \"security\": {\"riskScore\": ").append(r.security.riskScore)

@@ -7,7 +7,9 @@ import java.util.List;
 /** Everything a finished conversion reports back to the UI. */
 public class ConversionResult {
     /** Single source of truth for every generated report and README. */
-    public static final String GENERATOR_VERSION = "3.0.0";
+    public static final String GENERATOR_VERSION = "4.0.0";
+    /** Embedded Java decompiler shown in the UI and reports. */
+    public static final String JAVA_ENGINE = "Jadx 1.5.1";
 
     public File apkFile;
     public long bytes;
@@ -54,6 +56,7 @@ public class ConversionResult {
     public int secretCount = 0;
     public int javaFileCount = 0;
     public int kotlinFileCount = 0;
+    public int javaSkippedCount = 0;
     public File treeFile;
 
     /* --- Juzoor 2.3: cross-platform runtimes --- */
